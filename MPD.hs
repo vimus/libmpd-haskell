@@ -19,6 +19,7 @@
 
 
 -- | MPD client library.
+--
 module MPD (-- * Connections
             Connection, connect, close,
 
@@ -215,20 +216,18 @@ ping :: Connection -> IO ()
 ping conn = getResponse conn "ping" >> return ()
 
 
--- | Set random playing. TODO: Nothing case.
+-- | Set random playing.
 --
-random :: Connection -> Maybe Bool -> IO ()
-random conn (Just True)  = getResponse conn "random 1" >> return ()
-random conn (Just False) = getResponse conn "random 0" >> return ()
-random _    Nothing      = return () -- TODO: Toggle random.
+random :: Connection -> Bool -> IO ()
+random conn True  = getResponse conn "random 1" >> return ()
+random conn False = getResponse conn "random 0" >> return ()
 
 
--- | Set repeating. TODO: Nothing case.
+-- | Set repeating.
 --
-repeat :: Connection -> Maybe Bool -> IO ()
-repeat conn (Just True)  = getResponse conn "repeat 1" >> return ()
-repeat conn (Just False) = getResponse conn "repeat 0" >> return ()
-repeat _    Nothing      = return () -- TODO: Toggle repeat.
+repeat :: Connection -> Bool -> IO ()
+repeat conn True  = getResponse conn "repeat 1" >> return ()
+repeat conn False = getResponse conn "repeat 0" >> return ()
 
 
 -- | Set the volume. TODO
@@ -250,6 +249,7 @@ stats _ = return ()
 
 
 -- | Begin\/continue playing.
+--
 play :: Connection -> PLIndex -> IO ()
 play conn PLNone  = getResponse conn "play" >> return ()
 play conn (Pos x) = getResponse conn ("play " ++ show (x-1)) >> return ()
@@ -257,29 +257,34 @@ play conn (ID x)  = getResponse conn ("playid " ++ show x) >> return ()
 
 
 -- | Pause playing.
+--
 pause :: Connection -> Bool -> IO ()
 pause conn on =
     getResponse conn ("pause " ++ if on then "1" else "0") >> return ()
 
 
 -- | Stop playing.
+--
 stop :: Connection -> IO ()
 stop conn = getResponse conn "stop" >> return ()
 
 
 -- | Play the next song.
+--
 next :: Connection -> IO ()
 next conn = getResponse conn "next" >> return ()
 
 
 -- | Play the previous song.
+--
 previous :: Connection -> IO ()
 previous conn = getResponse conn "previous" >> return ()
 
 
 -- | Seek to some point in a song. TODO
-seek :: Connection -> IO ()
-seek _ = return ()
+--
+seek :: Connection -> PLIndex -> Seconds -> IO ()
+seek _ _ _ = return ()
 
 
 
@@ -312,16 +317,28 @@ move :: Connection -> PLIndex -> Integer -> IO ()
 move _ _ _ = return ()
 
 
--- |  TODO
+-- | Retrieve the current playlist with each entry's playlist ID.
 --
-playlist :: Connection -> IO [String]
-playlist _ = return []
+playlist :: Connection -> IO [(PLIndex,Song)]
+playlist conn = do
+    pl <- getResponse conn "playlistinfo" >>= return . kvise
+    if null pl then return []
+               else return (map takeInfo (splitSongs pl))
+        where splitSongs [] = []
+              splitSongs (x:xs) = ((x:us):splitSongs vs)
+                  where (us,vs) = break (\y -> fst x == fst y) xs
+              takeInfo :: [(String,String)] -> (PLIndex,Song)
+              takeInfo xs =
+                  (maybe PLNone (ID . read) (lookup "Id" xs),
+                   Song (maybe "" id $ lookup "Artist" xs)
+                        (maybe "" id $ lookup "Album" xs)
+                        (maybe "" id $ lookup "Title" xs))
 
 
--- | Shuffle the playlist. TODO
+-- | Shuffle the playlist.
 --
 shuffle :: Connection -> IO ()
-shuffle _ = return ()
+shuffle conn = getResponse conn "shuffle" >> return ()
 
 
 -- |  TODO
