@@ -1,0 +1,41 @@
+
+           libmpd-haskell : A MPD client library for Haskell
+         -----------------------------------------------------
+
+Dependencies:
+    The Glasgow Haskell Compiler >= 6.4       http://haskell.org/ghc
+    Cabal > 1.0                               http://haskell.org/cabal
+
+Building:
+    $ chmod +x configure Setup.lhs
+    $ ./Setup.lhs configure --prefix=/home/ben
+    $ ./Setup.lhs build
+    $ ./Setup.lhs install
+
+    This assumes you have Cabal installed. Cabal is installed by
+    default with newer GHCs.
+
+Use:
+
+    Import the MPD module, and use the mpd package (-package mpd) or
+    add it to the `Build-Depends' list in your `.cabal' file.
+
+Initialisation:
+
+    Provide a running MPD's hostname and port to MPD.connect.
+
+Limitations:
+
+    It's not thread-safe at the moment, though it wouldn't be too hard
+    to improve that. Very little actual functionality is working yet,
+    but the interface is mostly there to see and link to.
+
+Platforms:
+    libmpd-haskell has been confirmed to work on:
+        Linux/x86
+
+License:
+    LGPL
+
+Author:
+    Ben Sinclair <bsinclai@turing.une.edu.au>, Mon Nov 12 03:57:30 EST 2005

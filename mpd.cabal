@@ -1,0 +1,15 @@
+Name:            mpd
+Version:         0.1
+License:         LGPL
+License-file:    LICENSE
+Copyright:       Ben Sinclair 2005
+Author:          Ben Sinclair
+Maintainer:      bsinclai@turing.une.edu.au
+Stability:       alpha
+Homepage:        http://turing.une.edu.au/~bsinclai/code
+Package-URL:     http://turing.une.edu.au/~bsinclai/code/libmpd-haskell.tar.gz
+Synopsis:        A library for interfacing with MPDs (Music Playing Daemon)
+Tested-With:     GHC == 6.5
+Build-Depends:   base, network
+Exposed-Modules: MPD
+ghc-options:     -Wall -O2
