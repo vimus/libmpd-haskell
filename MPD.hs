@@ -1,5 +1,5 @@
 {-
-    libmpd for Haskell
+    libmpd for Haskell, a MPD client library.
     Copyright (C) 2005  Ben Sinclair <bsinclai@turing.une.edu.au>
 
     This library is free software; you can redistribute it and/or
@@ -20,7 +20,9 @@
 
 -- | MPD client library.
 --
-module MPD (-- * Connections
+module MPD (
+
+            -- * Connections
             Connection, connect, close,
 
             -- * Status
@@ -29,7 +31,7 @@ module MPD (-- * Connections
             Song(..), currentSong,
 
             -- * Server control
-            kill, update, ping, random, repeat, setvol, stats,
+            kill, ping, random, repeat, setvol, stats,
 
             -- * Player
             play, pause, stop, next, previous, seek,
@@ -38,8 +40,10 @@ module MPD (-- * Connections
             add, clear, delete, move, playlist, shuffle, swap,
 
             -- * Database
-            list, listall, listArtists, listAlbums,
+            update, list, listall,
+            listArtists, listAlbums, listAlbum,
             SearchType(..), find
+
            ) where
 
 
@@ -111,7 +115,8 @@ data Status =
 -- | Description of a song.
 --
 data Song = Song { sgArtist, sgAlbum, sgTitle, sgFilePath :: String,
-                   sgIndex :: PLIndex }
+                   sgIndex :: PLIndex,
+                   sgLength :: Seconds }
             deriving Show
 
 
@@ -151,27 +156,26 @@ checkConn (Conn h) = hGetLine h >>= return . isPrefixOf "OK MPD"
 --
 
 
--- | Get the current status of the MPD daemon.
+-- | Get the server's status.
 --
 status :: Connection -> IO Status
 status conn = do ls <- getResponse conn "status" >>= return . kvise
                  return $ parseStatus ls
     where parseStatus xs =
-              Stat { stState  = maybe Stopped parseState $ lookup  "state" xs,
-                     stVolume = maybe 0 read           $ lookup   "volume" xs,
-                     stRepeat = maybe False parseBool  $ lookup   "repeat" xs,
-                     stRandom = maybe False parseBool  $ lookup   "random" xs,
-                     stPlaylistVersion = maybe 0 read  $ lookup "playlist" xs,
-                     stPlaylistLength = maybe 0 read   $
-                                        lookup "playlistlength" xs,
-                     stXFadeWidth = maybe 0 read       $ lookup    "xfade" xs,
+              Stat { stState = maybe Stopped parseState $ lookup "state" xs,
+                     stVolume = maybe 0 read $ lookup "volume" xs,
+                     stRepeat = maybe False parseBool $ lookup "repeat" xs,
+                     stRandom = maybe False parseBool $ lookup "random" xs,
+                     stPlaylistVersion = maybe 0 read $ lookup "playlist" xs,
+                     stPlaylistLength =
+                         maybe 0 read $ lookup "playlistlength" xs,
+                     stXFadeWidth = maybe 0 read $ lookup "xfade" xs,
                      stSongPos =
                          maybe PLNone (Pos . (1+) . read) $ lookup "song" xs,
-                     stSongID  = maybe PLNone (ID . read) $
-                                 lookup "songid" xs,
-                     stTime    = maybe (0,0) parse2    $ lookup     "time" xs,
-                     stBitrate = maybe 0 read          $ lookup  "bitrate" xs,
-                     stAudio   = maybe (0,0,0) parse3  $ lookup    "audio" xs
+                     stSongID = maybe PLNone (ID . read) $ lookup "songid" xs,
+                     stTime = maybe (0,0) parse2 $ lookup "time" xs,
+                     stBitrate = maybe 0 read $ lookup "bitrate" xs,
+                     stAudio = maybe (0,0,0) parse3 $ lookup "audio" xs
                    }
           parseState x = case x of "play"  -> Playing
                                    "stop"  -> Stopped
@@ -196,21 +200,13 @@ currentSong conn = do
                                     else Just (takeSongInfo ls)
 
 
--- | Kill the MPD. Obviously, the connection is then invalid.
+-- | Kill the server. Obviously, the connection is then invalid.
 --
 kill :: Connection -> IO ()
 kill (Conn h) = hPutStrLn h "kill" >> hClose h
 
 
--- | Update the MPD database.
---
-update :: Connection -> [String] -> IO ()
-update conn  [] = getResponse conn "update" >> return ()
-update conn [x] = getResponse conn ("update " ++ x) >> return ()
-update conn  xs = getResponses conn (map ("update " ++) xs) >> return ()
-
-
--- | Check that the MPD is still responding.
+-- | Check that the server is still responding.
 --
 ping :: Connection -> IO ()
 ping conn = getResponse conn "ping" >> return ()
@@ -236,7 +232,7 @@ setvol :: Connection -> Integer -> IO ()
 setvol conn x = getResponse conn ("setvol " ++ show x) >> return ()
 
 
--- | Get MPD statistics. /TODO/
+-- | Get server statistics. /TODO/
 
 stats :: Connection -> IO ()
 stats _ = return ()
@@ -293,7 +289,7 @@ seek _ _ _ = return ()
 --
 
 
--- | Add songs (or directories of songs) to the playlist.
+-- | Add a song (or a whole directory) to the playlist.
 --
 add :: Connection -> String -> IO [String]
 add conn x = getResponse conn ("add " ++ show x) >> listall conn (Just x)
@@ -319,7 +315,7 @@ move :: Connection -> PLIndex -> Integer -> IO ()
 move _ _ _ = return ()
 
 
--- | Retrieve the current playlist with each entry's playlist ID.
+-- | Retrieve the current playlist.
 --
 playlist :: Connection -> IO [Song]
 playlist conn = do pl <- getResponse conn "playlistinfo" >>= return . kvise
@@ -345,7 +341,15 @@ swap _ _ _ = return ()
 --
 
 
--- | List all of the directories and songs in a database directory.
+-- | Update the server's database.
+--
+update :: Connection -> [String] -> IO ()
+update conn  [] = getResponse conn "update" >> return ()
+update conn [x] = getResponse conn ("update " ++ x) >> return ()
+update conn  xs = getResponses conn (map ("update " ++) xs) >> return ()
+
+
+-- | List the directories and songs in a database directory.
 --
 list :: Connection -> Maybe String -> IO [Either String Song]
 list conn path = do
@@ -356,34 +360,47 @@ list conn path = do
         where path' = maybe "" show path
 
 
--- | List all of the directories and songs in a database directory
---   recursively. /TODO/
+-- | List the songs in a database directory recursively.
 --
 listall :: Connection -> Maybe String -> IO [String]
-listall _ _ = return []
+listall conn path = getResponse conn ("listall " ++ maybe "" show path) >>=
+                    return . map snd . filter (\x -> fst x == "file") . kvise
 
 
--- | List all the artists in the database. /TODO/
+-- | List the artists in the database.
 --
-listArtists :: Connection -> IO [String]
-listArtists _ = return []
+listArtists :: Connection -> IO [Artist]
+listArtists conn = getResponse conn "list artist" >>= return . map snd . kvise
 
 
--- | List all the albums in the database, optionally matching a given
---   artist. /TODO/
+-- | List the albums in the database, optionally matching a given
+--   artist.
 --
-listAlbums :: Connection -> Maybe String -> IO [String]
-listAlbums _ _ = return []
+listAlbums :: Connection -> Maybe Artist -> IO [Album]
+listAlbums conn artist =
+    getResponse conn ("list album " ++ maybe "" show artist) >>=
+    return . map snd . kvise
+
+
+-- | List the songs of an album.
+--
+listAlbum :: Connection -> Artist -> Album -> IO [Song]
+listAlbum conn artist album =
+    find conn Album album >>= return . filter (\x -> sgArtist x == artist)
 
 
 data SearchType = Artist | Album | Title
-                  deriving Show
 
 
--- | Search for a string in the database. /TODO/
+-- | Search the database.
 --
-find :: Connection -> SearchType -> String -> IO ()
-find _ _ _ = return ()
+find :: Connection -> SearchType -> String -> IO [Song]
+find conn sType query =
+    getResponse conn ("find " ++ sType' ++ " " ++ show query) >>=
+    return . map takeSongInfo . splitGroups . kvise
+        where sType' = case sType of Artist -> "artist"
+                                     Album  -> "album"
+                                     Title  -> "title"
 
 
 
@@ -404,21 +421,25 @@ getResponse (Conn h) cmd = hPutStrLn h cmd >> hFlush h >> f []
                   _                 -> f (acc ++ [l])
 
 
+-- | Get the lines of the daemon's response to a list of commands.
+--
 getResponses :: Connection -> [String] -> IO [String]
 getResponses conn cmds = getResponse conn $
-    unlines $ ["command_list_begin"] ++ cmds ++ ["command_list_end"]
+    unlines $ "command_list_begin" : cmds ++ ["command_list_end"]
 
 
--- | Break up a list of strings into pairs of strings, separating at
+-- | Break up a list of strings into an assoc list, separating at
 --   the first ':'.
 --
 kvise :: [String] -> [(String, String)]
 kvise = map (\x -> let (k,v) = break (== ':') x in
-                       (k,dropWhile (== ' ') $ tail v))
+                       (k,dropWhile (== ' ') $ drop 1 v))
 
 
--- | Takes a list of key-value pairs with recurring keys, and group
---   each cycle of keys with their values together.
+-- | Takes a assoc list with recurring keys, and groups each cycle of
+--   keys with their values together. The first key of each cycle needs
+--   to be present in every cycle for it to work, but the rest don't
+--   affect anything.
 --
 -- > splitGroups [(1,'a'),(2,'b'),(1,'c'),(2,'d')] ==
 -- >     [[(1,'a'),(2,'b')],[(1,'c'),(2,'d')]]
@@ -429,11 +450,15 @@ splitGroups (x:xs) = ((x:us):splitGroups vs)
     where (us,vs) = break (\y -> fst x == fst y) xs
 
 
--- |  Builds a song instance from a list of key-value pairs.
+-- |  Builds a song instance from an assoc list.
 --
 takeSongInfo :: [(String,String)] -> Song
-takeSongInfo xs = Song (maybe "" id $ lookup "Artist" xs)
-                       (maybe "" id $ lookup  "Album" xs)
-                       (maybe "" id $ lookup  "Title" xs)
-                       (maybe "" id $ lookup   "file" xs)
-                       (maybe PLNone (ID . read) $ lookup "Id" xs)
+takeSongInfo xs =
+    Song {
+          sgArtist   = maybe ""   id $ lookup "Artist" xs,
+          sgAlbum    = maybe ""   id $ lookup  "Album" xs,
+          sgTitle    = maybe ""   id $ lookup  "Title" xs,
+          sgFilePath = maybe ""   id $ lookup   "file" xs,
+          sgLength   = maybe  0 read $ lookup   "Time" xs,
+          sgIndex    = maybe PLNone (ID . read) $ lookup "Id" xs
+         }
