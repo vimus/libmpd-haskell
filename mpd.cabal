@@ -8,7 +8,7 @@ Maintainer:      bsinclai@turing.une.edu.au
 Stability:       alpha
 Homepage:        http://turing.une.edu.au/~bsinclai/code
 Package-URL:     http://turing.une.edu.au/~bsinclai/code/libmpd-haskell.tar.gz
-Synopsis:        A library for interfacing with MPDs (Music Playing Daemon)
+Synopsis:        A MPD client library.
 Tested-With:     GHC == 6.5
 Build-Depends:   base, network
 Exposed-Modules: MPD

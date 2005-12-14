@@ -38,12 +38,13 @@ module MPD (-- * Connections
             add, clear, delete, move, playlist, shuffle, swap,
 
             -- * Database
-            list, listall, find, listdir
+            list, listall, listArtists, listAlbums,
+            SearchType(..), find
            ) where
 
 
 import Prelude hiding (repeat)
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, partition)
 import Data.Maybe
 import Network
 import System.IO
@@ -66,9 +67,9 @@ type Title   = String
 type Seconds = Integer
 
 
-data PLIndex = Pos Integer  -- ^ A playlist position index.
+data PLIndex = PLNone       -- ^ No index.
+             | Pos Integer  -- ^ A playlist position index.
              | ID Integer   -- ^ A playlist ID number.
-             | PLNone       -- ^ No index.
                deriving Show
 
 -- | The play state of a MPD.
@@ -102,14 +103,16 @@ data Status =
            -- | MPD can fade between tracks. This is the time it takes to
            --   do so.
            stXFadeWidth        :: Seconds,
-           -- | TODO: document.
+           -- | /TODO/: document.
            stAudio             :: (Integer,Integer,Integer) }
     deriving Show
 
 
 -- | Description of a song.
 --
-data Song = Song { sgArtist, sgAlbum, sgTitle :: String }
+data Song = Song { sgArtist, sgAlbum, sgTitle, sgFilePath :: String,
+                   sgIndex :: PLIndex }
+            deriving Show
 
 
 
@@ -186,14 +189,11 @@ status conn = do ls <- getResponse conn "status" >>= return . kvise
 currentSong :: Connection -> IO (Maybe Song)
 currentSong conn = do
     currStatus <- status conn
-    if stState currStatus == Stopped then return Nothing
-        else do ls  <- getResponse conn "currentsong" >>= return . kvise
-                return $ if null ls then
-                             Nothing
-                         else
-                             Just $ Song (fromJust $ lookup "Artist" ls)
-                                         (fromJust $ lookup "Album"  ls)
-                                         (fromJust $ lookup "Title"  ls)
+    if stState currStatus == Stopped
+        then return Nothing
+        else do ls <- getResponse conn "currentsong" >>= return . kvise
+                return $ if null ls then Nothing
+                                    else Just (takeSongInfo ls)
 
 
 -- | Kill the MPD. Obviously, the connection is then invalid.
@@ -219,24 +219,24 @@ ping conn = getResponse conn "ping" >> return ()
 -- | Set random playing.
 --
 random :: Connection -> Bool -> IO ()
-random conn True  = getResponse conn "random 1" >> return ()
-random conn False = getResponse conn "random 0" >> return ()
+random conn x =
+    getResponse conn ("random " ++ if x then "1" else "0") >> return ()
 
 
 -- | Set repeating.
 --
 repeat :: Connection -> Bool -> IO ()
-repeat conn True  = getResponse conn "repeat 1" >> return ()
-repeat conn False = getResponse conn "repeat 0" >> return ()
+repeat conn x =
+    getResponse conn ("repeat " ++ if x then "1" else "0") >> return ()
 
 
--- | Set the volume. TODO
+-- | Set the volume.
 --
 setvol :: Connection -> Integer -> IO ()
-setvol _ _ = return ()
+setvol conn x = getResponse conn ("setvol " ++ show x) >> return ()
 
 
--- | Get MPD statistics. TODO
+-- | Get MPD statistics. /TODO/
 
 stats :: Connection -> IO ()
 stats _ = return ()
@@ -281,7 +281,7 @@ previous :: Connection -> IO ()
 previous conn = getResponse conn "previous" >> return ()
 
 
--- | Seek to some point in a song. TODO
+-- | Seek to some point in a song. /TODO/
 --
 seek :: Connection -> PLIndex -> Seconds -> IO ()
 seek _ _ _ = return ()
@@ -293,10 +293,10 @@ seek _ _ _ = return ()
 --
 
 
--- | Add songs (or directories of songs) to the playlist. TODO
+-- | Add songs (or directories of songs) to the playlist.
 --
-add :: Connection -> String -> IO ()
-add _ _ = return ()
+add :: Connection -> String -> IO [String]
+add conn x = getResponse conn ("add " ++ show x) >> listall conn (Just x)
 
 
 -- | Clear the playlist.
@@ -305,13 +305,15 @@ clear :: Connection -> IO ()
 clear conn = getResponse conn "clear" >> return ()
 
 
--- |  TODO
+-- | Remove a song from the playlist.
 --
 delete :: Connection -> PLIndex -> IO ()
-delete _ _ = return ()
+delete _ PLNone = return ()
+delete conn (Pos x) = getResponse conn ("delete " ++ show (x-1)) >> return ()
+delete conn (ID  x) = getResponse conn ("deleteid " ++ show x)   >> return ()
 
 
--- |  TODO
+-- | Move a song to a given position. /TODO/
 --
 move :: Connection -> PLIndex -> Integer -> IO ()
 move _ _ _ = return ()
@@ -319,20 +321,10 @@ move _ _ _ = return ()
 
 -- | Retrieve the current playlist with each entry's playlist ID.
 --
-playlist :: Connection -> IO [(PLIndex,Song)]
-playlist conn = do
-    pl <- getResponse conn "playlistinfo" >>= return . kvise
-    if null pl then return []
-               else return (map takeInfo (splitSongs pl))
-        where splitSongs [] = []
-              splitSongs (x:xs) = ((x:us):splitSongs vs)
-                  where (us,vs) = break (\y -> fst x == fst y) xs
-              takeInfo :: [(String,String)] -> (PLIndex,Song)
-              takeInfo xs =
-                  (maybe PLNone (ID . read) (lookup "Id" xs),
-                   Song (maybe "" id $ lookup "Artist" xs)
-                        (maybe "" id $ lookup "Album" xs)
-                        (maybe "" id $ lookup "Title" xs))
+playlist :: Connection -> IO [Song]
+playlist conn = do pl <- getResponse conn "playlistinfo" >>= return . kvise
+                   if null pl then return []
+                              else return (map takeSongInfo (splitGroups pl))
 
 
 -- | Shuffle the playlist.
@@ -341,7 +333,7 @@ shuffle :: Connection -> IO ()
 shuffle conn = getResponse conn "shuffle" >> return ()
 
 
--- |  TODO
+-- | Swap the positions of two songs. /TODO/
 --
 swap :: Connection -> PLIndex -> PLIndex -> IO ()
 swap _ _ _ = return ()
@@ -353,29 +345,45 @@ swap _ _ _ = return ()
 --
 
 
--- |  TODO
+-- | List all of the directories and songs in a database directory.
 --
-list :: Connection -> IO ()
-list _ = return ()
+list :: Connection -> Maybe String -> IO [Either String Song]
+list conn path = do
+    ls <- getResponse conn ("lsinfo " ++ path') >>= return . kvise
+    (dirs,files) <- return $ partition (\x -> fst x == "directory") ls
+    return (map (Left . snd) dirs ++
+            map (Right . takeSongInfo) (splitGroups files))
+        where path' = maybe "" show path
 
 
--- |  TODO
+-- | List all of the directories and songs in a database directory
+--   recursively. /TODO/
 --
-listall :: Connection -> IO ()
-listall _ = return ()
+listall :: Connection -> Maybe String -> IO [String]
+listall _ _ = return []
 
 
--- |  TODO
+-- | List all the artists in the database. /TODO/
 --
-find :: Connection -> IO ()
-find _ = return ()
+listArtists :: Connection -> IO [String]
+listArtists _ = return []
 
 
--- |  TODO
+-- | List all the albums in the database, optionally matching a given
+--   artist. /TODO/
 --
-listdir :: Connection -> String -> IO ()
-listdir _ _ = return ()
+listAlbums :: Connection -> Maybe String -> IO [String]
+listAlbums _ _ = return []
 
+
+data SearchType = Artist | Album | Title
+                  deriving Show
+
+
+-- | Search for a string in the database. /TODO/
+--
+find :: Connection -> SearchType -> String -> IO ()
+find _ _ _ = return ()
 
 
 
@@ -407,3 +415,25 @@ getResponses conn cmds = getResponse conn $
 kvise :: [String] -> [(String, String)]
 kvise = map (\x -> let (k,v) = break (== ':') x in
                        (k,dropWhile (== ' ') $ tail v))
+
+
+-- | Takes a list of key-value pairs with recurring keys, and group
+--   each cycle of keys with their values together.
+--
+-- > splitGroups [(1,'a'),(2,'b'),(1,'c'),(2,'d')] ==
+-- >     [[(1,'a'),(2,'b')],[(1,'c'),(2,'d')]]
+--
+splitGroups :: Eq a => [(a, b)] -> [[(a, b)]]
+splitGroups [] = []
+splitGroups (x:xs) = ((x:us):splitGroups vs)
+    where (us,vs) = break (\y -> fst x == fst y) xs
+
+
+-- |  Builds a song instance from a list of key-value pairs.
+--
+takeSongInfo :: [(String,String)] -> Song
+takeSongInfo xs = Song (maybe "" id $ lookup "Artist" xs)
+                       (maybe "" id $ lookup  "Album" xs)
+                       (maybe "" id $ lookup  "Title" xs)
+                       (maybe "" id $ lookup   "file" xs)
+                       (maybe PLNone (ID . read) $ lookup "Id" xs)

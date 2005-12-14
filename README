@@ -16,26 +16,26 @@ Building:
     default with newer GHCs.
 
 Use:
-
-    Import the MPD module, and use the mpd package (-package mpd) or
-    add it to the `Build-Depends' list in your `.cabal' file.
+    Import the MPD module and specify the mpd package (-package mpd)
+    when compiling, or add it to the `Build-Depends' list in your
+    `_.cabal' file.
 
 Initialisation:
-
     Provide a running MPD's hostname and port to MPD.connect.
 
 Limitations:
-
-    It's not thread-safe at the moment, though it wouldn't be too hard
-    to improve that. Very little actual functionality is working yet,
-    but the interface is mostly there to see and link to.
+    Very little actual functionality is working yet, but the interface
+    is mostly there to see and link to.
 
 Platforms:
     libmpd-haskell has been confirmed to work on:
         Linux/x86
 
+Latest Sources:
+    darcs get http://turing.une.edu.au/~bsinclai/code/libmpd-haskell
+
 License:
     LGPL
 
 Author:
-    Ben Sinclair <bsinclai@turing.une.edu.au>, Mon Nov 12 03:57:30 EST 2005
+    Ben Sinclair <bsinclai@turing.une.edu.au>, Wed Dec 14 17:06:38 EST 2005
