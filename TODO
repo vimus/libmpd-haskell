@@ -1,0 +1,6 @@
+TODO:
+
+    - implement _move_
+    - implement _swap_
+    - implement _seek_
+    - improve parsing performance
