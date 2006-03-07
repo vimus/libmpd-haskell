@@ -356,7 +356,9 @@ update conn  xs = getResponses conn (map ("update " ++) xs) >> return ()
 list :: Connection -> Maybe String -> IO [Either String Song]
 list conn path = do
     ls <- getResponse conn ("lsinfo " ++ path') >>= return . kvise
-    (dirs,files) <- return $ partition (\x -> fst x == "directory") ls
+    -- horribly inefficient, but it works for now.
+    (dirs,xs) <- return $ partition (\x -> fst x == "directory") ls
+    (_,files) <- return $ partition (\x -> fst x == "playlist") xs
     return (map (Left . snd) dirs ++
             map (Right . takeSongInfo) (splitGroups files))
         where path' = maybe "" show path
