@@ -37,7 +37,7 @@ module MPD (
             play, pause, stop, next, previous, seek,
 
             -- * Playlist
-            add, clear, delete, move, swap, getPlaylist, shuffle,
+            add, add_, clear, delete, move, swap, getPlaylist, shuffle,
 
             -- * Database
             update, list, listAll,
@@ -289,6 +289,12 @@ seek _ _ _ = return ()
 --
 add :: Connection -> String -> IO [String]
 add conn x = getResponse conn ("add " ++ show x) >> listAll conn (Just x)
+
+
+-- | Add a song (or a whole directory) to the playlist without returning
+--   what was added.
+add_ :: Connection -> String -> IO ()
+add_ conn x = getResponse conn ("add " ++ show x)
 
 
 -- | Clear the playlist.
