@@ -31,16 +31,16 @@ module MPD (
             Song(..), currentSong,
 
             -- * Server control
-            kill, ping, random, repeat, setvol, stats,
+            kill, ping, random, repeat, setVolume, getStats,
 
             -- * Player
             play, pause, stop, next, previous, seek,
 
             -- * Playlist
-            add, clear, delete, move, playlist, shuffle, swap,
+            add, clear, delete, move, swap, getPlaylist, shuffle,
 
             -- * Database
-            update, list, listall,
+            update, list, listAll,
             listArtists, listAlbums, listAlbum,
             SearchType(..), find
 
@@ -76,47 +76,43 @@ data PLIndex = PLNone       -- ^ No index.
              | ID Integer   -- ^ A playlist ID number.
                deriving Show
 
--- | The play state of a MPD.
---
+
 data State = Playing
            | Stopped
            | Paused
              deriving (Show, Eq)
 
 
--- | State of a MPD.
---
 data Status =
-    Stat { stState             :: State,
-           -- | A percentage.
-           stVolume            :: Integer,
-           stRepeat, stRandom  :: Bool,
-           -- | This value gets incremented by the server every time the
-           --   playlist changes.
-           stPlaylistVersion   :: Integer,
-           stPlaylistLength    :: Integer,
-           -- | Current song's position in the playlist (starting from 1).
-           stSongPos           :: PLIndex,
-           -- | Each song in the playlist has an identifier to more
-           --   robustly identify it.
-           stSongID            :: PLIndex,
-           -- | (Seconds played, song length in seconds).
-           stTime              :: (Seconds,Seconds),
-           -- | Bitrate of playing song in kilobytes per second.
-           stBitrate           :: Integer,
-           -- | MPD can fade between tracks. This is the time it takes to
-           --   do so.
-           stXFadeWidth        :: Seconds,
-           -- | /TODO/: document.
-           stAudio             :: (Integer,Integer,Integer) }
+    Status { stState             :: State,
+             -- | A percentage.
+             stVolume            :: Integer,
+             stRepeat, stRandom  :: Bool,
+             -- | This value gets incremented by the server every time the
+             --   playlist changes.
+             stPlaylistVersion   :: Integer,
+             stPlaylistLength    :: Integer,
+             -- | Current song's position in the playlist (starting from 1).
+             stSongPos           :: PLIndex,
+             -- | Each song in the playlist has an identifier to more
+             --   robustly identify it.
+             stSongID            :: PLIndex,
+             -- | (Seconds played, song length in seconds).
+             stTime              :: (Seconds,Seconds),
+             -- | Bitrate of playing song in kilobytes per second.
+             stBitrate           :: Integer,
+             -- | MPD can fade between tracks. This is the time it takes to
+             --   do so.
+             stXFadeWidth        :: Seconds,
+             -- | /TODO/: document.
+             stAudio             :: (Integer,Integer,Integer) }
     deriving Show
 
 
 -- | Description of a song.
 --
 data Song = Song { sgArtist, sgAlbum, sgTitle, sgFilePath :: String,
-                   sgIndex :: PLIndex,
-                   sgLength :: Seconds }
+                   sgIndex :: PLIndex, sgLength :: Seconds }
             deriving Show
 
 
@@ -228,14 +224,14 @@ repeat conn x =
 
 -- | Set the volume.
 --
-setvol :: Connection -> Integer -> IO ()
-setvol conn x = getResponse conn ("setvol " ++ show x) >> return ()
+setVolume :: Connection -> Integer -> IO ()
+setVolume conn x = getResponse conn ("setvol " ++ show x) >> return ()
 
 
 -- | Get server statistics. /TODO/
 
-stats :: Connection -> IO ()
-stats _ = return ()
+getStats :: Connection -> IO ()
+getStats _ = return ()
 
 
 
@@ -292,7 +288,7 @@ seek _ _ _ = return ()
 -- | Add a song (or a whole directory) to the playlist.
 --
 add :: Connection -> String -> IO [String]
-add conn x = getResponse conn ("add " ++ show x) >> listall conn (Just x)
+add conn x = getResponse conn ("add " ++ show x) >> listAll conn (Just x)
 
 
 -- | Clear the playlist.
@@ -315,24 +311,25 @@ move :: Connection -> PLIndex -> Integer -> IO ()
 move _ _ _ = return ()
 
 
+-- | Swap the positions of two songs. /TODO/
+--
+swap :: Connection -> PLIndex -> PLIndex -> IO ()
+swap _ _ _ = return ()
+
+
 -- | Retrieve the current playlist.
 --
-playlist :: Connection -> IO [Song]
-playlist conn = do pl <- getResponse conn "playlistinfo" >>= return . kvise
-                   if null pl then return []
-                              else return (map takeSongInfo (splitGroups pl))
+getPlaylist :: Connection -> IO [Song]
+getPlaylist conn =
+    do pl <- getResponse conn "playlistinfo" >>= return . kvise
+       if null pl then return []
+         else return (map takeSongInfo (splitGroups pl))
 
 
 -- | Shuffle the playlist.
 --
 shuffle :: Connection -> IO ()
 shuffle conn = getResponse conn "shuffle" >> return ()
-
-
--- | Swap the positions of two songs. /TODO/
---
-swap :: Connection -> PLIndex -> PLIndex -> IO ()
-swap _ _ _ = return ()
 
 
 
@@ -362,8 +359,8 @@ list conn path = do
 
 -- | List the songs in a database directory recursively.
 --
-listall :: Connection -> Maybe String -> IO [String]
-listall conn path = getResponse conn ("listall " ++ maybe "" show path) >>=
+listAll :: Connection -> Maybe String -> IO [String]
+listAll conn path = getResponse conn ("listall " ++ maybe "" show path) >>=
                     return . map snd . filter (\x -> fst x == "file") . kvise
 
 
@@ -382,7 +379,7 @@ listAlbums conn artist =
     return . map snd . kvise
 
 
--- | List the songs of an album.
+-- | List the songs of an album of an artist.
 --
 listAlbum :: Connection -> Artist -> Album -> IO [Song]
 listAlbum conn artist album =
