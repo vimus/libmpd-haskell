@@ -451,8 +451,9 @@ getResponses conn cmds = getResponse conn $
 --   the first ':'.
 --
 kvise :: [String] -> [(String, String)]
-kvise = map (\x -> let (k,v) = break (== ':') x in
-                       (k,dropWhile (== ' ') $ drop 1 v))
+kvise = map f
+    where f x = let (k,v) = break (== ':') x in
+                (k,dropWhile (== ' ') $ drop 1 v)
 
 
 -- | Takes a assoc list with recurring keys, and groups each cycle of
