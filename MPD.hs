@@ -40,9 +40,8 @@ module MPD (
             add, add_, clear, delete, move, swap, getPlaylist, shuffle,
 
             -- * Database
-            update, list, listAll,
-            listArtists, listAlbums, listAlbum,
-            SearchType(..), find
+            update, list, listAll, listArtists, listAlbums, listAlbum,
+            findArtist, findAlbum, findTitle
 
            ) where
 
@@ -389,21 +388,36 @@ listAlbums conn artist =
 --
 listAlbum :: Connection -> Artist -> Album -> IO [Song]
 listAlbum conn artist album =
-    find conn Album album >>= return . filter (\x -> sgArtist x == artist)
-
-
-data SearchType = Artist | Album | Title
+    findAlbum conn album >>= return . filter (\x -> sgArtist x == artist)
 
 
 -- | Search the database.
 --
-find :: Connection -> SearchType -> String -> IO [Song]
-find conn sType query =
-    getResponse conn ("find " ++ sType' ++ " " ++ show query) >>=
+find' :: Connection
+     -> String      -- ^ Search type string
+     -> String      -- ^ Search query
+     -> IO [Song]
+find' conn searchType query =
+    getResponse conn ("find " ++ searchType ++ " " ++ show query) >>=
     return . map takeSongInfo . splitGroups . kvise
-        where sType' = case sType of Artist -> "artist"
-                                     Album  -> "album"
-                                     Title  -> "title"
+
+
+-- | Search the database for songs relating to an artist.
+--
+findArtist :: Connection -> String -> IO [Song]
+findArtist conn = find' conn "artist"
+
+
+-- | Search the database for songs relating to an album.
+--
+findAlbum :: Connection -> String -> IO [Song]
+findAlbum conn = find' conn "album"
+
+
+-- | Search the database for songs relating to a song title.
+--
+findTitle :: Connection -> String -> IO [Song]
+findTitle conn = find' conn "title"
 
 
 
