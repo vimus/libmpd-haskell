@@ -157,7 +157,7 @@ status :: Connection -> IO Status
 status conn = do ls <- getResponse conn "status" >>= return . kvise
                  return $ parseStatus ls
     where parseStatus xs =
-              Stat { stState = maybe Stopped parseState $ lookup "state" xs,
+              Status { stState = maybe Stopped parseState $ lookup "state" xs,
                      stVolume = maybe 0 read $ lookup "volume" xs,
                      stRepeat = maybe False parseBool $ lookup "repeat" xs,
                      stRandom = maybe False parseBool $ lookup "random" xs,
