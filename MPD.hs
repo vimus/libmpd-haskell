@@ -195,6 +195,12 @@ kill (Conn h) = hPutStrLn h "kill" >> hClose h
 outputs :: Connection -> IO [Device]
 outputs conn = liftM (map takeDevInfo . splitGroups . kvise)
     (getResponse conn "outputs")
+    where
+        takeDevInfo xs = Device {
+            dOutputID      = maybe 0 read $ lookup "outputid" xs,
+            dOutputName    = maybe "" id $ lookup "outputname" xs,
+            dOutputEnabled = maybe False parseBool $ lookup "outputenabled" xs
+            }
 
 -- | Update the server's database.
 --
@@ -521,6 +527,13 @@ count :: Connection
       -> IO Count
 count conn countType query = liftM (takeCountInfo . kvise)
     (getResponse conn ("count " ++ countType ++ " " ++ show query))
+    where takeCountInfo xs =
+                Count {
+                    cSongs    = maybe 0 read $ lookup "songs" xs,
+                    cPlaytime = maybe 0 read $ lookup "playtime" xs
+                      }
+
+
 
 -- | Retrieve a list of supported urlhandlers.
 urlhandlers :: Connection -> IO [String]
@@ -588,23 +601,6 @@ takeSongInfo xs =
           sgLength   = maybe  0 read $ lookup   "Time" xs,
           sgIndex    = maybe PLNone (ID . read) $ lookup "Id" xs
          }
-
--- | Builds a count instance from an assoc. list.
-takeCountInfo :: [(String, String)] -> Count
-takeCountInfo xs =
-    Count {
-        cSongs    = maybe 0 read $ lookup "songs" xs,
-        cPlaytime = maybe 0 read $ lookup "playtime" xs
-        }
-
--- | Builds a device instance from an assoc. list.
-takeDevInfo :: [(String, String)] -> Device
-takeDevInfo xs =
-    Device {
-        dOutputID      = maybe 0 read $ lookup "outputid" xs,
-        dOutputName    = maybe "" id $ lookup "outputname" xs,
-        dOutputEnabled = maybe False parseBool $ lookup "outputenabled" xs
-        }
 
 -- Parse a boolean response value.
 parseBool :: String -> Bool
