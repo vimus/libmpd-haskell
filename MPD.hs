@@ -111,7 +111,9 @@ data Status =
              --   do so.
              stXFadeWidth        :: Seconds,
              -- | (samplerate, bits, channels)
-             stAudio             :: (Integer,Integer,Integer) }
+             stAudio             :: (Integer,Integer,Integer),
+             -- | Job id of currently running update.
+             stUpdatingDb        :: Integer }
     deriving Show
 
 
@@ -417,7 +419,8 @@ status conn = liftM (parseStatus . kvise) (getResponse conn "status")
                      stSongID = maybe PLNone (ID . read) $ lookup "songid" xs,
                      stTime = maybe (0,0) parseTime $ lookup "time" xs,
                      stBitrate = maybe 0 read $ lookup "bitrate" xs,
-                     stAudio = maybe (0,0,0) parseAudio $ lookup "audio" xs
+                     stAudio = maybe (0,0,0) parseAudio $ lookup "audio" xs,
+                     stUpdatingDb = maybe 0 read $ lookup "updating_db" xs
                    }
           parseState x = case x of "play"  -> Playing
                                    "stop"  -> Stopped
