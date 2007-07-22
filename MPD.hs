@@ -370,7 +370,7 @@ repeat conn x =
 
 -- | Set the volume.
 --
-setVolume :: Connection -> Integer -> IO ()
+setVolume :: Connection -> Int -> IO ()
 setVolume conn x = getResponse_ conn ("setvol " ++ show x)
 
 --
