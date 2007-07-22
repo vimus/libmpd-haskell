@@ -223,8 +223,8 @@ list conn path = do
 -- | List the songs in a database directory recursively.
 --
 listAll :: Connection -> Maybe String -> IO [String]
-listAll conn path = getResponse conn ("listall " ++ maybe "" show path) >>=
-                    return . map snd . filter (\x -> fst x == "file") . kvise
+listAll conn path = liftM (map snd . filter ((== "file") . fst) . kvise)
+                          (getResponse conn ("listall " ++ maybe "" show path))
 
 
 -- | List the artists in the database.
