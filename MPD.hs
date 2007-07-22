@@ -62,7 +62,7 @@ import System.IO
 
 -- | A connection to a MPD.
 --
-data Connection = Conn Handle
+newtype Connection = Conn Handle
 
 
 type Artist  = String
