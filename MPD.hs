@@ -377,6 +377,10 @@ setVolume conn x = getResponse_ conn ("setvol " ++ show x)
 -- Miscellaneous commands
 --
 
+-- | Clear the current error message in status.
+clearerror :: Connection -> IO ()
+clearerror (Conn h) = hPutStrLn h "clearerror" >> hClose h
+
 -- | Close a MPD connection.
 --
 close :: Connection -> IO ()
