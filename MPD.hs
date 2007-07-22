@@ -38,7 +38,7 @@ module MPD (
             list, listAll, listArtists, listAlbums, listAlbum,
 
             -- * Playlist commands
-            add, add_, addid, clear, currentSong, delete, load, move, rm,
+            add, add_, addid, clear, currentSong, delete, load, move, rm, save,
             getPlaylist, shuffle, swap,
 
             -- * Playback commands
@@ -317,6 +317,10 @@ move conn (ID from) to =
 -- | Delete existing playlist.
 rm :: Connection -> String -> IO ()
 rm conn plname = getResponse_ conn ("rm " ++ show plname)
+
+-- | Save the current playlist.
+save :: Connection -> String -> IO ()
+save conn plname = getResponse_ conn ("save " ++ show plname)
 
 
 -- | Swap the positions of two songs. /TODO/
