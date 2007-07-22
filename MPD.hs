@@ -429,6 +429,9 @@ findTitle conn = find' conn "title"
 -- Miscellaneous functions.
 --
 
+-- | Run getResponse but discard the response.
+getResponse_ :: Connection -> String -> IO ()
+getResponse_ c x = getResponse c x >> return ()
 
 -- | Get the lines of the daemon's response to a given command.
 --
