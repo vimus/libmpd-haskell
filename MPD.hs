@@ -36,7 +36,7 @@ module MPD (
             -- * Database commands
             findArtist, findAlbum, findTitle,
             list, listAll, listArtists, listAlbums, listAlbum,
-            search,
+            search, searchArtist, searchAlbum, searchTitle,
 
             -- * Playlist commands
             add, add_, addid, clear, currentSong, delete, load, move, rm, save,
@@ -294,6 +294,18 @@ search :: Connection
        -> IO [Song]
 search conn searchType query = liftM (map takeSongInfo . splitGroups . kvise)
     (getResponse conn ("search " ++ searchType ++ " " ++ show query))
+
+-- | Search the database for songs relating to an artist using 'search'.
+searchArtist :: Connection -> String -> IO [Song]
+searchArtist = flip search "artist"
+
+-- | Search the database for songs relating to an album using 'search'.
+searchAlbum :: Connection -> String -> IO [Song]
+searchAlbum = flip search "album"
+
+-- | Search the database for songs relating to a song title.
+searchTitle :: Connection -> String -> IO [Song]
+searchTitle = flip search "title"
 
 --
 -- Playlist commands
