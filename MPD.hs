@@ -111,7 +111,7 @@ data Status =
              --   do so.
              stXFadeWidth        :: Seconds,
              -- | (samplerate, bits, channels)
-             stAudio             :: (Integer,Integer,Integer),
+             stAudio             :: (Int,Int,Int),
              -- | Job id of currently running update.
              stUpdatingDb        :: Integer,
              -- | Last error message (if any)
