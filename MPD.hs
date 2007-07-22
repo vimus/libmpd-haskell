@@ -199,8 +199,8 @@ outputs conn = liftM (map takeDevInfo . splitGroups . kvise)
 -- | Update the server's database.
 --
 update :: Connection -> [String] -> IO ()
-update conn  [] = getResponse conn "update" >> return ()
-update conn [x] = getResponse conn ("update " ++ x) >> return ()
+update conn  [] = getResponse_ conn "update"
+update conn [x] = getResponse_ conn ("update " ++ x)
 update conn  xs = getResponses conn (map ("update " ++) xs) >> return ()
 
 --
@@ -376,9 +376,9 @@ crossfade conn xfade = getResponse_ conn ("crossfade " ++ show xfade)
 -- | Begin\/continue playing.
 --
 play :: Connection -> PLIndex -> IO ()
-play conn PLNone  = getResponse conn "play" >> return ()
-play conn (Pos x) = getResponse conn ("play " ++ show (x-1)) >> return ()
-play conn (ID x)  = getResponse conn ("playid " ++ show x) >> return ()
+play conn PLNone  = getResponse_ conn "play"
+play conn (Pos x) = getResponse_ conn ("play " ++ show (x-1))
+play conn (ID x)  = getResponse_ conn ("playid " ++ show x)
 
 
 -- | Pause playing.
