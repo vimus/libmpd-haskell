@@ -47,7 +47,7 @@ module MPD (
 
             -- * Miscellaneous commands
             clearerror, close, commands, notcommands, password, ping, stats,
-            status, tagtypes, count
+            status, tagtypes, count, urlhandlers
 
            ) where
 
@@ -516,6 +516,10 @@ count :: Connection
       -> IO Count
 count conn countType query = liftM (takeCountInfo . kvise)
     (getResponse conn ("count " ++ countType ++ " " ++ show query))
+
+-- | Retrieve a list of supported urlhandlers.
+urlhandlers :: Connection -> IO [String]
+urlhandlers conn = liftM (map snd . kvise) (getResponse conn "urlhandlers")
 
 ---------------------------------------------------------------------------
 -- Miscellaneous functions.
