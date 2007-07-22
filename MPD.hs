@@ -224,27 +224,27 @@ kill (Conn h) = hPutStrLn h "kill" >> hClose h
 -- | Check that the server is still responding.
 --
 ping :: Connection -> IO ()
-ping conn = getResponse conn "ping" >> return ()
+ping conn = getResponse_ conn "ping"
 
 
 -- | Set random playing.
 --
 random :: Connection -> Bool -> IO ()
 random conn x =
-    getResponse conn ("random " ++ if x then "1" else "0") >> return ()
+    getResponse_ conn ("random " ++ if x then "1" else "0")
 
 
 -- | Set repeating.
 --
 repeat :: Connection -> Bool -> IO ()
 repeat conn x =
-    getResponse conn ("repeat " ++ if x then "1" else "0") >> return ()
+    getResponse_ conn ("repeat " ++ if x then "1" else "0")
 
 
 -- | Set the volume.
 --
 setVolume :: Connection -> Integer -> IO ()
-setVolume conn x = getResponse conn ("setvol " ++ show x) >> return ()
+setVolume conn x = getResponse_ conn ("setvol " ++ show x)
 
 
 -- | Get server statistics. /TODO/
@@ -271,25 +271,25 @@ play conn (ID x)  = getResponse conn ("playid " ++ show x) >> return ()
 --
 pause :: Connection -> Bool -> IO ()
 pause conn on =
-    getResponse conn ("pause " ++ if on then "1" else "0") >> return ()
+    getResponse_ conn ("pause " ++ if on then "1" else "0")
 
 
 -- | Stop playing.
 --
 stop :: Connection -> IO ()
-stop conn = getResponse conn "stop" >> return ()
+stop conn = getResponse_ conn "stop"
 
 
 -- | Play the next song.
 --
 next :: Connection -> IO ()
-next conn = getResponse conn "next" >> return ()
+next conn = getResponse_ conn "next"
 
 
 -- | Play the previous song.
 --
 previous :: Connection -> IO ()
-previous conn = getResponse conn "previous" >> return ()
+previous conn = getResponse_ conn "previous"
 
 
 -- | Seek to some point in a song. /TODO/
@@ -313,13 +313,13 @@ add conn x = getResponse conn ("add " ++ show x) >> listAll conn (Just x)
 -- | Add a song (or a whole directory) to the playlist without returning
 --   what was added.
 add_ :: Connection -> String -> IO ()
-add_ conn x = getResponse conn ("add " ++ show x) >> return ()
+add_ conn x = getResponse_ conn ("add " ++ show x)
 
 
 -- | Clear the playlist.
 --
 clear :: Connection -> IO ()
-clear conn = getResponse conn "clear" >> return ()
+clear conn = getResponse_ conn "clear"
 
 
 -- | Remove a song from the playlist.
@@ -354,7 +354,7 @@ getPlaylist conn =
 -- | Shuffle the playlist.
 --
 shuffle :: Connection -> IO ()
-shuffle conn = getResponse conn "shuffle" >> return ()
+shuffle conn = getResponse_ conn "shuffle"
 
 
 
