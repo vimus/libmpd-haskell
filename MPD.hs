@@ -110,7 +110,7 @@ data Status =
              -- | MPD can fade between tracks. This is the time it takes to
              --   do so.
              stXFadeWidth        :: Seconds,
-             -- | /TODO/: document.
+             -- | (samplerate, bits, channels)
              stAudio             :: (Integer,Integer,Integer) }
     deriving Show
 
