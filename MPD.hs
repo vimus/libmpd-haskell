@@ -305,10 +305,14 @@ load :: Connection -> String -> IO ()
 load conn plname = getResponse_ conn ("load " ++ show plname)
 
 
--- | Move a song to a given position. /TODO/
+-- | Move a song to a given position.
 --
 move :: Connection -> PLIndex -> Integer -> IO ()
-move _ _ _ = return ()
+move _ PLNone _ = return ()
+move conn (Pos from) to =
+    getResponse_ conn ("move " ++ show (from - 1) ++ " " ++ show to)
+move conn (ID from) to =
+    getResponse_ conn ("moveid " ++ show from ++ " " ++ show to)
 
 
 -- | Swap the positions of two songs. /TODO/
