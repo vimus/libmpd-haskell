@@ -35,7 +35,7 @@ module MPD (
 
             -- * Database commands
             find, findArtist, findAlbum, findTitle,
-            listAll, listArtists, listAlbums, listAlbum,
+            list, listAll, listArtists, listAlbums, listAlbum,
             lsinfo,
             search, searchArtist, searchAlbum, searchTitle,
 
@@ -218,6 +218,17 @@ update conn  xs = getResponses conn (map ("update " ++) xs) >> return ()
 --
 -- Database commands
 --
+
+-- | List all metadata of metadata (sic).
+list :: Connection
+     -> String       -- ^ Metadata to list.
+     -> Maybe String -- ^ Optionally specify what metadata to match against.
+     -> String       -- ^ Query (requires optional arg).
+     -> IO [String]
+list conn metaType metaQuery query =
+    liftM (map snd . kvise) (getResponse conn cmd)
+    where cmd = "list " ++ show metaType ++
+                maybe "" (\x -> " " ++ show x ++ " " ++ show query) metaQuery
 
 -- | List the directories and songs in a database directory (non-recursive).
 --
