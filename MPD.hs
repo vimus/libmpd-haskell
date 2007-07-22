@@ -46,7 +46,7 @@ module MPD (
             stop,
 
             -- * Miscellaneous commands
-            close, ping, getStats, status
+            close, ping, stats, status
 
            ) where
 
@@ -419,8 +419,8 @@ ping conn = getResponse_ conn "ping"
 
 
 -- | Get server statistics. /TODO/
-getStats :: Connection -> IO ()
-getStats _ = return ()
+stats :: Connection -> IO ()
+stats _ = return ()
 
 ---------------------------------------------------------------------------
 -- Miscellaneous functions.
