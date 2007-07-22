@@ -39,7 +39,8 @@ module MPD (
 
             -- * Playlist commands
             add, add_, addid, clear, currentSong, delete, load, move, rm, save,
-            getPlaylist, playlistinfo, shuffle, swap,
+            getPlaylist, playlistinfo, plchanges, plchangesposid, shuffle,
+            swap,
 
             -- * Playback commands
             crossfade, next, pause, play, previous, random, repeat, seek,
@@ -372,6 +373,15 @@ playlistinfo conn x = do
                     Pos x' -> "playlistinfo " ++ show (x' - 1)
                     ID x'  -> "playlistid " ++ show x'
                     _      -> "playlistinfo"
+
+-- | Retrieve a list of changed songs currently in the playlist since
+-- a given playlist version.
+plchanges :: Connection -> Integer -> IO [Song]
+plchanges _ _ = fail "plchanges not implemented"
+
+-- | Like 'plchanges' but only returns positions and ids.
+plchangesposid :: Connection -> Integer -> IO [(Integer, Integer)]
+plchangesposid _ _ = fail "plchangesposid not implemented"
 
 -- | Get the currently playing song.
 currentSong :: Connection -> IO (Maybe Song)
