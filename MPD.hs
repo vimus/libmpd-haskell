@@ -369,11 +369,18 @@ next conn = getResponse_ conn "next"
 previous :: Connection -> IO ()
 previous conn = getResponse_ conn "previous"
 
-
--- | Seek to some point in a song. /TODO/
---
+-- | Seek to some point in a song.
+-- Seeks in current song if no position is given.
 seek :: Connection -> PLIndex -> Seconds -> IO ()
-seek _ _ _ = return ()
+seek conn (Pos x) time =
+    getResponse_ conn ("seek " ++ show (x - 1) ++ " " ++ show time)
+seek conn (ID x) time =
+    getResponse_ conn ("seekid " ++ show x ++ " " ++ show time)
+seek conn PLNone time = do
+    st <- status conn
+    if stState st == Stopped
+        then return ()
+        else seek conn (stSongID st) time
 
 -- | Set random playing.
 --
