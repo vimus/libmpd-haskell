@@ -345,10 +345,9 @@ swap _ _ _ = return ()
 -- | Retrieve the current playlist.
 --
 getPlaylist :: Connection -> IO [Song]
-getPlaylist conn =
-    do pl <- getResponse conn "playlistinfo" >>= return . kvise
-       if null pl then return []
-         else return (map takeSongInfo (splitGroups pl))
+getPlaylist conn = do
+    pl <- liftM kvise (getResponse conn "playlistinfo")
+    return $ if null pl then [] else map takeSongInfo (splitGroups pl)
 
 
 -- | Shuffle the playlist.
