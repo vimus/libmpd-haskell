@@ -46,6 +46,7 @@ module MPD (
            ) where
 
 
+import Control.Monad (liftM)
 import Prelude hiding (repeat)
 import Data.List (isPrefixOf, partition)
 import Data.Maybe
@@ -142,7 +143,7 @@ close (Conn h) = hPutStrLn h "close" >> hClose h
 -- | Check that a MPD daemon is at the other end of a connection.
 --
 checkConn :: Connection -> IO Bool
-checkConn (Conn h) = hGetLine h >>= return . isPrefixOf "OK MPD"
+checkConn (Conn h) = liftM (isPrefixOf "OK MPD") (hGetLine h)
 
 
 
