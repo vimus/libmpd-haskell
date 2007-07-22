@@ -375,7 +375,7 @@ listAll conn path = getResponse conn ("listall " ++ maybe "" show path) >>=
 -- | List the artists in the database.
 --
 listArtists :: Connection -> IO [Artist]
-listArtists conn = getResponse conn "list artist" >>= return . map snd . kvise
+listArtists conn = liftM (map snd . kvise) (getResponse conn "list artist")
 
 
 -- | List the albums in the database, optionally matching a given
