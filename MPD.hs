@@ -198,7 +198,7 @@ outputs conn = liftM (map takeDevInfo . splitGroups . kvise)
     where
         takeDevInfo xs = Device {
             dOutputID      = maybe 0 read $ lookup "outputid" xs,
-            dOutputName    = maybe "" id $ lookup "outputname" xs,
+            dOutputName    = fromMaybe "" $ lookup "outputname" xs,
             dOutputEnabled = maybe False parseBool $ lookup "outputenabled" xs
             }
 
