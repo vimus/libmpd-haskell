@@ -36,6 +36,7 @@ module MPD (
             -- * Database commands
             findArtist, findAlbum, findTitle,
             list, listAll, listArtists, listAlbums, listAlbum,
+            search,
 
             -- * Playlist commands
             add, add_, addid, clear, currentSong, delete, load, move, rm, save,
@@ -285,6 +286,14 @@ findAlbum = flip find "album"
 --
 findTitle :: Connection -> String -> IO [Song]
 findTitle = flip find "title"
+
+-- | Search the database using case insensitive matching.
+search :: Connection
+       -> String -- ^ Search type string (see tagtypes)
+       -> String -- ^ Search query
+       -> IO [Song]
+search conn searchType query = liftM (map takeSongInfo . splitGroups . kvise)
+    (getResponse conn ("search " ++ searchType ++ " " ++ show query))
 
 --
 -- Playlist commands
