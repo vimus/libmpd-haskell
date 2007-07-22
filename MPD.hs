@@ -46,7 +46,7 @@ module MPD (
             stop,
 
             -- * Miscellaneous commands
-            clearerror, close, commands, ping, stats, status
+            clearerror, close, commands, notcommands, ping, stats, status
 
            ) where
 
@@ -389,6 +389,10 @@ close (Conn h) = hPutStrLn h "close" >> hClose h
 -- | Retrieve a list of available commands.
 commands :: Connection -> IO [String]
 commands conn = liftM (map snd . kvise) (getResponse conn "commands")
+
+-- | Retrieve a list of unavailable commands.
+notcommands :: Connection -> IO [String]
+notcommands conn = liftM (map snd . kvise) (getResponse conn "notcommands")
 
 -- | Get the server's status.
 status :: Connection -> IO Status
