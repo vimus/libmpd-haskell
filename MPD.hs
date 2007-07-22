@@ -46,7 +46,8 @@ module MPD (
             stop,
 
             -- * Miscellaneous commands
-            clearerror, close, commands, notcommands, ping, stats, status
+            clearerror, close, commands, notcommands, password, ping, stats,
+            status
 
            ) where
 
@@ -393,6 +394,11 @@ commands conn = liftM (map snd . kvise) (getResponse conn "commands")
 -- | Retrieve a list of unavailable commands.
 notcommands :: Connection -> IO [String]
 notcommands conn = liftM (map snd . kvise) (getResponse conn "notcommands")
+
+-- | Send password to server to authenticate session.
+-- Password is sent as plain text.
+password :: Connection -> String -> IO ()
+password conn passw = getResponse_ conn passw
 
 -- | Get the server's status.
 status :: Connection -> IO Status
