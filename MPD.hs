@@ -484,7 +484,6 @@ status conn = liftM (parseStatus . kvise) (getResponse conn "status")
                      stError = maybe "" id $ lookup "error" xs
                    }
           parseState x = case x of "play"  -> Playing
-                                   "stop"  -> Stopped
                                    "pause" -> Paused
                                    _       -> Stopped
           parseTime  x = let (y,_:z) = break (== ':') x in (read y, read z)
