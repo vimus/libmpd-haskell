@@ -28,7 +28,7 @@ module MPD (
             -- * Status
             State(..), Status(..), Stats(..),
             Artist, Album, Title, Seconds, PLIndex(..),
-            Song(..),
+            Song(..), Count(..),
 
             -- * Admin commands
             disableoutput, enableoutput, kill, outputs, update,
@@ -47,7 +47,7 @@ module MPD (
 
             -- * Miscellaneous commands
             clearerror, close, commands, notcommands, password, ping, stats,
-            status, tagtypes
+            status, tagtypes, count
 
            ) where
 
@@ -136,6 +136,9 @@ data Stats =
 data Song = Song { sgArtist, sgAlbum, sgTitle, sgFilePath :: String,
                    sgIndex :: PLIndex, sgLength :: Seconds }
             deriving Show
+
+data Count = Count { cSongs :: Integer, cPlaytime :: Seconds }
+    deriving Show
 
 
 
@@ -506,6 +509,14 @@ stats conn = liftM (parseStats . kvise) (getResponse conn "stats")
 tagtypes :: Connection -> IO [String]
 tagtypes conn = liftM (map snd . kvise) (getResponse conn "tagtypes")
 
+-- | Retrieve some stats on specific database entries.
+count :: Connection
+      -> String -- ^ Count type string (see tagtypes)
+      -> String -- ^ Count query
+      -> IO Count
+count conn countType query = liftM (takeCountInfo . kvise)
+    (getResponse conn ("count " ++ countType ++ " " ++ show query))
+
 ---------------------------------------------------------------------------
 -- Miscellaneous functions.
 --
@@ -568,3 +579,11 @@ takeSongInfo xs =
           sgLength   = maybe  0 read $ lookup   "Time" xs,
           sgIndex    = maybe PLNone (ID . read) $ lookup "Id" xs
          }
+
+-- | Builds a count instance from an assoc. list.
+takeCountInfo :: [(String, String)] -> Count
+takeCountInfo xs =
+    Count {
+        cSongs    = maybe 0 read $ lookup "songs" xs,
+        cPlaytime = maybe 0 read $ lookup "playtime" xs
+        }
