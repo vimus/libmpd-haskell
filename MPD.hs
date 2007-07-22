@@ -38,8 +38,8 @@ module MPD (
             list, listAll, listArtists, listAlbums, listAlbum,
 
             -- * Playlist commands
-            add, add_, clear, currentSong, delete, move, getPlaylist, shuffle,
-            swap,
+            add, add_, addid, clear, currentSong, delete, move, getPlaylist,
+            shuffle, swap,
 
             -- * Playback commands
             crossfade, next, pause, play, previous, random, repeat, seek,
@@ -269,6 +269,11 @@ findTitle conn = find conn "title"
 --
 -- Playlist commands
 --
+
+-- | Like 'add', but returns a playlist id.
+addid :: Connection -> String -> IO Integer
+addid conn x =
+    liftM (read . snd . head . kvise) (getResponse conn ("addid " ++ show x))
 
 -- | Add a song (or a whole directory) to the playlist.
 --
