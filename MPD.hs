@@ -30,6 +30,9 @@ module MPD (
             Artist, Album, Title, Seconds, PLIndex(..),
             Song(..), currentSong,
 
+            -- * Admin
+            disableoutput, enableoutput, outputs,
+
             -- * Server control
             kill, ping, random, repeat, setVolume, getStats,
 
@@ -146,6 +149,23 @@ checkConn :: Connection -> IO Bool
 checkConn (Conn h) = liftM (isPrefixOf "OK MPD") (hGetLine h)
 
 
+--
+-- Admin commands
+--
+
+-- | Turn off an output device.
+disableoutput :: Connection -> Int -> IO ()
+disableoutput conn devid =
+    getResponse_ conn ("disableoutput " ++ show devid)
+
+-- | Turn on an output device.
+enableoutput :: Connection -> Int -> IO ()
+enableoutput conn devid =
+    getResponse_ conn ("enableoutput " ++ show devid)
+
+-- | Retrieve information for all output devices.
+outputs :: Connection -> IO ()
+outputs _ = return ()
 
 ---------------------------------------------------------------------------
 -- MPD status functions
