@@ -128,7 +128,7 @@ connect :: String      -- ^ Hostname.
         -> PortNumber  -- ^ Port number.
         -> IO Connection
 connect host port = withSocketsDo $ do
-    conn <- connectTo host (PortNumber port) >>= return . Conn
+    conn <- liftM Conn . connectTo host $ PortNumber port
     mpd <- checkConn conn
     if mpd then return conn
            else close conn >> fail ("no MPD at " ++ host ++ ":" ++ show port)
