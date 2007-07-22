@@ -47,7 +47,10 @@ module MPD (
 
             -- * Miscellaneous commands
             clearerror, close, commands, notcommands, password, ping, stats,
-            status, tagtypes, count, urlhandlers
+            status, tagtypes, count, urlhandlers,
+
+            -- * Extensions
+            addMany, crop
 
            ) where
 
@@ -536,6 +539,22 @@ count conn countType query = liftM (takeCountInfo . kvise)
 -- | Retrieve a list of supported urlhandlers.
 urlhandlers :: Connection -> IO [String]
 urlhandlers conn = liftM (map snd . kvise) (getResponse conn "urlhandlers")
+
+--
+-- Extensions.
+--
+
+-- | Add a list of songs\/folders to the current playlist.
+-- Should be more efficient than running 'add' many times.
+addMany :: Connection -> [String] -> IO ()
+addMany _ [] = return ()
+addMany conn [x] = add_ conn x
+addMany conn xs = getResponses conn (map ("add " ++) xs) >> return ()
+
+-- | Crop playlist.
+crop :: Connection -> PLIndex -> PLIndex -> IO ()
+crop _ (Pos _) (Pos _) = undefined
+crop _ _ _ = return ()
 
 ---------------------------------------------------------------------------
 -- Miscellaneous functions.
