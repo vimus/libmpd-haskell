@@ -12,3 +12,4 @@ Tested-With:     GHC == 6.5, GHC == 6.6.1
 Build-Depends:   base, network
 Exposed-Modules: MPD
 ghc-options:     -Wall -O2
+ghc-prof-options: -auto-all -prof
