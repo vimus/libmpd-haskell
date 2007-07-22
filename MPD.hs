@@ -39,7 +39,7 @@ module MPD (
 
             -- * Playlist commands
             add, add_, addid, clear, currentSong, delete, load, move, rm, save,
-            getPlaylist, shuffle, swap,
+            getPlaylist, playlistinfo, shuffle, swap,
 
             -- * Playback commands
             crossfade, next, pause, play, previous, random, repeat, seek,
@@ -359,9 +359,19 @@ shuffle = flip getResponse_ "shuffle"
 -- | Retrieve the current playlist.
 --
 getPlaylist :: Connection -> IO [Song]
-getPlaylist conn = do
-    pl <- liftM kvise (getResponse conn "playlistinfo")
+getPlaylist = flip playlistinfo PLNone
+
+-- | Retrieve metadata for songs in the current playlist.
+playlistinfo :: Connection
+            -> PLIndex   -- ^ Optional playlist index.
+            -> IO [Song]
+playlistinfo conn x = do
+    pl <- liftM kvise (getResponse conn cmd)
     return $ if null pl then [] else map takeSongInfo (splitGroups pl)
+    where cmd = case x of
+                    Pos x' -> "playlistinfo " ++ show (x' - 1)
+                    ID x'  -> "playlistid " ++ show x'
+                    _      -> "playlistinfo"
 
 -- | Get the currently playing song.
 currentSong :: Connection -> IO (Maybe Song)
