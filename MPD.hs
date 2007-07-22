@@ -26,7 +26,7 @@ module MPD (
             Connection, connect,
 
             -- * Status
-            State(..), Status(..),
+            State(..), Status(..), Stats(..),
             Artist, Album, Title, Seconds, PLIndex(..),
             Song(..),
 
@@ -118,6 +118,18 @@ data Status =
              stError             :: String }
     deriving Show
 
+-- | Container for database statistics.
+data Stats =
+    Stats { stsArtists    :: Integer -- ^ Number of artists.
+          , stsAlbums     :: Integer -- ^ Number of albums.
+          , stsSongs      :: Integer -- ^ Number of songs.
+          , stsUptime     :: Seconds -- ^ Daemon uptime in seconds.
+          , stsPlaytime   :: Seconds -- ^ Time length of music played.
+          , stsDbPlaytime :: Seconds -- ^ Sum of all song times in db.
+          -- XXX should use proper data type here
+          , stsDbUpdate   :: Integer -- ^ Last db update in UNIX time.
+          }
+    deriving Show
 
 -- | Description of a song.
 --
@@ -442,9 +454,17 @@ ping :: Connection -> IO ()
 ping conn = getResponse_ conn "ping"
 
 
--- | Get server statistics. /TODO/
-stats :: Connection -> IO ()
-stats _ = return ()
+-- | Get server statistics.
+stats :: Connection -> IO Stats
+stats conn = liftM (parseStats . kvise) (getResponse conn "stats")
+    where parseStats xs =
+                Stats { stsArtists = maybe 0 read $ lookup "artists" xs,
+                        stsAlbums = maybe 0 read $ lookup "albums" xs,
+                        stsSongs = maybe 0 read $ lookup "songs" xs,
+                        stsUptime = maybe 0 read $ lookup "uptime" xs,
+                        stsPlaytime = maybe 0 read $ lookup "playtime" xs,
+                        stsDbPlaytime = maybe 0 read $ lookup "db_playtime" xs,
+                        stsDbUpdate = maybe 0 read $ lookup "db_update" xs }
 
 ---------------------------------------------------------------------------
 -- Miscellaneous functions.
