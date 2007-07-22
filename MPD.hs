@@ -113,7 +113,9 @@ data Status =
              -- | (samplerate, bits, channels)
              stAudio             :: (Integer,Integer,Integer),
              -- | Job id of currently running update.
-             stUpdatingDb        :: Integer }
+             stUpdatingDb        :: Integer,
+             -- | Last error message (if any)
+             stError             :: String }
     deriving Show
 
 
@@ -420,7 +422,8 @@ status conn = liftM (parseStatus . kvise) (getResponse conn "status")
                      stTime = maybe (0,0) parseTime $ lookup "time" xs,
                      stBitrate = maybe 0 read $ lookup "bitrate" xs,
                      stAudio = maybe (0,0,0) parseAudio $ lookup "audio" xs,
-                     stUpdatingDb = maybe 0 read $ lookup "updating_db" xs
+                     stUpdatingDb = maybe 0 read $ lookup "updating_db" xs,
+                     stError = maybe "" id $ lookup "error" xs
                    }
           parseState x = case x of "play"  -> Playing
                                    "stop"  -> Stopped
