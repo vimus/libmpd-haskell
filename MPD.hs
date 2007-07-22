@@ -487,7 +487,7 @@ status conn = liftM (parseStatus . kvise) (getResponse conn "status")
                      stBitrate = maybe 0 read $ lookup "bitrate" xs,
                      stAudio = maybe (0,0,0) parseAudio $ lookup "audio" xs,
                      stUpdatingDb = maybe 0 read $ lookup "updating_db" xs,
-                     stError = maybe "" id $ lookup "error" xs
+                     stError = fromMaybe "" $ lookup "error" xs
                    }
           parseState x = case x of "play"  -> Playing
                                    "pause" -> Paused
