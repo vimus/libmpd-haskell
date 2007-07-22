@@ -594,10 +594,10 @@ splitGroups (x:xs) = ((x:us):splitGroups vs)
 takeSongInfo :: [(String,String)] -> Song
 takeSongInfo xs =
     Song {
-          sgArtist   = maybe ""   id $ lookup "Artist" xs,
-          sgAlbum    = maybe ""   id $ lookup  "Album" xs,
-          sgTitle    = maybe ""   id $ lookup  "Title" xs,
-          sgFilePath = maybe ""   id $ lookup   "file" xs,
+          sgArtist   = fromMaybe "" $ lookup "Artist" xs,
+          sgAlbum    = fromMaybe "" $ lookup  "Album" xs,
+          sgTitle    = fromMaybe "" $ lookup  "Title" xs,
+          sgFilePath = fromMaybe "" $ lookup   "file" xs,
           sgLength   = maybe  0 read $ lookup   "Time" xs,
           sgIndex    = maybe PLNone (ID . read) $ lookup "Id" xs
          }
