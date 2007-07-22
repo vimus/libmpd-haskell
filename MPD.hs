@@ -86,7 +86,7 @@ data State = Playing
 data Status =
     Status { stState             :: State,
              -- | A percentage.
-             stVolume            :: Integer,
+             stVolume            :: Int,
              stRepeat, stRandom  :: Bool,
              -- | This value gets incremented by the server every time the
              --   playlist changes.
