@@ -190,7 +190,7 @@ currentSong conn = do
     currStatus <- status conn
     if stState currStatus == Stopped
         then return Nothing
-        else do ls <- getResponse conn "currentsong" >>= return . kvise
+        else do ls <- liftM kvise (getResponse conn "currentsong")
                 return $ if null ls then Nothing
                                     else Just (takeSongInfo ls)
 
