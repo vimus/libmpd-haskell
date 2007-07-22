@@ -34,7 +34,7 @@ module MPD (
             disableoutput, enableoutput, kill, outputs, update,
 
             -- * Database commands
-            findArtist, findAlbum, findTitle,
+            find, findArtist, findAlbum, findTitle,
             list, listAll, listArtists, listAlbums, listAlbum,
             search, searchArtist, searchAlbum, searchTitle,
 
