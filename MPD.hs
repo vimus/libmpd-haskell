@@ -168,17 +168,17 @@ status conn = liftM (parseStatus . kvise) (getResponse conn "status")
                      stSongPos =
                          maybe PLNone (Pos . (1+) . read) $ lookup "song" xs,
                      stSongID = maybe PLNone (ID . read) $ lookup "songid" xs,
-                     stTime = maybe (0,0) parse2 $ lookup "time" xs,
+                     stTime = maybe (0,0) parseTime $ lookup "time" xs,
                      stBitrate = maybe 0 read $ lookup "bitrate" xs,
-                     stAudio = maybe (0,0,0) parse3 $ lookup "audio" xs
+                     stAudio = maybe (0,0,0) parseAudio $ lookup "audio" xs
                    }
           parseState x = case x of "play"  -> Playing
                                    "stop"  -> Stopped
                                    "pause" -> Paused
                                    _       -> Stopped
           parseBool  x = if x == "0" then False else True
-          parse2     x = let (y,_:z) = break (== ':') x in (read y, read z)
-          parse3     x =
+          parseTime  x = let (y,_:z) = break (== ':') x in (read y, read z)
+          parseAudio x =
               let (u,_:u') = break (== ':') x; (v,_:w) = break (== ':') u' in
                   (read u, read v, read w)
 
