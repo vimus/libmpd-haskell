@@ -262,19 +262,19 @@ find conn searchType query = liftM (map takeSongInfo . splitGroups . kvise)
 -- | Search the database for songs relating to an artist.
 --
 findArtist :: Connection -> String -> IO [Song]
-findArtist conn = find conn "artist"
+findArtist = flip find "artist"
 
 
 -- | Search the database for songs relating to an album.
 --
 findAlbum :: Connection -> String -> IO [Song]
-findAlbum conn = find conn "album"
+findAlbum = flip find "album"
 
 
 -- | Search the database for songs relating to a song title.
 --
 findTitle :: Connection -> String -> IO [Song]
-findTitle conn = find conn "title"
+findTitle = flip find "title"
 
 --
 -- Playlist commands
@@ -300,7 +300,7 @@ add_ conn x = getResponse_ conn ("add " ++ show x)
 -- | Clear the playlist.
 --
 clear :: Connection -> IO ()
-clear conn = getResponse_ conn "clear"
+clear = flip getResponse_ "clear"
 
 
 -- | Remove a song from the playlist.
@@ -345,7 +345,7 @@ swap _ _ _ = return ()
 -- | Shuffle the playlist.
 --
 shuffle :: Connection -> IO ()
-shuffle conn = getResponse_ conn "shuffle"
+shuffle = flip getResponse_ "shuffle"
 
 -- | Retrieve the current playlist.
 --
@@ -390,19 +390,19 @@ pause conn on =
 -- | Stop playing.
 --
 stop :: Connection -> IO ()
-stop conn = getResponse_ conn "stop"
+stop = flip getResponse_ "stop"
 
 
 -- | Play the next song.
 --
 next :: Connection -> IO ()
-next conn = getResponse_ conn "next"
+next = flip getResponse_ "next"
 
 
 -- | Play the previous song.
 --
 previous :: Connection -> IO ()
-previous conn = getResponse_ conn "previous"
+previous = flip getResponse_ "previous"
 
 -- | Seek to some point in a song.
 -- Seeks in current song if no position is given.
