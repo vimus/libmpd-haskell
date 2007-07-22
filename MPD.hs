@@ -47,7 +47,7 @@ module MPD (
 
             -- * Miscellaneous commands
             clearerror, close, commands, notcommands, password, ping, stats,
-            status
+            status, tagtypes
 
            ) where
 
@@ -501,6 +501,10 @@ stats conn = liftM (parseStats . kvise) (getResponse conn "stats")
                         stsPlaytime = maybe 0 read $ lookup "playtime" xs,
                         stsDbPlaytime = maybe 0 read $ lookup "db_playtime" xs,
                         stsDbUpdate = maybe 0 read $ lookup "db_update" xs }
+
+-- | Retrieve a list of available song metadata.
+tagtypes :: Connection -> IO [String]
+tagtypes conn = liftM (map snd . kvise) (getResponse conn "tagtypes")
 
 ---------------------------------------------------------------------------
 -- Miscellaneous functions.
