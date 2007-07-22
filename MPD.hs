@@ -100,7 +100,7 @@ data Status =
              -- | (Seconds played, song length in seconds).
              stTime              :: (Seconds,Seconds),
              -- | Bitrate of playing song in kilobytes per second.
-             stBitrate           :: Integer,
+             stBitrate           :: Int,
              -- | MPD can fade between tracks. This is the time it takes to
              --   do so.
              stXFadeWidth        :: Seconds,
