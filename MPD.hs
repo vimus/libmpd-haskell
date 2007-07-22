@@ -42,8 +42,8 @@ module MPD (
             swap,
 
             -- * Playback commands
-            next, pause, play, previous, random, repeat, seek, setVolume,
-            stop,
+            crossfade, next, pause, play, previous, random, repeat, seek,
+            setVolume, stop,
 
             -- * Miscellaneous commands
             clearerror, close, commands, notcommands, password, ping, stats,
@@ -332,6 +332,10 @@ currentSong conn = do
 --
 -- Playback commands
 --
+
+-- | Set crossfading between songs.
+crossfade :: Connection -> Seconds -> IO ()
+crossfade conn xfade = getResponse_ conn ("crossfade " ++ show xfade)
 
 -- | Begin\/continue playing.
 --
