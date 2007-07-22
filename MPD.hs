@@ -141,6 +141,13 @@ data Count = Count { cSongs :: Integer, cPlaytime :: Seconds }
     deriving Show
 
 
+-- | Represents an output device.
+data Device =
+    Device { dOutputID      :: Int
+           , dOutputName    :: String
+           , dOutputEnabled :: Bool }
+    deriving Show
+
 
 ---------------------------------------------------------------------------
 -- Basic connection functions
@@ -185,8 +192,9 @@ kill :: Connection -> IO ()
 kill (Conn h) = hPutStrLn h "kill" >> hClose h
 
 -- | Retrieve information for all output devices.
-outputs :: Connection -> IO ()
-outputs _ = return ()
+outputs :: Connection -> IO [Device]
+outputs conn = liftM (map takeDevInfo . splitGroups . kvise)
+    (getResponse conn "outputs")
 
 -- | Update the server's database.
 --
@@ -480,7 +488,6 @@ status conn = liftM (parseStatus . kvise) (getResponse conn "status")
                                    "stop"  -> Stopped
                                    "pause" -> Paused
                                    _       -> Stopped
-          parseBool  x = if x == "0" then False else True
           parseTime  x = let (y,_:z) = break (== ':') x in (read y, read z)
           parseAudio x =
               let (u,_:u') = break (== ':') x; (v,_:w) = break (== ':') u' in
@@ -591,3 +598,16 @@ takeCountInfo xs =
         cSongs    = maybe 0 read $ lookup "songs" xs,
         cPlaytime = maybe 0 read $ lookup "playtime" xs
         }
+
+-- | Builds a device instance from an assoc. list.
+takeDevInfo :: [(String, String)] -> Device
+takeDevInfo xs =
+    Device {
+        dOutputID      = maybe 0 read $ lookup "outputid" xs,
+        dOutputName    = maybe "" id $ lookup "outputname" xs,
+        dOutputEnabled = maybe False parseBool $ lookup "outputenabled" xs
+        }
+
+-- Parse a boolean response value.
+parseBool :: String -> Bool
+parseBool x = if x == "0" then False else True
