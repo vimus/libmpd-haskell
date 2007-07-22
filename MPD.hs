@@ -155,8 +155,7 @@ checkConn (Conn h) = liftM (isPrefixOf "OK MPD") (hGetLine h)
 -- | Get the server's status.
 --
 status :: Connection -> IO Status
-status conn = do ls <- getResponse conn "status" >>= return . kvise
-                 return $ parseStatus ls
+status conn = liftM (parseStatus . kvise) (getResponse conn "status")
     where parseStatus xs =
               Status { stState = maybe Stopped parseState $ lookup "state" xs,
                      stVolume = maybe 0 read $ lookup "volume" xs,
