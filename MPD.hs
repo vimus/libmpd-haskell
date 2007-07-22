@@ -383,8 +383,8 @@ listArtists conn = liftM (map snd . kvise) (getResponse conn "list artist")
 --
 listAlbums :: Connection -> Maybe Artist -> IO [Album]
 listAlbums conn artist =
-    getResponse conn ("list album " ++ maybe "" show artist) >>=
-    return . map snd . kvise
+    liftM (map snd . kvise)
+          (getResponse conn ("list album " ++ maybe "" show artist))
 
 
 -- | List the songs of an album of an artist.
