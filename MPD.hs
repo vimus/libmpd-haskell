@@ -52,7 +52,7 @@ module MPD (
            ) where
 
 
-import Control.Monad (liftM)
+import Control.Monad (liftM, unless)
 import Prelude hiding (repeat)
 import Data.List (isPrefixOf, partition)
 import Data.Maybe
@@ -419,9 +419,7 @@ seek conn (ID x) time =
     getResponse_ conn ("seekid " ++ show x ++ " " ++ show time)
 seek conn PLNone time = do
     st <- status conn
-    if stState st == Stopped
-        then return ()
-        else seek conn (stSongID st) time
+    unless (stState st == Stopped) (seek conn (stSongID st) time)
 
 -- | Set random playing.
 --
