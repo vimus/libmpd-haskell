@@ -35,7 +35,8 @@ module MPD (
 
             -- * Database commands
             find, findArtist, findAlbum, findTitle,
-            list, listAll, listArtists, listAlbums, listAlbum,
+            listAll, listArtists, listAlbums, listAlbum,
+            lsinfo,
             search, searchArtist, searchAlbum, searchTitle,
 
             -- * Playlist commands
@@ -218,10 +219,10 @@ update conn  xs = getResponses conn (map ("update " ++) xs) >> return ()
 -- Database commands
 --
 
--- | List the directories and songs in a database directory.
+-- | List the directories and songs in a database directory (non-recursive).
 --
-list :: Connection -> Maybe String -> IO [Either String Song]
-list conn path = do
+lsinfo :: Connection -> Maybe String -> IO [Either String Song]
+lsinfo conn path = do
     ls <- liftM kvise (getResponse conn ("lsinfo " ++ path'))
     -- horribly inefficient, but it works for now.
     let (dirs,xs) = partition ((== "directory") . fst) ls
