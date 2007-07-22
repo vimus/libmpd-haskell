@@ -415,11 +415,11 @@ listAlbum conn artist album =
 
 -- | Search the database.
 --
-find' :: Connection
-     -> String      -- ^ Search type string
+find :: Connection
+     -> String      -- ^ Search type string (XXX add valid values)
      -> String      -- ^ Search query
      -> IO [Song]
-find' conn searchType query =
+find conn searchType query =
     getResponse conn ("find " ++ searchType ++ " " ++ show query) >>=
     return . map takeSongInfo . splitGroups . kvise
 
@@ -427,19 +427,19 @@ find' conn searchType query =
 -- | Search the database for songs relating to an artist.
 --
 findArtist :: Connection -> String -> IO [Song]
-findArtist conn = find' conn "artist"
+findArtist conn = find conn "artist"
 
 
 -- | Search the database for songs relating to an album.
 --
 findAlbum :: Connection -> String -> IO [Song]
-findAlbum conn = find' conn "album"
+findAlbum conn = find conn "album"
 
 
 -- | Search the database for songs relating to a song title.
 --
 findTitle :: Connection -> String -> IO [Song]
-findTitle conn = find' conn "title"
+findTitle conn = find conn "title"
 
 
 
