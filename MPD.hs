@@ -267,7 +267,7 @@ find :: Connection
      -> String      -- ^ Search type string (XXX add valid values)
      -> String      -- ^ Search query
      -> IO [Song]
-find conn searchType query = liftM (map takeSongInfo . splitGroups . kvise)
+find conn searchType query = liftM takeSongs
     (getResponse conn ("find " ++ searchType ++ " " ++ show query))
 
 -- | Search the database for songs relating to an artist.
@@ -290,7 +290,7 @@ search :: Connection
        -> String -- ^ Search type string (see tagtypes)
        -> String -- ^ Search query
        -> IO [Song]
-search conn searchType query = liftM (map takeSongInfo . splitGroups . kvise)
+search conn searchType query = liftM takeSongs
     (getResponse conn ("search " ++ searchType ++ " " ++ show query))
 
 -- | Search the database for songs relating to an artist using 'search'.
