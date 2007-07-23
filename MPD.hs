@@ -231,14 +231,6 @@ lsinfo conn path = do
             map (Right . takeSongInfo) (splitGroups files))
         where path' = maybe "" show path
 
-
--- | List the songs in a database directory recursively.
---
-listAll :: Connection -> Maybe String -> IO [String]
-listAll conn path = liftM (map snd . filter ((== "file") . fst) . kvise)
-                          (getResponse conn ("listall " ++ maybe "" show path))
-
-
 -- | List the artists in the database.
 --
 listArtists :: Connection -> IO [Artist]
@@ -258,9 +250,17 @@ listAlbum :: Connection -> Artist -> Album -> IO [Song]
 listAlbum conn artist album = liftM (filter ((== artist) . sgArtist))
     (findAlbum conn album)
 
+-- | List the songs in a database directory recursively.
+listAll :: Connection -> Maybe String -> IO [String]
+listAll conn path = liftM (map snd . filter ((== "file") . fst) . kvise)
+                          (getResponse conn ("listall " ++ maybe "" show path))
 
--- | Search the database.
---
+-- | List all information in database about all songs in a given path.
+listAllinfo :: Connection -> String -> IO [Song]
+listAllinfo _ _ = undefined
+
+-- | Search the database for entries exactly matching a query.
+-- Search type may be any of the tagtypes or 'file'.
 find :: Connection
      -> String      -- ^ Search type string (XXX add valid values)
      -> String      -- ^ Search query
@@ -302,6 +302,19 @@ searchAlbum = flip search "album"
 -- | Search the database for songs relating to a song title.
 searchTitle :: Connection -> String -> IO [Song]
 searchTitle = flip search "title"
+
+-- | Count the number of entries matching a query.
+count :: Connection
+      -> String -- ^ Count type string (any of the tagtypes or 'file')
+      -> String -- ^ Count query
+      -> IO Count
+count conn countType query = liftM (takeCountInfo . kvise)
+    (getResponse conn ("count " ++ countType ++ " " ++ show query))
+    where takeCountInfo xs =
+                Count {
+                    cSongs    = maybe 0 read $ lookup "songs" xs,
+                    cPlaytime = maybe 0 read $ lookup "playtime" xs
+                      }
 
 --
 -- Playlist commands
@@ -490,10 +503,34 @@ commands conn = liftM (map snd . kvise) (getResponse conn "commands")
 notcommands :: Connection -> IO [String]
 notcommands conn = liftM (map snd . kvise) (getResponse conn "notcommands")
 
+-- | Retrieve a list of available song metadata.
+tagtypes :: Connection -> IO [String]
+tagtypes conn = liftM (map snd . kvise) (getResponse conn "tagtypes")
+
+-- | Retrieve a list of supported urlhandlers.
+urlhandlers :: Connection -> IO [String]
+urlhandlers conn = liftM (map snd . kvise) (getResponse conn "urlhandlers")
+
 -- | Send password to server to authenticate session.
 -- Password is sent as plain text.
 password :: Connection -> String -> IO ()
 password conn passw = getResponse_ conn passw
+
+-- | Check that the server is still responding.
+ping :: Connection -> IO ()
+ping conn = getResponse_ conn "ping"
+
+-- | Get server statistics.
+stats :: Connection -> IO Stats
+stats conn = liftM (parseStats . kvise) (getResponse conn "stats")
+    where parseStats xs =
+                Stats { stsArtists = maybe 0 read $ lookup "artists" xs,
+                        stsAlbums = maybe 0 read $ lookup "albums" xs,
+                        stsSongs = maybe 0 read $ lookup "songs" xs,
+                        stsUptime = maybe 0 read $ lookup "uptime" xs,
+                        stsPlaytime = maybe 0 read $ lookup "playtime" xs,
+                        stsDbPlaytime = maybe 0 read $ lookup "db_playtime" xs,
+                        stsDbUpdate = maybe 0 read $ lookup "db_update" xs }
 
 -- | Get the server's status.
 status :: Connection -> IO Status
@@ -523,48 +560,6 @@ status conn = liftM (parseStatus . kvise) (getResponse conn "status")
           parseAudio x =
               let (u,_:u') = break (== ':') x; (v,_:w) = break (== ':') u' in
                   (read u, read v, read w)
-
-
--- | Check that the server is still responding.
---
-ping :: Connection -> IO ()
-ping conn = getResponse_ conn "ping"
-
-
--- | Get server statistics.
-stats :: Connection -> IO Stats
-stats conn = liftM (parseStats . kvise) (getResponse conn "stats")
-    where parseStats xs =
-                Stats { stsArtists = maybe 0 read $ lookup "artists" xs,
-                        stsAlbums = maybe 0 read $ lookup "albums" xs,
-                        stsSongs = maybe 0 read $ lookup "songs" xs,
-                        stsUptime = maybe 0 read $ lookup "uptime" xs,
-                        stsPlaytime = maybe 0 read $ lookup "playtime" xs,
-                        stsDbPlaytime = maybe 0 read $ lookup "db_playtime" xs,
-                        stsDbUpdate = maybe 0 read $ lookup "db_update" xs }
-
--- | Retrieve a list of available song metadata.
-tagtypes :: Connection -> IO [String]
-tagtypes conn = liftM (map snd . kvise) (getResponse conn "tagtypes")
-
--- | Retrieve some stats on specific database entries.
-count :: Connection
-      -> String -- ^ Count type string (see tagtypes)
-      -> String -- ^ Count query
-      -> IO Count
-count conn countType query = liftM (takeCountInfo . kvise)
-    (getResponse conn ("count " ++ countType ++ " " ++ show query))
-    where takeCountInfo xs =
-                Count {
-                    cSongs    = maybe 0 read $ lookup "songs" xs,
-                    cPlaytime = maybe 0 read $ lookup "playtime" xs
-                      }
-
-
-
--- | Retrieve a list of supported urlhandlers.
-urlhandlers :: Connection -> IO [String]
-urlhandlers conn = liftM (map snd . kvise) (getResponse conn "urlhandlers")
 
 --
 -- Extensions.
