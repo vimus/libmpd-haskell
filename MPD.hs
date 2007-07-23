@@ -600,7 +600,7 @@ getResponse (Conn h) cmd = hPutStrLn h cmd >> hFlush h >> f []
 -- | Get the lines of the daemon's response to a list of commands.
 --
 getResponses :: Connection -> [String] -> IO [String]
-getResponses conn cmds = getResponse conn $
+getResponses conn cmds = getResponse conn .
     unlines $ "command_list_begin" : cmds ++ ["command_list_end"]
 
 -- | Break up a list of strings into an assoc list, separating at
