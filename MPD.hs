@@ -43,6 +43,7 @@ module MPD (
             add, add_, addid, clear, currentSong, delete, load, move,
             playlistinfo, getPlaylist, plchanges, plchangesposid, rm, rename,
             save, shuffle, swap,
+            playlistclear,
 
             -- * Playback commands
             crossfade, next, pause, play, previous, random, repeat, seek,
@@ -426,6 +427,11 @@ currentSong conn = do
         else do ls <- liftM kvise (getResponse conn "currentsong")
                 return $ if null ls then Nothing
                                     else Just (takeSongInfo ls)
+
+-- | Like 'clear' but takes the name of a playlist to operate on.
+-- Creates a new playlist if it does not exist.
+playlistclear :: Connection -> String -> IO ()
+playlistclear conn plname = getResponse_ conn ("playlistclear " ++ show plname)
 
 --
 -- Playback commands
