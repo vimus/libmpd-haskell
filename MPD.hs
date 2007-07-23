@@ -44,7 +44,7 @@ module MPD (
             add, add_, addid, clear, currentSong, delete, load, move,
             playlistinfo, getPlaylist, plchanges, plchangesposid, rm, rename,
             save, shuffle, swap,
-            playlistclear,
+            playlistclear, playlistdelete, playlistadd, playlistmove,
 
             -- * Playback commands
             crossfade, next, pause, play, previous, random, repeat, seek,
@@ -433,6 +433,35 @@ currentSong conn = do
 -- Creates a new playlist if it does not exist.
 playlistclear :: Connection -> String -> IO ()
 playlistclear conn plname = getResponse_ conn ("playlistclear " ++ show plname)
+
+-- XXX does this expect positions or ids?
+-- | Like 'delete' but takes the name of a playlist to operate on.
+-- Creates a new playlist if it does not exist.
+playlistdelete :: Connection -> String -> PLIndex -> IO ()
+playlistdelete conn plname idx =
+    getResponse_ conn ("playlistdelete " ++ show plname ++ " " ++ idx')
+    where idx' = case idx of
+                    Pos x -> show (x - 1)
+                    _     -> ""
+
+-- | Like 'add' but takes the name of a playlist to operate on.
+-- Creates a new playlist if it does not exist.
+playlistadd :: Connection -> String -> String -> IO [String]
+playlistadd conn plname path =
+    getResponse conn ("playlistadd " ++ show plname ++ " " ++ show path) >>
+    listAll conn (Just path)
+
+-- XXX does this expect positions or ids?
+-- | Like 'move' but takes the name of a playlist to operate on.
+-- Creates a new playlist if it does not exist.
+playlistmove :: Connection -> String -> PLIndex -> Integer -> IO ()
+playlistmove _ _ PLNone _ = return ()
+playlistmove conn plname idx to =
+    getResponse_ conn ("playlistmove " ++ show plname ++ " " ++ idx' ++
+                       " " ++ show to)
+    where idx' = case idx of
+                    Pos x -> show (x - 1)
+                    _     -> ""
 
 --
 -- Playback commands
