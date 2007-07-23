@@ -134,7 +134,6 @@ data Stats =
     deriving Show
 
 -- | Description of a song.
---
 data Song = Song { sgArtist, sgAlbum, sgTitle, sgFilePath :: String,
                    sgIndex :: PLIndex, sgLength :: Seconds }
             deriving Show
@@ -631,7 +630,6 @@ getResponse_ :: Connection -> String -> IO ()
 getResponse_ c x = getResponse c x >> return ()
 
 -- | Get the lines of the daemon's response to a given command.
---
 getResponse :: Connection -> String -> IO [String]
 getResponse (Conn h) cmd = hPutStrLn h cmd >> hFlush h >> f []
     where f acc = do
