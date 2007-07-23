@@ -216,7 +216,7 @@ list :: Connection
      -> String       -- ^ Query (requires optional arg).
      -> IO [String]
 list conn metaType metaQuery query =
-    liftM (map snd . kvise) (getResponse conn cmd)
+    liftM takeValues (getResponse conn cmd)
     where cmd = "list " ++ metaType ++
                 maybe "" (\x -> " " ++ x ++ " " ++ show query) metaQuery
 
@@ -242,7 +242,8 @@ listArtists conn = liftM (map snd . kvise) (getResponse conn "list artist")
 --
 listAlbums :: Connection -> Maybe Artist -> IO [Album]
 listAlbums conn artist =
-    liftM (map snd . kvise)
+    liftM takeValues
+          -- XXX according to the spec this shouldn't work (but it does)
           (getResponse conn ("list album " ++ maybe "" show artist))
 
 -- | List the songs of an album of an artist.
@@ -499,19 +500,19 @@ close (Conn h) = hPutStrLn h "close" >> hClose h
 
 -- | Retrieve a list of available commands.
 commands :: Connection -> IO [String]
-commands conn = liftM (map snd . kvise) (getResponse conn "commands")
+commands conn = liftM takeValues (getResponse conn "commands")
 
 -- | Retrieve a list of unavailable commands.
 notcommands :: Connection -> IO [String]
-notcommands conn = liftM (map snd . kvise) (getResponse conn "notcommands")
+notcommands conn = liftM takeValues (getResponse conn "notcommands")
 
 -- | Retrieve a list of available song metadata.
 tagtypes :: Connection -> IO [String]
-tagtypes conn = liftM (map snd . kvise) (getResponse conn "tagtypes")
+tagtypes conn = liftM takeValues (getResponse conn "tagtypes")
 
 -- | Retrieve a list of supported urlhandlers.
 urlhandlers :: Connection -> IO [String]
-urlhandlers conn = liftM (map snd . kvise) (getResponse conn "urlhandlers")
+urlhandlers conn = liftM takeValues (getResponse conn "urlhandlers")
 
 -- | Send password to server to authenticate session.
 -- Password is sent as plain text.
