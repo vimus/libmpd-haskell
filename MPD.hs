@@ -21,7 +21,6 @@
 -- | MPD client library.
 --
 module MPD (
-
             -- * Connections
             Connection, connect,
 
@@ -54,7 +53,6 @@ module MPD (
 
             -- * Extensions
             addMany, crop
-
            ) where
 
 
@@ -71,29 +69,24 @@ import System.IO
 -- Data Types
 --
 
-
 -- | A connection to a MPD.
 --
 newtype Connection = Conn Handle
-
 
 type Artist  = String
 type Album   = String
 type Title   = String
 type Seconds = Integer
 
-
 data PLIndex = PLNone       -- ^ No index.
              | Pos Integer  -- ^ A playlist position index.
              | ID Integer   -- ^ A playlist ID number.
                deriving Show
 
-
 data State = Playing
            | Stopped
            | Paused
              deriving (Show, Eq)
-
 
 data Status =
     Status { stState             :: State,
@@ -146,7 +139,6 @@ data Song = Song { sgArtist, sgAlbum, sgTitle, sgFilePath :: String,
 data Count = Count { cSongs :: Integer, cPlaytime :: Seconds }
     deriving Show
 
-
 -- | Represents an output device.
 data Device =
     Device { dOutputID      :: Int
@@ -159,7 +151,6 @@ data Device =
 -- Basic connection functions
 --
 
-
 -- | Create a MPD connection.
 --
 connect :: String      -- ^ Hostname.
@@ -171,12 +162,10 @@ connect host port = withSocketsDo $ do
     if mpd then return conn
            else close conn >> fail ("no MPD at " ++ host ++ ":" ++ show port)
 
-
 -- | Check that a MPD daemon is at the other end of a connection.
 --
 checkConn :: Connection -> IO Bool
 checkConn (Conn h) = liftM (isPrefixOf "OK MPD") (hGetLine h)
-
 
 --
 -- Admin commands
@@ -255,7 +244,6 @@ listAll conn path = liftM (map snd . filter ((== "file") . fst) . kvise)
 listArtists :: Connection -> IO [Artist]
 listArtists conn = liftM (map snd . kvise) (getResponse conn "list artist")
 
-
 -- | List the albums in the database, optionally matching a given
 --   artist.
 --
@@ -263,7 +251,6 @@ listAlbums :: Connection -> Maybe Artist -> IO [Album]
 listAlbums conn artist =
     liftM (map snd . kvise)
           (getResponse conn ("list album " ++ maybe "" show artist))
-
 
 -- | List the songs of an album of an artist.
 --
@@ -281,18 +268,15 @@ find :: Connection
 find conn searchType query = liftM (map takeSongInfo . splitGroups . kvise)
     (getResponse conn ("find " ++ searchType ++ " " ++ show query))
 
-
 -- | Search the database for songs relating to an artist.
 --
 findArtist :: Connection -> String -> IO [Song]
 findArtist = flip find "artist"
 
-
 -- | Search the database for songs relating to an album.
 --
 findAlbum :: Connection -> String -> IO [Song]
 findAlbum = flip find "album"
-
 
 -- | Search the database for songs relating to a song title.
 --
@@ -333,18 +317,15 @@ addid conn x =
 add :: Connection -> String -> IO [String]
 add conn x = getResponse conn ("add " ++ show x) >> listAll conn (Just x)
 
-
 -- | Add a song (or a whole directory) to the playlist without returning
 --   what was added.
 add_ :: Connection -> String -> IO ()
 add_ conn x = getResponse_ conn ("add " ++ show x)
 
-
 -- | Clear the playlist.
 --
 clear :: Connection -> IO ()
 clear = flip getResponse_ "clear"
-
 
 -- | Remove a song from the playlist.
 --
@@ -356,7 +337,6 @@ delete conn (ID  x) = getResponse conn ("deleteid " ++ show x)   >> return ()
 -- | Load an existing playlist.
 load :: Connection -> String -> IO ()
 load conn plname = getResponse_ conn ("load " ++ show plname)
-
 
 -- | Move a song to a given position.
 --
@@ -374,7 +354,6 @@ rm conn plname = getResponse_ conn ("rm " ++ show plname)
 -- | Save the current playlist.
 save :: Connection -> String -> IO ()
 save conn plname = getResponse_ conn ("save " ++ show plname)
-
 
 -- | Swap the positions of two songs.
 --
@@ -441,25 +420,21 @@ play conn PLNone  = getResponse_ conn "play"
 play conn (Pos x) = getResponse_ conn ("play " ++ show (x-1))
 play conn (ID x)  = getResponse_ conn ("playid " ++ show x)
 
-
 -- | Pause playing.
 --
 pause :: Connection -> Bool -> IO ()
 pause conn on =
     getResponse_ conn ("pause " ++ if on then "1" else "0")
 
-
 -- | Stop playing.
 --
 stop :: Connection -> IO ()
 stop = flip getResponse_ "stop"
 
-
 -- | Play the next song.
 --
 next :: Connection -> IO ()
 next = flip getResponse_ "next"
-
 
 -- | Play the previous song.
 --
@@ -483,13 +458,11 @@ random :: Connection -> Bool -> IO ()
 random conn x =
     getResponse_ conn ("random " ++ if x then "1" else "0")
 
-
 -- | Set repeating.
 --
 repeat :: Connection -> Bool -> IO ()
 repeat conn x =
     getResponse_ conn ("repeat " ++ if x then "1" else "0")
-
 
 -- | Set the volume.
 --
@@ -628,13 +601,11 @@ getResponse (Conn h) cmd = hPutStrLn h cmd >> hFlush h >> f []
                   ('A':'C':'K':_:e) -> fail e
                   _                 -> f (acc ++ [l])
 
-
 -- | Get the lines of the daemon's response to a list of commands.
 --
 getResponses :: Connection -> [String] -> IO [String]
 getResponses conn cmds = getResponse conn $
     unlines $ "command_list_begin" : cmds ++ ["command_list_end"]
-
 
 -- | Break up a list of strings into an assoc list, separating at
 --   the first ':'.
@@ -643,7 +614,6 @@ kvise :: [String] -> [(String, String)]
 kvise = map f
     where f x = let (k,v) = break (== ':') x in
                 (k,dropWhile (== ' ') $ drop 1 v)
-
 
 -- | Takes a assoc list with recurring keys, and groups each cycle of
 --   keys with their values together. The first key of each cycle needs
@@ -657,7 +627,6 @@ splitGroups :: Eq a => [(a, b)] -> [[(a, b)]]
 splitGroups [] = []
 splitGroups (x:xs) = ((x:us):splitGroups vs)
     where (us,vs) = break (\y -> fst x == fst y) xs
-
 
 -- |  Builds a song instance from an assoc list.
 --
