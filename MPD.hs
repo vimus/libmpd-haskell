@@ -393,9 +393,7 @@ getPlaylist = flip playlistinfo PLNone
 playlistinfo :: Connection
             -> PLIndex   -- ^ Optional playlist index.
             -> IO [Song]
-playlistinfo conn x = do
-    pl <- liftM kvise (getResponse conn cmd)
-    return $ if null pl then [] else map takeSongInfo (splitGroups pl)
+playlistinfo conn x = liftM takeSongs (getResponse conn cmd)
     where cmd = case x of
                     Pos x' -> "playlistinfo " ++ show (x' - 1)
                     ID x'  -> "playlistid " ++ show x'
