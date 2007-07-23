@@ -30,6 +30,7 @@ module MPD (
             -- * Data types
             Connection,
             State(..), Status(..), Stats(..),
+            Device(..),
             Artist, Album, Title, Seconds, PLIndex(..),
             Song(..), Count(..),
 
