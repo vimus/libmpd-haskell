@@ -624,6 +624,10 @@ splitGroups [] = []
 splitGroups (x:xs) = ((x:us):splitGroups vs)
     where (us,vs) = break (\y -> fst x == fst y) xs
 
+-- | Run 'kvise' and return only the values.
+takeValues :: [String] -> [String]
+takeValues = snd . unzip . kvise
+
 -- | Build a list of song instances from a response.
 takeSongs :: [String] -> [Song]
 takeSongs = map takeSongInfo . splitGroups . kvise
