@@ -41,8 +41,8 @@ module MPD (
 
             -- * Playlist commands
             add, add_, addid, clear, currentSong, delete, load, move,
-            playlistinfo, getPlaylist, plchanges, plchangesposid, rm, save,
-            shuffle, swap,
+            playlistinfo, getPlaylist, plchanges, plchangesposid, rm, rename,
+            save, shuffle, swap,
 
             -- * Playback commands
             crossfade, next, pause, play, previous, random, repeat, seek,
@@ -365,6 +365,14 @@ move conn (ID from) to =
 -- | Delete existing playlist.
 rm :: Connection -> String -> IO ()
 rm conn plname = getResponse_ conn ("rm " ++ show plname)
+
+-- | Rename an existing playlist.
+rename :: Connection
+       -> String -- ^ Name of playlist to be renamed
+       -> String -- ^ New playlist name
+       -> IO ()
+rename conn plname new =
+    getResponse_ conn ("rename " ++ show plname ++ " " ++ show new)
 
 -- | Save the current playlist.
 save :: Connection -> String -> IO ()
