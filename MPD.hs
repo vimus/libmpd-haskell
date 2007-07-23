@@ -217,8 +217,8 @@ list :: Connection
      -> IO [String]
 list conn metaType metaQuery query =
     liftM (map snd . kvise) (getResponse conn cmd)
-    where cmd = "list " ++ show metaType ++
-                maybe "" (\x -> " " ++ show x ++ " " ++ show query) metaQuery
+    where cmd = "list " ++ metaType ++
+                maybe "" (\x -> " " ++ x ++ " " ++ show query) metaQuery
 
 -- | List the directories and songs in a database directory (non-recursive).
 --
