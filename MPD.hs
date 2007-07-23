@@ -647,4 +647,4 @@ takeSongInfo xs =
 
 -- Parse a boolean response value.
 parseBool :: String -> Bool
-parseBool x = if x == "0" then False else True
+parseBool = not . (== "0")
