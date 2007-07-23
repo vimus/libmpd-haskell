@@ -35,21 +35,22 @@ module MPD (
             -- * Database commands
             find, findArtist, findAlbum, findTitle,
             list, listAll, listArtists, listAlbums, listAlbum,
-            lsinfo,
+            listAllinfo, lsinfo,
             search, searchArtist, searchAlbum, searchTitle,
+            count,
 
             -- * Playlist commands
-            add, add_, addid, clear, currentSong, delete, load, move, rm, save,
-            getPlaylist, playlistinfo, plchanges, plchangesposid, shuffle,
-            swap,
+            add, add_, addid, clear, currentSong, delete, load, move,
+            playlistinfo, getPlaylist, plchanges, plchangesposid, rm, save,
+            shuffle, swap,
 
             -- * Playback commands
             crossfade, next, pause, play, previous, random, repeat, seek,
             setVolume, stop,
 
             -- * Miscellaneous commands
-            clearerror, close, commands, notcommands, password, ping, stats,
-            status, tagtypes, count, urlhandlers,
+            clearerror, close, commands, notcommands, tagtypes, urlhandlers,
+            password, ping, stats, status,
 
             -- * Extensions
             addMany, crop
