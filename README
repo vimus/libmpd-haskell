@@ -9,7 +9,7 @@ Dependencies:
 
 Building:
     $ chmod +x configure Setup.lhs
-    $ ./Setup.lhs configure --prefix=/home/ben
+    $ ./Setup.lhs configure --prefix=${HOME}
     $ ./Setup.lhs build
     $ ./Setup.lhs install
 
