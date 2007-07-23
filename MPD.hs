@@ -624,6 +624,10 @@ splitGroups [] = []
 splitGroups (x:xs) = ((x:us):splitGroups vs)
     where (us,vs) = break (\y -> fst x == fst y) xs
 
+-- | Build a list of song instances from a response.
+takeSongs :: [String] -> [Song]
+takeSongs = map takeSongInfo . splitGroups . kvise
+
 -- |  Builds a song instance from an assoc list.
 --
 takeSongInfo :: [(String,String)] -> Song
