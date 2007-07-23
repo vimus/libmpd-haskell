@@ -403,7 +403,8 @@ playlistinfo conn x = do
 -- | Retrieve a list of changed songs currently in the playlist since
 -- a given playlist version.
 plchanges :: Connection -> Integer -> IO [Song]
-plchanges _ _ = fail "plchanges not implemented"
+plchanges conn ver = liftM takeSongs
+    (getResponse conn ("plchanges " ++ show ver))
 
 -- | Like 'plchanges' but only returns positions and ids.
 plchangesposid :: Connection -> Integer -> IO [(Integer, Integer)]
