@@ -17,9 +17,15 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 -}
 
-
--- | MPD client library.
+-- | Module    : MPD
+-- Copyright   : (c) Ben Sinclair 2005
+-- License     : LGPL
+-- Maintainer  : bsinclai@turing.une.edu.au
+-- Stability   : alpha
+-- Portability : Haskell 98
 --
+-- MPD client library.
+
 module MPD (
             -- * Data types
             Connection,
