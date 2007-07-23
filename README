@@ -11,7 +11,7 @@ Building:
     $ chmod +x configure Setup.lhs
     $ ./Setup.lhs configure --prefix=${HOME}
     $ ./Setup.lhs build
-    $ ./Setup.lhs install
+    $ ./Setup.lhs install --user
 
     This assumes you have Cabal installed. Cabal is installed by
     default with newer GHCs.
