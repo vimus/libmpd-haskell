@@ -21,13 +21,14 @@
 -- | MPD client library.
 --
 module MPD (
-            -- * Connections
-            Connection, connect,
-
-            -- * Status
+            -- * Data types
+            Connection,
             State(..), Status(..), Stats(..),
             Artist, Album, Title, Seconds, PLIndex(..),
             Song(..), Count(..),
+
+            -- * Connections
+            connect,
 
             -- * Admin commands
             disableoutput, enableoutput, kill, outputs, update,
