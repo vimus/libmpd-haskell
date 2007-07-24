@@ -720,4 +720,4 @@ parseNum = fromMaybe 0 . maybeReads
 
 -- Parse a boolean response value.
 parseBool :: String -> Bool
-parseBool = not . (== "0")
+parseBool = (== "1") . take 1
