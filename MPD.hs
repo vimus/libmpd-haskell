@@ -320,8 +320,8 @@ count conn countType query = liftM (takeCountInfo . kvise)
     (getResponse conn ("count " ++ countType ++ " " ++ show query))
     where takeCountInfo xs =
                 Count {
-                    cSongs    = maybe 0 read $ lookup "songs" xs,
-                    cPlaytime = maybe 0 read $ lookup "playtime" xs
+                    cSongs    = takeNum "songs" xs,
+                    cPlaytime = takeNum "playtime" xs
                       }
 
 --
@@ -569,34 +569,33 @@ ping conn = getResponse_ conn "ping"
 stats :: Connection -> IO Stats
 stats conn = liftM (parseStats . kvise) (getResponse conn "stats")
     where parseStats xs =
-                Stats { stsArtists = maybe 0 read $ lookup "artists" xs,
-                        stsAlbums = maybe 0 read $ lookup "albums" xs,
-                        stsSongs = maybe 0 read $ lookup "songs" xs,
-                        stsUptime = maybe 0 read $ lookup "uptime" xs,
-                        stsPlaytime = maybe 0 read $ lookup "playtime" xs,
-                        stsDbPlaytime = maybe 0 read $ lookup "db_playtime" xs,
-                        stsDbUpdate = maybe 0 read $ lookup "db_update" xs }
+                Stats { stsArtists = takeNum "artists" xs,
+                        stsAlbums = takeNum "albums" xs,
+                        stsSongs = takeNum "songs" xs,
+                        stsUptime = takeNum "uptime" xs,
+                        stsPlaytime = takeNum "playtime" xs,
+                        stsDbPlaytime = takeNum "db_playtime" xs,
+                        stsDbUpdate = takeNum "db_update" xs }
 
 -- | Get the server's status.
 status :: Connection -> IO Status
 status conn = liftM (parseStatus . kvise) (getResponse conn "status")
     where parseStatus xs =
               Status { stState = maybe Stopped parseState $ lookup "state" xs,
-                     stVolume = maybe 0 read $ lookup "volume" xs,
-                     stRepeat = maybe False parseBool $ lookup "repeat" xs,
-                     stRandom = maybe False parseBool $ lookup "random" xs,
-                     stPlaylistVersion = maybe 0 read $ lookup "playlist" xs,
-                     stPlaylistLength =
-                         maybe 0 read $ lookup "playlistlength" xs,
-                     stXFadeWidth = maybe 0 read $ lookup "xfade" xs,
+                     stVolume = takeNum "volume" xs,
+                     stRepeat = takeBool "repeat" xs,
+                     stRandom = takeBool "random" xs,
+                     stPlaylistVersion = takeNum "playlist" xs,
+                     stPlaylistLength = takeNum "playlistlength" xs,
+                     stXFadeWidth = takeNum "xfade" xs,
                      stSongPos =
                          maybe PLNone (Pos . (1+) . read) $ lookup "song" xs,
                      stSongID = maybe PLNone (ID . read) $ lookup "songid" xs,
                      stTime = maybe (0,0) parseTime $ lookup "time" xs,
-                     stBitrate = maybe 0 read $ lookup "bitrate" xs,
+                     stBitrate = takeNum "bitrate" xs,
                      stAudio = maybe (0,0,0) parseAudio $ lookup "audio" xs,
-                     stUpdatingDb = maybe 0 read $ lookup "updating_db" xs,
-                     stError = fromMaybe "" $ lookup "error" xs
+                     stUpdatingDb = takeNum "updating_db" xs,
+                     stError = takeString "error" xs
                    }
           parseState x = case x of "play"  -> Playing
                                    "pause" -> Paused
@@ -677,18 +676,28 @@ takeSongs = map takeSongInfo . splitGroups . kvise
 takeSongInfo :: [(String,String)] -> Song
 takeSongInfo xs =
     Song {
-          sgArtist   = fromMaybe "" $ lookup "Artist" xs,
-          sgAlbum    = fromMaybe "" $ lookup  "Album" xs,
-          sgTitle    = fromMaybe "" $ lookup  "Title" xs,
-          sgGenre    = fromMaybe "" $ lookup "Genre" xs,
-          sgDate     = maybe 0 parseNum $ lookup "Date" xs,
+          sgArtist   = takeString "Artist" xs,
+          sgAlbum    = takeString "Album" xs,
+          sgTitle    = takeString "Title" xs,
+          sgGenre    = takeString "Genre" xs,
+          sgDate     = takeNum "Date" xs,
           sgTrack    = maybe (0, 0) parseTrack $ lookup "Track" xs,
-          sgFilePath = fromMaybe "" $ lookup   "file" xs,
-          sgLength   = maybe  0 read $ lookup   "Time" xs,
+          sgFilePath = takeString "file" xs,
+          sgLength   = takeNum "Time" xs,
           sgIndex    = maybe PLNone (ID . read) $ lookup "Id" xs
          }
     where parseTrack x = let (trck, tot) = break (== '/') x
                          in (read trck, parseNum (drop 1 tot))
+
+-- Helpers for retrieving values from an assoc. list.
+takeString :: String -> [(String, String)] -> String
+takeString v = fromMaybe "" . lookup v
+
+takeNum :: (Read a, Num a) => String -> [(String, String)] -> a
+takeNum v = maybe 0 parseNum . lookup v
+
+takeBool :: String -> [(String, String)] -> Bool
+takeBool v = maybe False parseBool . lookup v
 
 -- Parse a numeric value, returning 0 on failure.
 parseNum :: (Read a, Num a) => String -> a
