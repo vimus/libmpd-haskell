@@ -142,8 +142,11 @@ data Stats =
     deriving Show
 
 -- | Description of a song.
-data Song = Song { sgArtist, sgAlbum, sgTitle, sgFilePath :: String,
-                   sgIndex :: PLIndex, sgLength :: Seconds }
+data Song = Song { sgArtist, sgAlbum, sgTitle, sgFilePath, sgGenre :: String
+                  ,sgLength :: Integer
+                  ,sgDate   :: Int        -- ^ year
+                  ,sgTrack  :: (Int, Int) -- ^ (track number, total tracks)
+                  ,sgIndex  :: PLIndex }
             deriving Show
 
 data Count = Count { cSongs :: Integer, cPlaytime :: Seconds }
@@ -700,10 +703,20 @@ takeSongInfo xs =
           sgArtist   = fromMaybe "" $ lookup "Artist" xs,
           sgAlbum    = fromMaybe "" $ lookup  "Album" xs,
           sgTitle    = fromMaybe "" $ lookup  "Title" xs,
+          sgGenre    = fromMaybe "" $ lookup "Genre" xs,
+          sgDate     = maybe 0 parseNum $ lookup "Date" xs,
+          sgTrack    = maybe (0, 0) parseTrack $ lookup "Track" xs,
           sgFilePath = fromMaybe "" $ lookup   "file" xs,
           sgLength   = maybe  0 read $ lookup   "Time" xs,
           sgIndex    = maybe PLNone (ID . read) $ lookup "Id" xs
          }
+    where parseTrack x = let (trck, tot) = break (== '/') x
+                         in (read trck, parseNum (drop 1 tot))
+
+-- Parse a numeric value, returning 0 on failure.
+parseNum :: (Read a, Num a) => String -> a
+parseNum = fromMaybe 0 . maybeReads
+    where maybeReads s = do ; [(x, "")] <- return (reads s) ; return x
 
 -- Parse a boolean response value.
 parseBool :: String -> Bool
