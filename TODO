@@ -1,6 +1,12 @@
 TODO:
-
-    - implement _move_
-    - implement _swap_
-    - implement _seek_
     - improve parsing performance
+    - Detect password protected hosts.
+    - Implement remaining functions mentioned in
+    http://mpd.wikia.com/wiki/MusicPlayerDaemonCommands
+    add, delete, clear, move and playlistinfo should take an optional
+    playlist argument so that functions which differ only in that they
+    operate on specific playlists may be merged.
+    - figure out what exactly playlistfind and playlistsearch are supposed
+    to do.
+    - create lsdirs, lsfiles and lsplaylists
+    - Finish crop.
