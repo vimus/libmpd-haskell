@@ -302,8 +302,8 @@ clear = flip getResponse_ "clear"
 -- | Remove a song from the playlist.
 delete :: Connection -> PLIndex -> IO ()
 delete _ PLNone = return ()
-delete conn (Pos x) = getResponse conn ("delete " ++ show (x-1)) >> return ()
-delete conn (ID  x) = getResponse conn ("deleteid " ++ show x)   >> return ()
+delete conn (Pos x) = getResponse_ conn ("delete " ++ show (x-1))
+delete conn (ID  x) = getResponse_ conn ("deleteid " ++ show x)
 
 -- | Load an existing playlist.
 load :: Connection -> String -> IO ()
