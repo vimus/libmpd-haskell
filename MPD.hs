@@ -41,15 +41,11 @@ module MPD (
             disableoutput, enableoutput, kill, outputs, update,
 
             -- * Database commands
-            find, findArtist, findAlbum, findTitle,
-            list, listAll, listArtists, listAlbums, listAlbum,
-            listAllinfo, lsinfo,
-            search, searchArtist, searchAlbum, searchTitle,
-            count,
+            find, list, listAll, listAllinfo, lsinfo, search, count,
 
             -- * Playlist commands
             add, add_, addid, clear, currentSong, delete, load, move,
-            playlistinfo, getPlaylist, plchanges, plchangesposid, rm, rename,
+            playlistinfo, plchanges, plchangesposid, rm, rename,
             save, shuffle, swap,
             listplaylist, listplaylistinfo,
             playlistclear, playlistdelete, playlistadd, playlistmove,
@@ -62,10 +58,11 @@ module MPD (
             clearerror, close, commands, notcommands, tagtypes, urlhandlers,
             password, ping, stats, status,
 
-            -- * Extensions
-            addMany, crop
+            -- * Extensions\/shortcuts
+            addMany, crop, findArtist, findAlbum, findTitle, listArtists,
+            listAlbums, listAlbum, searchArtist, searchAlbum, searchTitle,
+            getPlaylist
            ) where
-
 
 import Control.Monad (liftM, unless)
 import Prelude hiding (repeat)
@@ -244,23 +241,6 @@ lsinfo conn path = do
                                     | k == "playlist"  = (ds, v:pls, ss)
                                     | otherwise        = (ds, pls, x:ss)
 
--- | List the artists in the database.
-listArtists :: Connection -> IO [Artist]
-listArtists conn = liftM (map snd . kvise) (getResponse conn "list artist")
-
--- | List the albums in the database, optionally matching a given
--- artist.
-listAlbums :: Connection -> Maybe Artist -> IO [Album]
-listAlbums conn artist =
-    liftM takeValues
-          -- XXX according to the spec this shouldn't work (but it does)
-          (getResponse conn ("list album " ++ maybe "" show artist))
-
--- | List the songs of an album of an artist.
-listAlbum :: Connection -> Artist -> Album -> IO [Song]
-listAlbum conn artist album = liftM (filter ((== artist) . sgArtist))
-    (findAlbum conn album)
-
 -- | List the songs in a database directory recursively.
 listAll :: Connection -> Maybe String -> IO [String]
 listAll conn path = liftM (map snd . filter ((== "file") . fst) . kvise)
@@ -279,18 +259,6 @@ find :: Connection
 find conn searchType query = liftM takeSongs
     (getResponse conn ("find " ++ searchType ++ " " ++ show query))
 
--- | Search the database for songs relating to an artist.
-findArtist :: Connection -> String -> IO [Song]
-findArtist = flip find "artist"
-
--- | Search the database for songs relating to an album.
-findAlbum :: Connection -> String -> IO [Song]
-findAlbum = flip find "album"
-
--- | Search the database for songs relating to a song title.
-findTitle :: Connection -> String -> IO [Song]
-findTitle = flip find "title"
-
 -- | Search the database using case insensitive matching.
 search :: Connection
        -> String -- ^ Search type string (see tagtypes)
@@ -298,18 +266,6 @@ search :: Connection
        -> IO [Song]
 search conn searchType query = liftM takeSongs
     (getResponse conn ("search " ++ searchType ++ " " ++ show query))
-
--- | Search the database for songs relating to an artist using 'search'.
-searchArtist :: Connection -> String -> IO [Song]
-searchArtist = flip search "artist"
-
--- | Search the database for songs relating to an album using 'search'.
-searchAlbum :: Connection -> String -> IO [Song]
-searchAlbum = flip search "album"
-
--- | Search the database for songs relating to a song title.
-searchTitle :: Connection -> String -> IO [Song]
-searchTitle = flip search "title"
 
 -- | Count the number of entries matching a query.
 count :: Connection
@@ -392,11 +348,6 @@ swap _ _ _ = return ()
 -- | Shuffle the playlist.
 shuffle :: Connection -> IO ()
 shuffle = flip getResponse_ "shuffle"
-
--- | Retrieve the current playlist.
--- Equivalent to 'playlistinfo PLNone'.
-getPlaylist :: Connection -> IO [Song]
-getPlaylist = flip playlistinfo PLNone
 
 -- | Retrieve metadata for songs in the current playlist.
 playlistinfo :: Connection
@@ -606,7 +557,7 @@ status conn = liftM (parseStatus . kvise) (getResponse conn "status")
                   (read u, read v, read w)
 
 --
--- Extensions.
+-- Extensions\/shortcuts.
 --
 
 -- | Add a list of songs\/folders to the current playlist.
@@ -620,6 +571,52 @@ addMany conn xs = getResponses conn (map ("add " ++) xs) >> return ()
 crop :: Connection -> PLIndex -> PLIndex -> IO ()
 crop _ (Pos _) (Pos _) = undefined
 crop _ _ _ = return ()
+
+-- | Search the database for songs relating to an artist.
+findArtist :: Connection -> String -> IO [Song]
+findArtist = flip find "artist"
+
+-- | Search the database for songs relating to an album.
+findAlbum :: Connection -> String -> IO [Song]
+findAlbum = flip find "album"
+
+-- | Search the database for songs relating to a song title.
+findTitle :: Connection -> String -> IO [Song]
+findTitle = flip find "title"
+
+-- | List the artists in the database.
+listArtists :: Connection -> IO [Artist]
+listArtists conn = liftM (map snd . kvise) (getResponse conn "list artist")
+
+-- | List the albums in the database, optionally matching a given
+-- artist.
+listAlbums :: Connection -> Maybe Artist -> IO [Album]
+listAlbums conn artist =
+    liftM takeValues
+          -- XXX according to the spec this shouldn't work (but it does)
+          (getResponse conn ("list album " ++ maybe "" show artist))
+
+-- | List the songs of an album of an artist.
+listAlbum :: Connection -> Artist -> Album -> IO [Song]
+listAlbum conn artist album = liftM (filter ((== artist) . sgArtist))
+    (findAlbum conn album)
+
+-- | Search the database for songs relating to an artist using 'search'.
+searchArtist :: Connection -> String -> IO [Song]
+searchArtist = flip search "artist"
+
+-- | Search the database for songs relating to an album using 'search'.
+searchAlbum :: Connection -> String -> IO [Song]
+searchAlbum = flip search "album"
+
+-- | Search the database for songs relating to a song title.
+searchTitle :: Connection -> String -> IO [Song]
+searchTitle = flip search "title"
+
+-- | Retrieve the current playlist.
+-- Equivalent to 'playlistinfo PLNone'.
+getPlaylist :: Connection -> IO [Song]
+getPlaylist = flip playlistinfo PLNone
 
 --
 -- Miscellaneous functions.
