@@ -185,13 +185,11 @@ checkConn (Conn h) = liftM (isPrefixOf "OK MPD") (hGetLine h)
 
 -- | Turn off an output device.
 disableoutput :: Connection -> Int -> IO ()
-disableoutput conn devid =
-    getResponse_ conn ("disableoutput " ++ show devid)
+disableoutput conn = getResponse_ conn . ("disableoutput " ++) . show
 
 -- | Turn on an output device.
 enableoutput :: Connection -> Int -> IO ()
-enableoutput conn devid =
-    getResponse_ conn ("enableoutput " ++ show devid)
+enableoutput conn = getResponse_ conn . ("enableoutput " ++) . show
 
 -- | Kill the server. Obviously, the connection is then invalid.
 kill :: Connection -> IO ()
@@ -294,7 +292,7 @@ add conn x = getResponse conn ("add " ++ show x) >> listAll conn (Just x)
 
 -- | Like 'add' but does not return anything.
 add_ :: Connection -> String -> IO ()
-add_ conn x = getResponse_ conn ("add " ++ show x)
+add_ conn = getResponse_ conn . ("add " ++) . show
 
 -- | Clear the playlist.
 clear :: Connection -> IO ()
@@ -308,7 +306,7 @@ delete conn (ID  x) = getResponse_ conn ("deleteid " ++ show x)
 
 -- | Load an existing playlist.
 load :: Connection -> String -> IO ()
-load conn plname = getResponse_ conn ("load " ++ show plname)
+load conn = getResponse_ conn . ("load " ++) . show
 
 -- | Move a song to a given position.
 move :: Connection -> PLIndex -> Integer -> IO ()
@@ -320,7 +318,7 @@ move conn (ID from) to =
 
 -- | Delete existing playlist.
 rm :: Connection -> String -> IO ()
-rm conn plname = getResponse_ conn ("rm " ++ show plname)
+rm conn = getResponse_ conn . ("rm " ++) . show
 
 -- | Rename an existing playlist.
 rename :: Connection
@@ -332,7 +330,7 @@ rename conn plname new =
 
 -- | Save the current playlist.
 save :: Connection -> String -> IO ()
-save conn plname = getResponse_ conn ("save " ++ show plname)
+save conn = getResponse_ conn . ("save " ++) . show
 
 -- | Swap the positions of two songs.
 swap :: Connection -> PLIndex -> PLIndex -> IO ()
@@ -368,8 +366,7 @@ playlist = liftM (map f) . flip getResponse "playlist"
 -- | Retrieve a list of changed songs currently in the playlist since
 -- a given playlist version.
 plchanges :: Connection -> Integer -> IO [Song]
-plchanges conn ver = liftM takeSongs
-    (getResponse conn ("plchanges " ++ show ver))
+plchanges conn = liftM takeSongs . getResponse conn . ("plchanges " ++) . show
 
 -- | Like 'plchanges' but only returns positions and ids.
 plchangesposid :: Connection -> Integer -> IO [(Integer, Integer)]
@@ -387,18 +384,18 @@ currentSong conn = do
 
 -- | Retrieve a list of files in a given playlist.
 listplaylist :: Connection -> String -> IO [String]
-listplaylist conn plname = liftM takeValues
-    (getResponse conn ("listplaylist " ++ show plname))
+listplaylist conn = liftM takeValues . getResponse conn .
+    ("listplaylist " ++) . show
 
 -- | Retrieve metadata for files in a given playlist.
 listplaylistinfo :: Connection -> String -> IO [Song]
-listplaylistinfo conn plname = liftM takeSongs
-    (getResponse conn ("listplaylistinfo " ++ show plname))
+listplaylistinfo conn = liftM takeSongs . getResponse conn .
+    ("listplaylistinfo " ++) . show
 
 -- | Like 'clear' but takes the name of a playlist to operate on.
 -- Creates a new playlist if it does not exist.
 playlistclear :: Connection -> String -> IO ()
-playlistclear conn plname = getResponse_ conn ("playlistclear " ++ show plname)
+playlistclear conn = getResponse_ conn . ("playlistclear " ++) . show
 
 -- XXX does this expect positions or ids?
 -- | Like 'delete' but takes the name of a playlist to operate on.
@@ -480,7 +477,7 @@ repeat conn = getResponse_ conn . ("repeat " ++) . showBool
 
 -- | Set the volume.
 setVolume :: Connection -> Int -> IO ()
-setVolume conn x = getResponse_ conn ("setvol " ++ show x)
+setVolume conn = getResponse_ conn . ("setvol " ++) . show
 
 -- | Increase or decrease volume by a given percent, e.g.
 -- 'volume 10' will increase the volume by 10 percent, while
@@ -504,19 +501,19 @@ close (Conn h) = hPutStrLn h "close" >> hClose h
 
 -- | Retrieve a list of available commands.
 commands :: Connection -> IO [String]
-commands conn = liftM takeValues (getResponse conn "commands")
+commands = liftM takeValues . flip getResponse "commands"
 
 -- | Retrieve a list of unavailable commands.
 notcommands :: Connection -> IO [String]
-notcommands conn = liftM takeValues (getResponse conn "notcommands")
+notcommands = liftM takeValues . flip getResponse "notcommands"
 
 -- | Retrieve a list of available song metadata.
 tagtypes :: Connection -> IO [String]
-tagtypes conn = liftM takeValues (getResponse conn "tagtypes")
+tagtypes = liftM takeValues . flip getResponse "tagtypes"
 
 -- | Retrieve a list of supported urlhandlers.
 urlhandlers :: Connection -> IO [String]
-urlhandlers conn = liftM takeValues (getResponse conn "urlhandlers")
+urlhandlers = liftM takeValues . flip getResponse "urlhandlers"
 
 -- | Send password to server to authenticate session.
 -- Password is sent as plain text.
@@ -525,11 +522,11 @@ password conn passw = getResponse_ conn passw
 
 -- | Check that the server is still responding.
 ping :: Connection -> IO ()
-ping conn = getResponse_ conn "ping"
+ping = flip getResponse_ "ping"
 
 -- | Get server statistics.
 stats :: Connection -> IO Stats
-stats conn = liftM (parseStats . kvise) (getResponse conn "stats")
+stats = liftM (parseStats . kvise) . flip getResponse "stats"
     where parseStats xs =
                 Stats { stsArtists = takeNum "artists" xs,
                         stsAlbums = takeNum "albums" xs,
@@ -541,7 +538,7 @@ stats conn = liftM (parseStats . kvise) (getResponse conn "stats")
 
 -- | Get the server's status.
 status :: Connection -> IO Status
-status conn = liftM (parseStatus . kvise) (getResponse conn "status")
+status = liftM (parseStatus . kvise) . flip getResponse "status"
     where parseStatus xs =
               Status { stState = maybe Stopped parseState $ lookup "state" xs,
                      stVolume = takeNum "volume" xs,
@@ -597,7 +594,7 @@ findTitle = flip find "title"
 
 -- | List the artists in the database.
 listArtists :: Connection -> IO [Artist]
-listArtists conn = liftM (map snd . kvise) (getResponse conn "list artist")
+listArtists = liftM takeValues . flip getResponse "list artist"
 
 -- | List the albums in the database, optionally matching a given
 -- artist.
