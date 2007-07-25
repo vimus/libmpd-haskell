@@ -45,7 +45,7 @@ module MPD (
 
             -- * Playlist commands
             add, add_, addid, clear, currentSong, delete, load, move,
-            playlistinfo, plchanges, plchangesposid, rm, rename,
+            playlistinfo, playlist, plchanges, plchangesposid, rm, rename,
             save, shuffle, swap,
             listplaylist, listplaylistinfo,
             playlistclear, playlistdelete, playlistadd, playlistmove,
@@ -354,6 +354,15 @@ playlistinfo conn x = liftM takeSongs (getResponse conn cmd)
                     Pos x' -> "playlistinfo " ++ show (x' - 1)
                     ID x'  -> "playlistid " ++ show x'
                     _      -> "playlistinfo"
+
+-- | Retrieve file paths and positions of songs in the current playlist.
+-- Note that this command is only included for completeness sake; it's
+-- deprecated and likely to disappear at any time.
+playlist :: Connection -> IO [(PLIndex, String)]
+playlist = liftM (map f) . flip getResponse "playlist"
+    -- meh, the response here deviates from just about all other commands
+    where f s = let (pos, name) = break (== ':') s
+                in (Pos . (+1) $ read pos, drop 1 name)
 
 -- | Retrieve a list of changed songs currently in the playlist since
 -- a given playlist version.
