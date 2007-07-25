@@ -435,8 +435,7 @@ play conn (ID x)  = getResponse_ conn ("playid " ++ show x)
 
 -- | Pause playing.
 pause :: Connection -> Bool -> IO ()
-pause conn on =
-    getResponse_ conn ("pause " ++ if on then "1" else "0")
+pause conn = getResponse_ conn . ("pause " ++) . showBool
 
 -- | Stop playing.
 stop :: Connection -> IO ()
@@ -463,13 +462,11 @@ seek conn PLNone time = do
 
 -- | Set random playing.
 random :: Connection -> Bool -> IO ()
-random conn x =
-    getResponse_ conn ("random " ++ if x then "1" else "0")
+random conn = getResponse_ conn . ("random " ++) . showBool
 
 -- | Set repeating.
 repeat :: Connection -> Bool -> IO ()
-repeat conn x =
-    getResponse_ conn ("repeat " ++ if x then "1" else "0")
+repeat conn = getResponse_ conn . ("repeat " ++) . showBool
 
 -- | Set the volume.
 setVolume :: Connection -> Int -> IO ()
