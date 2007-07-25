@@ -225,8 +225,7 @@ list :: Connection
      -> Maybe String -- ^ Optionally specify what metadata to match against.
      -> String       -- ^ Query (requires optional arg).
      -> IO [String]
-list conn metaType metaQuery query =
-    liftM takeValues (getResponse conn cmd)
+list conn metaType metaQuery query = liftM takeValues (getResponse conn cmd)
     where cmd = "list " ++ metaType ++
                 maybe "" (\x -> " " ++ x ++ " " ++ show query) metaQuery
 
@@ -274,11 +273,8 @@ count :: Connection
       -> IO Count
 count conn countType query = liftM (takeCountInfo . kvise)
     (getResponse conn ("count " ++ countType ++ " " ++ show query))
-    where takeCountInfo xs =
-                Count {
-                    cSongs    = takeNum "songs" xs,
-                    cPlaytime = takeNum "playtime" xs
-                      }
+    where takeCountInfo xs = Count { cSongs    = takeNum "songs" xs,
+                                     cPlaytime = takeNum "playtime" xs }
 
 --
 -- Playlist commands
