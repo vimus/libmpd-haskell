@@ -52,7 +52,7 @@ module MPD (
 
             -- * Playback commands
             crossfade, next, pause, play, previous, random, repeat, seek,
-            setVolume, stop,
+            setVolume, volume, stop,
 
             -- * Miscellaneous commands
             clearerror, close, commands, notcommands, tagtypes, urlhandlers,
@@ -480,6 +480,14 @@ repeat conn = getResponse_ conn . ("repeat " ++) . showBool
 -- | Set the volume.
 setVolume :: Connection -> Int -> IO ()
 setVolume conn x = getResponse_ conn ("setvol " ++ show x)
+
+-- | Increase or decrease volume by a given percent, e.g.
+-- 'volume 10' will increase the volume by 10 percent, while
+-- 'volume (-10)' will decrease it by the same amount.
+-- Note that this command is only included for completeness sake ; it's
+-- deprecated and may disappear at any time.
+volume :: Connection -> Int -> IO ()
+volume conn = getResponse_ conn . ("volume " ++) . show
 
 --
 -- Miscellaneous commands
