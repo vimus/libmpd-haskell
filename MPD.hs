@@ -138,10 +138,12 @@ data Stats =
     deriving Show
 
 -- | Description of a song.
-data Song = Song { sgArtist, sgAlbum, sgTitle, sgFilePath, sgGenre :: String
-                  ,sgLength :: Integer
+data Song = Song { sgArtist, sgAlbum, sgTitle, sgFilePath, sgGenre, sgName
+                  ,sgComposer, sgPerformer :: String
+                  ,sgLength :: Seconds    -- ^ length in seconds
                   ,sgDate   :: Int        -- ^ year
                   ,sgTrack  :: (Int, Int) -- ^ (track number, total tracks)
+                  ,sgDisc   :: (Int, Int) -- ^ (pos. in set, total in set)
                   ,sgIndex  :: PLIndex }
             deriving Show
 
@@ -681,15 +683,19 @@ takeSongs = map takeSongInfo . splitGroups . kvise
 takeSongInfo :: [(String,String)] -> Song
 takeSongInfo xs =
     Song {
-          sgArtist   = takeString "Artist" xs,
-          sgAlbum    = takeString "Album" xs,
-          sgTitle    = takeString "Title" xs,
-          sgGenre    = takeString "Genre" xs,
-          sgDate     = takeNum "Date" xs,
-          sgTrack    = maybe (0, 0) parseTrack $ lookup "Track" xs,
-          sgFilePath = takeString "file" xs,
-          sgLength   = takeNum "Time" xs,
-          sgIndex    = maybe PLNone (ID . read) $ lookup "Id" xs
+          sgArtist    = takeString "Artist" xs,
+          sgAlbum     = takeString "Album" xs,
+          sgTitle     = takeString "Title" xs,
+          sgGenre     = takeString "Genre" xs,
+          sgName      = takeString "Name" xs,
+          sgComposer  = takeString "Composer" xs,
+          sgPerformer = takeString "Performer" xs,
+          sgDate      = takeNum "Date" xs,
+          sgTrack     = maybe (0, 0) parseTrack $ lookup "Track" xs,
+          sgDisc      = maybe (0, 0) parseTrack $ lookup "Disc" xs,
+          sgFilePath  = takeString "file" xs,
+          sgLength    = takeNum "Time" xs,
+          sgIndex     = maybe PLNone (ID . read) $ lookup "Id" xs
          }
     where parseTrack x = let (trck, tot) = break (== '/') x
                          in (read trck, parseNum (drop 1 tot))
