@@ -697,6 +697,10 @@ parseNum :: (Read a, Num a) => String -> a
 parseNum = fromMaybe 0 . maybeReads
     where maybeReads s = do ; [(x, "")] <- return (reads s) ; return x
 
+-- Inverts 'parseBool'.
+showBool :: Bool -> String
+showBool x = if x then "1" else "0"
+
 -- Parse a boolean response value.
 parseBool :: String -> Bool
 parseBool = (== "1") . take 1
