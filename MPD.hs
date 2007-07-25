@@ -217,12 +217,15 @@ update conn  xs = getResponses conn (map ("update " ++) xs) >> return ()
 --
 -- Database commands
 --
+-- All scope modifiers (i.e. metadata to match against when searching for
+-- database entries with certain metadata values) may be any of the
+-- values listed by 'tagtypes'.
+-- Also one may use "any" or "filename".
 
 -- | List all metadata of metadata (sic).
--- Metadata might be any of the tagtypes or 'file'.
 list :: Connection
      -> String       -- ^ Metadata to list.
-     -> Maybe String -- ^ Optionally specify what metadata to match against.
+     -> Maybe String -- ^ Optionally specify a scope modifier
      -> String       -- ^ Query (requires optional arg).
      -> IO [String]
 list conn metaType metaQuery query = liftM takeValues (getResponse conn cmd)
@@ -251,26 +254,25 @@ listAllinfo :: Connection -> String -> IO [Song]
 listAllinfo _ _ = undefined
 
 -- | Search the database for entries exactly matching a query.
--- Search type may be any of the tagtypes or 'file'.
 find :: Connection
-     -> String      -- ^ Search type string
-     -> String      -- ^ Search query
+     -> String      -- ^ Scope modifier
+     -> String      -- ^ Query
      -> IO [Song]
 find conn searchType query = liftM takeSongs
     (getResponse conn ("find " ++ searchType ++ " " ++ show query))
 
 -- | Search the database using case insensitive matching.
 search :: Connection
-       -> String -- ^ Search type string (see tagtypes)
-       -> String -- ^ Search query
+       -> String -- ^ Scope modifier
+       -> String -- ^ Query
        -> IO [Song]
 search conn searchType query = liftM takeSongs
     (getResponse conn ("search " ++ searchType ++ " " ++ show query))
 
 -- | Count the number of entries matching a query.
 count :: Connection
-      -> String -- ^ Count type string (any of the tagtypes or 'file')
-      -> String -- ^ Count query
+      -> String -- ^ Scope modifier
+      -> String -- ^ Query
       -> IO Count
 count conn countType query = liftM (takeCountInfo . kvise)
     (getResponse conn ("count " ++ countType ++ " " ++ show query))
