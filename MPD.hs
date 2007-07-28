@@ -48,7 +48,7 @@ module MPD (
             playlistinfo, playlist, plchanges, plchangesposid, rm, rename,
             save, shuffle, swap,
             listplaylist, listplaylistinfo,
-            playlistclear, playlistdelete, playlistadd, playlistmove,
+            playlistdelete, playlistadd, playlistmove,
 
             -- * Playback commands
             crossfade, next, pause, play, previous, random, repeat, seek,
@@ -298,9 +298,13 @@ add conn x = getResponse conn ("add " ++ show x) >> listAll conn (Just x)
 add_ :: Connection -> String -> IO ()
 add_ conn = getResponse_ conn . ("add " ++) . show
 
--- | Clear the playlist.
-clear :: Connection -> IO ()
-clear = flip getResponse_ "clear"
+-- | Clear a playlist. Clears current playlist if no playlist is specified.
+-- If the specified playlist does not exist, it will be created.
+clear :: Connection
+      -> Maybe String -- ^ Optional name of a playlist to clear.
+      -> IO ()
+clear conn Nothing       = getResponse_ conn "clear"
+clear conn (Just plname) = getResponse_ conn ("playlistclear " ++ show plname)
 
 -- | Remove a song from the playlist.
 delete :: Connection -> PLIndex -> IO ()
@@ -395,11 +399,6 @@ listplaylist conn = liftM takeValues . getResponse conn .
 listplaylistinfo :: Connection -> String -> IO [Song]
 listplaylistinfo conn = liftM takeSongs . getResponse conn .
     ("listplaylistinfo " ++) . show
-
--- | Like 'clear' but takes the name of a playlist to operate on.
--- Creates a new playlist if it does not exist.
-playlistclear :: Connection -> String -> IO ()
-playlistclear conn = getResponse_ conn . ("playlistclear " ++) . show
 
 -- XXX does this expect positions or ids?
 -- | Like 'delete' but takes the name of a playlist to operate on.
