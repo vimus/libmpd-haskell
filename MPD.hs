@@ -48,7 +48,7 @@ module MPD (
             playlistinfo, playlist, plchanges, plchangesposid, rm, rename,
             save, shuffle, swap,
             listplaylist, listplaylistinfo,
-            playlistdelete, playlistadd, playlistmove,
+            playlistdelete, playlistmove,
 
             -- * Playback commands
             crossfade, next, pause, play, previous, random, repeat, seek,
@@ -290,13 +290,22 @@ addid :: Connection -> String -> IO Integer
 addid conn x =
     liftM (read . snd . head . kvise) (getResponse conn ("addid " ++ show x))
 
--- | Add a song (or a whole directory) to the playlist.
-add :: Connection -> String -> IO [String]
-add conn x = getResponse conn ("add " ++ show x) >> listAll conn (Just x)
+-- | Like 'add_' but returns a list of the files added.
+add :: Connection -> Maybe String -> String -> IO [String]
+add conn plname x = add_ conn plname x >> listAll conn (Just x)
 
--- | Like 'add' but does not return anything.
-add_ :: Connection -> String -> IO ()
-add_ conn = getResponse_ conn . ("add " ++) . show
+-- | Add a song (or a whole directory) to a playlist.
+-- Adds to current if no playlist is specified.
+-- Will create a new playlist if the one specified does not already exist.
+add_ :: Connection
+     -> Maybe String -- ^ Optionally specify a playlist to operate on
+     -> String
+     -> IO ()
+add_ conn plname x = getResponse_ conn cmd
+    where cmd  = maybe ("add " ++ path)
+                       (\pl -> "playlistadd " ++ show pl ++ " " ++ path)
+                       plname
+          path = show x
 
 -- | Clear a playlist. Clears current playlist if no playlist is specified.
 -- If the specified playlist does not exist, it will be created.
@@ -409,13 +418,6 @@ playlistdelete conn plname idx =
     where idx' = case idx of
                     Pos x -> show (x - 1)
                     _     -> ""
-
--- | Like 'add' but takes the name of a playlist to operate on.
--- Creates a new playlist if it does not exist.
-playlistadd :: Connection -> String -> String -> IO [String]
-playlistadd conn plname path =
-    getResponse conn ("playlistadd " ++ show plname ++ " " ++ show path) >>
-    listAll conn (Just path)
 
 -- XXX does this expect positions or ids?
 -- | Like 'move' but takes the name of a playlist to operate on.
@@ -571,12 +573,13 @@ status = liftM (parseStatus . kvise) . flip getResponse "status"
 -- Extensions\/shortcuts.
 --
 
--- | Add a list of songs\/folders to the current playlist.
+-- | Add a list of songs\/folders to a playlist.
 -- Should be more efficient than running 'add' many times.
-addMany :: Connection -> [String] -> IO ()
-addMany _ [] = return ()
-addMany conn [x] = add_ conn x
-addMany conn xs = getResponses conn (map ("add " ++) xs) >> return ()
+addMany :: Connection -> Maybe String -> [String] -> IO ()
+addMany _ _ [] = return ()
+addMany conn plname [x] = add_ conn plname x
+addMany conn plname xs = getResponses conn (map (cmd ++) xs) >> return ()
+    where cmd = maybe ("add ") (\pl -> "playlistadd " ++ show pl ++ " ") plname
 
 -- | Crop playlist.
 crop :: Connection -> PLIndex -> PLIndex -> IO ()
