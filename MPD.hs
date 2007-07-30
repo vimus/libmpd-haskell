@@ -41,9 +41,11 @@ module MPD (
             disableoutput, enableoutput, kill, outputs, update,
 
             -- * Database commands
+            -- $database
             find, list, listAll, listAllinfo, lsinfo, search, count,
 
             -- * Playlist commands
+            -- $playlist
             add, add_, addid, clear, currentSong, delete, load, move,
             playlistinfo, playlist, plchanges, plchangesposid, rm, rename,
             save, shuffle, swap,
@@ -217,10 +219,11 @@ update conn  xs = getResponses conn (map ("update " ++) xs) >> return ()
 --
 -- Database commands
 --
+-- $database
 -- All scope modifiers (i.e. metadata to match against when searching for
 -- database entries with certain metadata values) may be any of the
 -- values listed by 'tagtypes'.
--- Also one may use "any" or "filename".
+-- Also one may use \"any\" or \"filename\".
 
 -- | List all metadata of metadata (sic).
 list :: Connection
@@ -282,6 +285,7 @@ count conn countType query = liftM (takeCountInfo . kvise)
 --
 -- Playlist commands
 --
+-- $playlist
 -- Unless otherwise noted all playlist commands operate on the current
 -- playlist.
 
