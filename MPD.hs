@@ -50,7 +50,7 @@ module MPD (
             playlistinfo, playlist, plchanges, plchangesposid, rm, rename,
             save, shuffle, swap,
             listplaylist, listplaylistinfo,
-            playlistdelete, playlistmove,
+            playlistmove,
 
             -- * Playback commands
             crossfade, next, pause, play, previous, random, repeat, seek,
@@ -319,11 +319,18 @@ clear :: Connection
 clear conn Nothing       = getResponse_ conn "clear"
 clear conn (Just plname) = getResponse_ conn ("playlistclear " ++ show plname)
 
--- | Remove a song from the playlist.
-delete :: Connection -> PLIndex -> IO ()
-delete _ PLNone = return ()
-delete conn (Pos x) = getResponse_ conn ("delete " ++ show (x-1))
-delete conn (ID  x) = getResponse_ conn ("deleteid " ++ show x)
+-- | Remove a song from a playlist.
+-- If no playlist is specified, current playlist is used.
+delete :: Connection
+       -> Maybe String -- ^ Optionally specify a playlist to operate on
+       -> PLIndex -> IO ()
+delete _ _ PLNone = return ()
+delete conn Nothing (Pos x) = getResponse_ conn ("delete " ++ show (x - 1))
+delete conn Nothing (ID x) = getResponse_ conn ("deleteid " ++ show x)
+-- XXX assume that playlistdelete expects positions and not ids.
+delete conn (Just plname) (Pos x) =
+    getResponse_ conn ("playlistdelete " ++ show plname ++ " " ++ show (x - 1))
+delete _ _ _ = return ()
 
 -- | Load an existing playlist.
 load :: Connection -> String -> IO ()
@@ -412,16 +419,6 @@ listplaylist conn = liftM takeValues . getResponse conn .
 listplaylistinfo :: Connection -> String -> IO [Song]
 listplaylistinfo conn = liftM takeSongs . getResponse conn .
     ("listplaylistinfo " ++) . show
-
--- XXX does this expect positions or ids?
--- | Like 'delete' but takes the name of a playlist to operate on.
--- Creates a new playlist if it does not exist.
-playlistdelete :: Connection -> String -> PLIndex -> IO ()
-playlistdelete conn plname idx =
-    getResponse_ conn ("playlistdelete " ++ show plname ++ " " ++ idx')
-    where idx' = case idx of
-                    Pos x -> show (x - 1)
-                    _     -> ""
 
 -- XXX does this expect positions or ids?
 -- | Like 'move' but takes the name of a playlist to operate on.
