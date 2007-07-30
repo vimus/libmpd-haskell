@@ -62,7 +62,7 @@ module MPD (
             -- * Extensions\/shortcuts
             addMany, crop, findArtist, findAlbum, findTitle, listArtists,
             listAlbums, listAlbum, searchArtist, searchAlbum, searchTitle,
-            getPlaylist
+            getPlaylist, toggle
            ) where
 
 import Control.Monad (liftM, unless)
@@ -567,6 +567,14 @@ status = liftM (parseStatus . kvise) . flip getResponse "status"
 --
 -- Extensions\/shortcuts.
 --
+
+-- | Toggles play\/pause. Plays if stopped.
+toggle :: Connection -> IO ()
+toggle conn = do
+    st <- status conn
+    case stState st of
+         Playing -> pause conn True
+         _       -> play conn PLNone
 
 -- | Add a list of songs\/folders to a playlist.
 -- Should be more efficient than running 'add' many times.
