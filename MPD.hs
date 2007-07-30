@@ -50,7 +50,6 @@ module MPD (
             playlistinfo, playlist, plchanges, plchangesposid, rm, rename,
             save, shuffle, swap,
             listplaylist, listplaylistinfo,
-            playlistmove,
 
             -- * Playback commands
             crossfade, next, pause, play, previous, random, repeat, seek,
@@ -337,12 +336,19 @@ load :: Connection -> String -> IO ()
 load conn = getResponse_ conn . ("load " ++) . show
 
 -- | Move a song to a given position.
-move :: Connection -> PLIndex -> Integer -> IO ()
-move _ PLNone _ = return ()
-move conn (Pos from) to =
+move :: Connection
+     -> Maybe String -- ^ Optionally specify a playlist to operate on
+     -> PLIndex -> Integer -> IO ()
+move _ _ PLNone _ = return ()
+move conn Nothing (Pos from) to =
     getResponse_ conn ("move " ++ show (from - 1) ++ " " ++ show to)
-move conn (ID from) to =
+move conn Nothing (ID from) to =
     getResponse_ conn ("moveid " ++ show from ++ " " ++ show to)
+-- XXX assumes that playlistmove expects positions and not ids
+move conn (Just plname) (Pos from) to =
+    getResponse_ conn ("playlistmove " ++ show plname ++ " " ++ show (from - 1)
+                       ++ " " ++ show to)
+move _ _ _ _ = return ()
 
 -- | Delete existing playlist.
 rm :: Connection -> String -> IO ()
@@ -419,18 +425,6 @@ listplaylist conn = liftM takeValues . getResponse conn .
 listplaylistinfo :: Connection -> String -> IO [Song]
 listplaylistinfo conn = liftM takeSongs . getResponse conn .
     ("listplaylistinfo " ++) . show
-
--- XXX does this expect positions or ids?
--- | Like 'move' but takes the name of a playlist to operate on.
--- Creates a new playlist if it does not exist.
-playlistmove :: Connection -> String -> PLIndex -> Integer -> IO ()
-playlistmove _ _ PLNone _ = return ()
-playlistmove conn plname idx to =
-    getResponse_ conn ("playlistmove " ++ show plname ++ " " ++ idx' ++
-                       " " ++ show to)
-    where idx' = case idx of
-                    Pos x -> show (x - 1)
-                    _     -> ""
 
 --
 -- Playback commands
