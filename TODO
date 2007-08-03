@@ -1,12 +1,9 @@
 TODO:
     - improve parsing performance
     - Detect password protected hosts.
-    - Implement remaining functions mentioned in
-    http://mpd.wikia.com/wiki/MusicPlayerDaemonCommands
-    add, delete, clear, move and playlistinfo should take an optional
-    playlist argument so that functions which differ only in that they
-    operate on specific playlists may be merged.
     - figure out what exactly playlistfind and playlistsearch are supposed
     to do.
-    - create lsdirs, lsfiles and lsplaylists
     - Finish crop.
+    - create lsdirs, lsfiles and lsplaylists
+    - find a way to retrieve the name of the currently loaded
+    playlist (if any). should return "current" by default.
