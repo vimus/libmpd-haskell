@@ -369,9 +369,9 @@ save conn = getResponse_ conn . ("save " ++) . show
 -- | Swap the positions of two songs.
 swap :: Connection -> PLIndex -> PLIndex -> IO ()
 swap conn (Pos x) (Pos y) =
-    getResponse_ conn ("move " ++ show (x - 1) ++ " " ++ show (y - 1))
+    getResponse_ conn ("swap " ++ show (x - 1) ++ " " ++ show (y - 1))
 swap conn (ID x) (ID y) =
-    getResponse_ conn ("moveid " ++ show x ++ " " ++ show y)
+    getResponse_ conn ("swapid " ++ show x ++ " " ++ show y)
 swap _ _ _ = return ()
 
 -- | Shuffle the playlist.
