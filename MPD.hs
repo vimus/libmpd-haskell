@@ -233,9 +233,9 @@ list conn metaType metaQuery query = liftM takeValues (getResponse conn cmd)
     where cmd = "list " ++ metaType ++
                 maybe "" (\x -> " " ++ x ++ " " ++ show query) metaQuery
 
--- | List the directories and songs (with metadata) in a database directory
--- (non-recursive).
-lsinfo :: Connection -> Maybe String -> IO [Either String Song]
+-- | Non-recursivly list the contents of a database directory.
+lsinfo :: Connection -> Maybe String -- ^ Optionally specify a path.
+       -> IO [Either String Song]
 lsinfo conn path = do
     (dirs,_,filedata) <- liftM (foldl split ([],[],[]) . kvise)
                          (getResponse conn ("lsinfo " ++ maybe "" show path))
