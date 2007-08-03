@@ -432,7 +432,7 @@ listplaylistinfo conn = liftM takeSongs . getResponse conn .
 
 -- | Set crossfading between songs.
 crossfade :: Connection -> Seconds -> IO ()
-crossfade conn xfade = getResponse_ conn ("crossfade " ++ show xfade)
+crossfade conn = getResponse_ conn . ("crossfade " ++) . show
 
 -- | Begin\/continue playing.
 play :: Connection -> PLIndex -> IO ()
