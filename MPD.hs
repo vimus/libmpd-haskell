@@ -47,9 +47,8 @@ module MPD (
             -- * Playlist commands
             -- $playlist
             add, add_, addid, clear, currentSong, delete, load, move,
-            playlistinfo, playlist, plchanges, plchangesposid, rm, rename,
-            save, shuffle, swap,
-            listplaylist, listplaylistinfo,
+            playlistinfo, listplaylist, listplaylistinfo, playlist, plchanges,
+            plchangesposid, rm, rename, save, shuffle, swap,
 
             -- * Playback commands
             crossfade, next, pause, play, previous, random, repeat, seek,
@@ -388,6 +387,16 @@ playlistinfo conn x = liftM takeSongs (getResponse conn cmd)
                     ID x'  -> "playlistid " ++ show x'
                     _      -> "playlistinfo"
 
+-- | Retrieve metadata for files in a given playlist.
+listplaylistinfo :: Connection -> String -> IO [Song]
+listplaylistinfo conn = liftM takeSongs . getResponse conn .
+    ("listplaylistinfo " ++) . show
+
+-- | Retrieve a list of files in a given playlist.
+listplaylist :: Connection -> String -> IO [String]
+listplaylist conn = liftM takeValues . getResponse conn .
+    ("listplaylist " ++) . show
+
 -- | Retrieve file paths and positions of songs in the current playlist.
 -- Note that this command is only included for completeness sake; it's
 -- deprecated and likely to disappear at any time.
@@ -415,16 +424,6 @@ currentSong conn = do
         else do ls <- liftM kvise (getResponse conn "currentsong")
                 return $ if null ls then Nothing
                                     else Just (takeSongInfo ls)
-
--- | Retrieve a list of files in a given playlist.
-listplaylist :: Connection -> String -> IO [String]
-listplaylist conn = liftM takeValues . getResponse conn .
-    ("listplaylist " ++) . show
-
--- | Retrieve metadata for files in a given playlist.
-listplaylistinfo :: Connection -> String -> IO [Song]
-listplaylistinfo conn = liftM takeSongs . getResponse conn .
-    ("listplaylistinfo " ++) . show
 
 --
 -- Playback commands
