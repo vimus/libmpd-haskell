@@ -412,8 +412,11 @@ plchanges :: Connection -> Integer -> IO [Song]
 plchanges conn = liftM takeSongs . getResponse conn . ("plchanges " ++) . show
 
 -- | Like 'plchanges' but only returns positions and ids.
-plchangesposid :: Connection -> Integer -> IO [(Integer, Integer)]
-plchangesposid _ _ = fail "plchangesposid not implemented"
+plchangesposid :: Connection -> Integer -> IO [(PLIndex, PLIndex)]
+plchangesposid conn plver =
+    liftM (map takePosid . splitGroups . kvise) (getResponse conn cmd)
+    where cmd          = "plchangesposid " ++ show plver
+          takePosid xs = (Pos . (+1) $ takeNum "cpos" xs, ID $ takeNum "Id" xs)
 
 -- | Get the currently playing song.
 currentSong :: Connection -> IO (Maybe Song)
