@@ -236,23 +236,19 @@ list conn metaType metaQuery query = liftM takeValues (getResponse conn cmd)
 -- | Non-recursivly list the contents of a database directory.
 lsinfo :: Connection -> Maybe String -- ^ Optionally specify a path.
        -> IO [Either String Song]
-lsinfo conn path = do
-    (dirs,_,filedata) <- liftM (foldl split ([],[],[]) . kvise)
+lsinfo conn path = liftM takeEntries
                          (getResponse conn ("lsinfo " ++ maybe "" show path))
-    return (map Left dirs ++
-            map (Right . takeSongInfo) (splitGroups $ reverse filedata))
-    where split (ds,pls,ss) x@(k,v) | k == "directory" = (v:ds, pls, ss)
-                                    | k == "playlist"  = (ds, v:pls, ss)
-                                    | otherwise        = (ds, pls, x:ss)
 
 -- | List the songs (without metadata) in a database directory recursively.
 listAll :: Connection -> Maybe String -> IO [String]
 listAll conn path = liftM (map snd . filter ((== "file") . fst) . kvise)
                           (getResponse conn ("listall " ++ maybe "" show path))
 
--- | List all information in database about all songs in a given path.
-listAllinfo :: Connection -> String -> IO [Song]
-listAllinfo _ _ = undefined
+-- | Recursive 'lsinfo'.
+listAllinfo :: Connection -> Maybe String -- ^ Optionally specify a path
+            -> IO [Either String Song]
+listAllinfo conn path = liftM takeEntries
+    (getResponse conn ("listallinfo " ++ maybe "" show path))
 
 -- | Search the database for entries exactly matching a query.
 find :: Connection
@@ -683,6 +679,14 @@ splitGroups (x:xs) = ((x:us):splitGroups vs)
 -- | Run 'kvise' and return only the values.
 takeValues :: [String] -> [String]
 takeValues = snd . unzip . kvise
+
+takeEntries :: [String] -> [Either String Song]
+takeEntries s = map Left dirs ++
+              map (Right . takeSongInfo) (splitGroups $ reverse filedata)
+    where (dirs, _, filedata) = foldl split ([], [], []) $ kvise s
+          split (ds, pls, ss) x@(k, v) | k == "directory" = (v:ds, pls, ss)
+                                       | k == "playlist"  = (ds, v:pls, ss)
+                                       | otherwise        = (ds, pls, x:ss)
 
 -- | Build a list of song instances from a response.
 -- Returns an empty list if input is empty.
