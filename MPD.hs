@@ -514,10 +514,11 @@ tagtypes = liftM takeValues . flip getResponse "tagtypes"
 urlhandlers :: Connection -> IO [String]
 urlhandlers = liftM takeValues . flip getResponse "urlhandlers"
 
+-- XXX should the password be quoted?
 -- | Send password to server to authenticate session.
 -- Password is sent as plain text.
 password :: Connection -> String -> IO ()
-password conn passw = getResponse_ conn passw
+password conn = getResponse_ conn . ("password " ++)
 
 -- | Check that the server is still responding.
 ping :: Connection -> IO ()
