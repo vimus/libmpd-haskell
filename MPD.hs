@@ -69,7 +69,7 @@ module MPD (
 
 import Control.Monad (liftM, unless)
 import Prelude hiding (repeat)
-import Data.List (isPrefixOf, partition)
+import Data.List (isPrefixOf)
 import Data.Maybe
 import Network
 import System.IO
@@ -236,13 +236,13 @@ list conn metaType metaQuery query =
 -- | List the directories and songs in a database directory (non-recursive).
 lsinfo :: Connection -> Maybe String -> IO [Either String Song]
 lsinfo conn path = do
-    ls <- liftM kvise (getResponse conn ("lsinfo " ++ path'))
-    -- horribly inefficient, but it works for now.
-    let (dirs,xs) = partition ((== "directory") . fst) ls
-        (_,files) = partition ((== "playlist") . fst) xs
-    return (map (Left . snd) dirs ++
-            map (Right . takeSongInfo) (splitGroups files))
-        where path' = maybe "" show path
+    (dirs,_,filedata) <- liftM (foldl split ([],[],[]) . kvise)
+                         (getResponse conn ("lsinfo " ++ maybe "" show path))
+    return (map Left dirs ++
+            map (Right . takeSongInfo) (splitGroups $ reverse filedata))
+    where split (ds,pls,ss) x@(k,v) | k == "directory" = (v:ds, pls, ss)
+                                    | k == "playlist"  = (ds, v:pls, ss)
+                                    | otherwise        = (ds, pls, x:ss)
 
 -- | List the artists in the database.
 listArtists :: Connection -> IO [Artist]
