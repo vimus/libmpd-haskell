@@ -75,7 +75,7 @@ import System.IO
 -- Data Types
 --
 
--- | A connection to a MPD.
+-- | A connection to an MPD server.
 newtype Connection = Conn Handle
 
 type Artist  = String
@@ -167,7 +167,7 @@ data Device =
 -- Basic connection functions
 --
 
--- | Create a MPD connection.
+-- | Create an MPD connection.
 connect :: String      -- ^ Hostname.
         -> PortNumber  -- ^ Port number.
         -> IO Connection
@@ -177,7 +177,7 @@ connect host port = withSocketsDo $ do
     if mpd then return conn
            else close conn >> fail ("no MPD at " ++ host ++ ":" ++ show port)
 
--- | Check that a MPD daemon is at the other end of a connection.
+-- | Check that an MPD daemon is at the other end of a connection.
 checkConn :: Connection -> IO Bool
 checkConn (Conn h) = liftM (isPrefixOf "OK MPD") (hGetLine h)
 
@@ -233,7 +233,7 @@ list conn metaType metaQuery query = liftM takeValues (getResponse conn cmd)
     where cmd = "list " ++ metaType ++
                 maybe "" (\x -> " " ++ x ++ " " ++ show query) metaQuery
 
--- | Non-recursivly list the contents of a database directory.
+-- | Non-recursively list the contents of a database directory.
 lsinfo :: Connection -> Maybe String -- ^ Optionally specify a path.
        -> IO [Either String Song]
 lsinfo conn path = liftM takeEntries
@@ -610,7 +610,7 @@ listAlbums conn artist =
           -- XXX according to the spec this shouldn't work (but it does)
           (getResponse conn ("list album " ++ maybe "" show artist))
 
--- | List the songs of an album of an artist.
+-- | List the songs in an album of some artist.
 listAlbum :: Connection -> Artist -> Album -> IO [Song]
 listAlbum conn artist album = liftM (filter ((== artist) . sgArtist))
     (findAlbum conn album)
