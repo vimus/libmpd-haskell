@@ -587,6 +587,9 @@ addMany conn plname xs = getResponses conn (map (cmd ++) xs) >> return ()
     where cmd = maybe ("add ") (\pl -> "playlistadd " ++ show pl ++ " ") plname
 
 -- | Crop playlist.
+-- The bounds are inclusive.
+-- If 'PLNone' or an invalid 'ID' is passed the cropping will leave your
+-- playlist alone on that side.
 crop :: Connection -> PLIndex -> PLIndex -> IO ()
 crop conn x y = do
     pl <- playlistinfo conn PLNone
@@ -601,13 +604,17 @@ crop conn x y = do
     where deleteSongs = mapM_ (delete conn Nothing . sgIndex)
           findByID i = findIndex ((==) i . (\(ID j) -> j) . sgIndex)
 
--- | List all directories in an optional directory.
-lsdirs :: Connection -> Maybe String -> IO [String]
+-- | List directories non-recursively.
+lsdirs :: Connection
+       -> Maybe String -- ^ optional path.
+       -> IO [String]
 lsdirs conn path = liftM ((\(x,_,_) -> x) . takeEntries)
                          (getResponse conn ("lsinfo " ++ maybe "" show path))
 
--- | List all files in an optional directory.
-lsfiles :: Connection -> Maybe String -> IO [String]
+-- | List files non-recursively.
+lsfiles :: Connection
+        -> Maybe String -- ^ optional path.
+        -> IO [String]
 lsfiles conn path = liftM (map sgFilePath . (\(_,_,x) -> x) . takeEntries)
                           (getResponse conn ("lsinfo " ++ maybe "" show path))
 
