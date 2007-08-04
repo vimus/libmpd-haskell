@@ -3,6 +3,5 @@ TODO:
     - Detect password protected hosts.
     - figure out what exactly playlistfind and playlistsearch are supposed
     to do.
-    - Finish crop.
     - find a way to retrieve the name of the currently loaded
     playlist (if any). should return "current" by default.
