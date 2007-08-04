@@ -682,9 +682,9 @@ getResponse (Conn h) cmd = hPutStrLn h cmd >> hFlush h >> f []
     where f acc = do
               l <- hGetLine h
               case l of
-                  "OK"              -> return acc
+                  "OK"              -> return (reverse acc)
                   ('A':'C':'K':_:e) -> fail e
-                  _                 -> f (acc ++ [l])
+                  _                 -> f (l:acc)
 
 -- | Get the lines of the daemon's response to a list of commands.
 getResponses :: Connection -> [String] -> IO [String]
