@@ -59,9 +59,10 @@ module MPD (
             password, ping, stats, status,
 
             -- * Extensions\/shortcuts
-            addMany, crop, findArtist, findAlbum, findTitle, listArtists,
-            listAlbums, listAlbum, searchArtist, searchAlbum, searchTitle,
-            getPlaylist, toggle
+            addMany, crop, lsdirs, lsfiles, lsplaylists, findArtist,
+            findAlbum, findTitle, listArtists, listAlbums, listAlbum,
+            searchArtist, searchAlbum, searchTitle, getPlaylist,
+            toggle
            ) where
 
 import Control.Monad (liftM, unless)
@@ -589,6 +590,20 @@ addMany conn plname xs = getResponses conn (map (cmd ++) xs) >> return ()
 crop :: Connection -> PLIndex -> PLIndex -> IO ()
 crop _ (Pos _) (Pos _) = undefined
 crop _ _ _ = return ()
+
+-- | List all directories in an optional directory.
+lsdirs :: Connection -> Maybe String -> IO [String]
+lsdirs conn path = liftM ((\(x,_,_) -> x) . takeEntries)
+                         (getResponse conn ("lsinfo " ++ maybe "" show path))
+
+-- | List all files in an optional directory.
+lsfiles :: Connection -> Maybe String -> IO [String]
+lsfiles conn path = liftM (map sgFilePath . (\(_,_,x) -> x) . takeEntries)
+                          (getResponse conn ("lsinfo " ++ maybe "" show path))
+
+-- | List all playlists.
+lsplaylists :: Connection -> IO [String]
+lsplaylists = liftM ((\(_,x,_) -> x) . takeEntries) . flip getResponse "lsinfo"
 
 -- | Search the database for songs relating to an artist.
 findArtist :: Connection -> String -> IO [Song]
