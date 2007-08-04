@@ -588,8 +588,15 @@ addMany conn plname xs = getResponses conn (map (cmd ++) xs) >> return ()
 
 -- | Crop playlist.
 crop :: Connection -> PLIndex -> PLIndex -> IO ()
-crop _ (Pos _) (Pos _) = undefined
-crop _ _ _ = return ()
+crop conn x y = do
+    pl <- playlistinfo conn PLNone
+    case x of
+      Pos p -> deleteSongs (take (fromInteger p - 1) pl)
+      _     -> return ()
+    case y of
+      Pos p -> deleteSongs (drop (fromInteger p) pl)
+      _     -> return ()
+    where deleteSongs = mapM_ (delete conn Nothing . sgIndex)
 
 -- | List all directories in an optional directory.
 lsdirs :: Connection -> Maybe String -> IO [String]
