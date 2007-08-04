@@ -67,7 +67,7 @@ module MPD (
 
 import Control.Monad (liftM, unless)
 import Prelude hiding (repeat)
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, findIndex)
 import Data.Maybe
 import Network
 import System.IO
@@ -590,13 +590,16 @@ addMany conn plname xs = getResponses conn (map (cmd ++) xs) >> return ()
 crop :: Connection -> PLIndex -> PLIndex -> IO ()
 crop conn x y = do
     pl <- playlistinfo conn PLNone
-    case x of
-      Pos p -> deleteSongs (take (fromInteger p - 1) pl)
-      _     -> return ()
-    case y of
-      Pos p -> deleteSongs (drop (fromInteger p) pl)
-      _     -> return ()
+    case x of Pos p -> deleteSongs (take (fromInteger p - 1) pl)
+              ID i  -> maybe (return ()) (deleteSongs . flip take pl)
+                           (findByID i pl)
+              _     -> return ()
+    case y of Pos p -> deleteSongs (drop (fromInteger p) pl)
+              ID i  -> maybe (return ()) (deleteSongs . flip drop pl . (+1))
+                           (findByID i pl)
+              _     -> return ()
     where deleteSongs = mapM_ (delete conn Nothing . sgIndex)
+          findByID i = findIndex ((==) i . (\(ID j) -> j) . sgIndex)
 
 -- | List all directories in an optional directory.
 lsdirs :: Connection -> Maybe String -> IO [String]
