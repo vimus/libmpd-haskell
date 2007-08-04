@@ -299,11 +299,9 @@ add_ :: Connection
      -> Maybe String -- ^ Optionally specify a playlist to operate on
      -> String
      -> IO ()
-add_ conn plname x = getResponse_ conn cmd
-    where cmd  = maybe ("add " ++ path)
-                       (\pl -> "playlistadd " ++ show pl ++ " " ++ path)
-                       plname
-          path = show x
+add_ conn Nothing       = getResponse_ conn . ("add " ++) . show
+add_ conn (Just plname) = getResponse_ conn .
+                          (("playlistadd " ++ show plname ++ " ") ++) . show
 
 -- | Clear a playlist. Clears current playlist if no playlist is specified.
 -- If the specified playlist does not exist, it will be created.
