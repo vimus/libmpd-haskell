@@ -48,7 +48,8 @@ module MPD (
             -- $playlist
             add, add_, addid, clear, currentSong, delete, load, move,
             playlistinfo, listplaylist, listplaylistinfo, playlist, plchanges,
-            plchangesposid, rm, rename, save, shuffle, swap,
+            plchangesposid, playlistfind, playlistsearch, rm, rename, save,
+            shuffle, swap,
 
             -- * Playback commands
             crossfade, next, pause, play, previous, random, repeat, seek,
@@ -416,6 +417,23 @@ plchangesposid conn plver =
     liftM (map takePosid . splitGroups . kvise) (getResponse conn cmd)
     where cmd          = "plchangesposid " ++ show plver
           takePosid xs = (Pos . (+1) $ takeNum "cpos" xs, ID $ takeNum "Id" xs)
+
+-- | Search for songs in the current playlist with strict matching.
+playlistfind :: Connection
+             -> String  -- ^ Scope modifier.
+             -> String  -- ^ Query
+             -> IO [Song]
+playlistfind  conn searchType query = liftM takeSongs
+    (getResponse conn ("playlistfind " ++ searchType ++ " " ++ show query))
+
+-- | Search case-insensitively with partial matches for songs in the
+-- current playlist.
+playlistsearch :: Connection
+               -> String  -- ^ Scope modifier.
+               -> String  -- ^ Query
+               -> IO [Song]
+playlistsearch conn searchType query = liftM takeSongs
+    (getResponse conn ("playlistsearch " ++ searchType ++ " " ++ show query))
 
 -- | Get the currently playing song.
 currentSong :: Connection -> IO (Maybe Song)
