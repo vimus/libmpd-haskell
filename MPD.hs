@@ -87,7 +87,7 @@ type Seconds = Integer
 
 -- | Represents a song's playlist index.
 data PLIndex = PLNone       -- ^ No index.
-             | Pos Integer  -- ^ A playlist position index (starting from 1).
+             | Pos Integer  -- ^ A playlist position index (starting from 0).
              | ID Integer   -- ^ A playlist ID number.
                deriving Show
 
@@ -107,7 +107,7 @@ data Status =
              --   playlist changes.
              stPlaylistVersion   :: Integer,
              stPlaylistLength    :: Integer,
-             -- | Current song's position in the playlist (starting from 1).
+             -- | Current song's position in the playlist.
              stSongPos           :: PLIndex,
              -- | Each song in the playlist has an identifier to more
              --   robustly identify it.
@@ -323,11 +323,11 @@ delete :: Connection
        -> Maybe String -- ^ Optionally specify a playlist to operate on
        -> PLIndex -> IO ()
 delete _ _ PLNone = return ()
-delete conn Nothing (Pos x) = getResponse_ conn ("delete " ++ show (x - 1))
+delete conn Nothing (Pos x) = getResponse_ conn ("delete " ++ show x)
 delete conn Nothing (ID x) = getResponse_ conn ("deleteid " ++ show x)
 -- XXX assume that playlistdelete expects positions and not ids.
 delete conn (Just plname) (Pos x) =
-    getResponse_ conn ("playlistdelete " ++ show plname ++ " " ++ show (x - 1))
+    getResponse_ conn ("playlistdelete " ++ show plname ++ " " ++ show x)
 delete _ _ _ = return ()
 
 -- | Load an existing playlist.
@@ -340,13 +340,13 @@ move :: Connection
      -> PLIndex -> Integer -> IO ()
 move _ _ PLNone _ = return ()
 move conn Nothing (Pos from) to =
-    getResponse_ conn ("move " ++ show (from - 1) ++ " " ++ show to)
+    getResponse_ conn ("move " ++ show from ++ " " ++ show to)
 move conn Nothing (ID from) to =
     getResponse_ conn ("moveid " ++ show from ++ " " ++ show to)
 -- XXX assumes that playlistmove expects positions and not ids
 move conn (Just plname) (Pos from) to =
-    getResponse_ conn ("playlistmove " ++ show plname ++ " " ++ show (from - 1)
-                       ++ " " ++ show to)
+    getResponse_ conn ("playlistmove " ++ show plname ++ " " ++ show from ++
+                       " " ++ show to)
 move _ _ _ _ = return ()
 
 -- | Delete existing playlist.
@@ -368,7 +368,7 @@ save conn = getResponse_ conn . ("save " ++) . show
 -- | Swap the positions of two songs.
 swap :: Connection -> PLIndex -> PLIndex -> IO ()
 swap conn (Pos x) (Pos y) =
-    getResponse_ conn ("swap " ++ show (x - 1) ++ " " ++ show (y - 1))
+    getResponse_ conn ("swap " ++ show x ++ " " ++ show y)
 swap conn (ID x) (ID y) =
     getResponse_ conn ("swapid " ++ show x ++ " " ++ show y)
 swap _ _ _ = return ()
@@ -383,7 +383,7 @@ playlistinfo :: Connection
             -> IO [Song]
 playlistinfo conn x = liftM takeSongs (getResponse conn cmd)
     where cmd = case x of
-                    Pos x' -> "playlistinfo " ++ show (x' - 1)
+                    Pos x' -> "playlistinfo " ++ show x'
                     ID x'  -> "playlistid " ++ show x'
                     _      -> "playlistinfo"
 
@@ -404,7 +404,7 @@ playlist :: Connection -> IO [(PLIndex, String)]
 playlist = liftM (map f) . flip getResponse "playlist"
     -- meh, the response here deviates from just about all other commands
     where f s = let (pos, name) = break (== ':') s
-                in (Pos . (+1) $ read pos, drop 1 name)
+                in (Pos $ read pos, drop 1 name)
 
 -- | Retrieve a list of changed songs currently in the playlist since
 -- a given playlist version.
@@ -416,7 +416,7 @@ plchangesposid :: Connection -> Integer -> IO [(PLIndex, PLIndex)]
 plchangesposid conn plver =
     liftM (map takePosid . splitGroups . kvise) (getResponse conn cmd)
     where cmd          = "plchangesposid " ++ show plver
-          takePosid xs = (Pos . (+1) $ takeNum "cpos" xs, ID $ takeNum "Id" xs)
+          takePosid xs = (Pos $ takeNum "cpos" xs, ID $ takeNum "Id" xs)
 
 -- | Search for songs in the current playlist with strict matching.
 playlistfind :: Connection
@@ -456,7 +456,7 @@ crossfade conn = getResponse_ conn . ("crossfade " ++) . show
 -- | Begin\/continue playing.
 play :: Connection -> PLIndex -> IO ()
 play conn PLNone  = getResponse_ conn "play"
-play conn (Pos x) = getResponse_ conn ("play " ++ show (x-1))
+play conn (Pos x) = getResponse_ conn ("play " ++ show x)
 play conn (ID x)  = getResponse_ conn ("playid " ++ show x)
 
 -- | Pause playing.
@@ -479,7 +479,7 @@ previous = flip getResponse_ "previous"
 -- Seeks in current song if no position is given.
 seek :: Connection -> PLIndex -> Seconds -> IO ()
 seek conn (Pos x) time =
-    getResponse_ conn ("seek " ++ show (x - 1) ++ " " ++ show time)
+    getResponse_ conn ("seek " ++ show x ++ " " ++ show time)
 seek conn (ID x) time =
     getResponse_ conn ("seekid " ++ show x ++ " " ++ show time)
 seek conn PLNone time = do
@@ -568,7 +568,7 @@ status = liftM (parseStatus . kvise) . flip getResponse "status"
                      stPlaylistLength = takeNum "playlistlength" xs,
                      stXFadeWidth = takeNum "xfade" xs,
                      stSongPos =
-                         maybe PLNone (Pos . (1+) . read) $ lookup "song" xs,
+                         maybe PLNone (Pos . read) $ lookup "song" xs,
                      stSongID = maybe PLNone (ID . read) $ lookup "songid" xs,
                      stTime = maybe (0,0) parseTime $ lookup "time" xs,
                      stBitrate = takeNum "bitrate" xs,
@@ -609,10 +609,10 @@ deleteMany :: Connection -> Maybe String -> [PLIndex] -> IO ()
 deleteMany _ _ [] = return ()
 deleteMany conn plname [x] = delete conn plname x
 deleteMany conn (Just plname) xs = getResponses conn (map cmd xs) >> return ()
-    where cmd (Pos x) = "playlistdelete " ++ show plname ++ " " ++ show (x-1)
+    where cmd (Pos x) = "playlistdelete " ++ show plname ++ " " ++ show x
           cmd _       = ""
 deleteMany conn Nothing xs = getResponses conn (map cmd xs) >> return ()
-    where cmd (Pos x) = "delete " ++ show (x-1)
+    where cmd (Pos x) = "delete " ++ show x
           cmd (ID x)  = "deleteid " ++ show x
           cmd _       = ""
 
@@ -623,7 +623,7 @@ deleteMany conn Nothing xs = getResponses conn (map cmd xs) >> return ()
 crop :: Connection -> PLIndex -> PLIndex -> IO ()
 crop conn x y = do
     pl <- playlistinfo conn PLNone
-    let x' = case x of Pos p -> fromInteger p - 1
+    let x' = case x of Pos p -> fromInteger p
                        ID i  -> maybe 0 id (findByID i pl)
                        _     -> 0
         ys = case y of Pos p -> drop (max (fromInteger p) x') pl
