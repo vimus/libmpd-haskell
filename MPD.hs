@@ -652,15 +652,15 @@ lsplaylists :: Connection -> IO [String]
 lsplaylists = liftM ((\(_,x,_) -> x) . takeEntries) . flip getResponse "lsinfo"
 
 -- | Search the database for songs relating to an artist.
-findArtist :: Connection -> String -> IO [Song]
+findArtist :: Connection -> Artist -> IO [Song]
 findArtist = flip find "artist"
 
 -- | Search the database for songs relating to an album.
-findAlbum :: Connection -> String -> IO [Song]
+findAlbum :: Connection -> Album -> IO [Song]
 findAlbum = flip find "album"
 
 -- | Search the database for songs relating to a song title.
-findTitle :: Connection -> String -> IO [Song]
+findTitle :: Connection -> Title -> IO [Song]
 findTitle = flip find "title"
 
 -- | List the artists in the database.
@@ -681,15 +681,15 @@ listAlbum conn artist album = liftM (filter ((== artist) . sgArtist))
     (findAlbum conn album)
 
 -- | Search the database for songs relating to an artist using 'search'.
-searchArtist :: Connection -> String -> IO [Song]
+searchArtist :: Connection -> Artist -> IO [Song]
 searchArtist = flip search "artist"
 
 -- | Search the database for songs relating to an album using 'search'.
-searchAlbum :: Connection -> String -> IO [Song]
+searchAlbum :: Connection -> Album -> IO [Song]
 searchAlbum = flip search "album"
 
 -- | Search the database for songs relating to a song title.
-searchTitle :: Connection -> String -> IO [Song]
+searchTitle :: Connection -> Title -> IO [Song]
 searchTitle = flip search "title"
 
 -- | Retrieve the current playlist.
