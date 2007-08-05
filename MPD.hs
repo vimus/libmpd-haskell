@@ -623,16 +623,15 @@ deleteMany conn Nothing xs = getResponses conn (map cmd xs) >> return ()
 crop :: Connection -> PLIndex -> PLIndex -> IO ()
 crop conn x y = do
     pl <- playlistinfo conn PLNone
-    case x of Pos p -> deleteSongs (take (fromInteger p - 1) pl)
-              ID i  -> maybe (return ()) (deleteSongs . flip take pl)
-                           (findByID i pl)
-              _     -> return ()
-    case y of Pos p -> deleteSongs (drop (fromInteger p) pl)
-              ID i  -> maybe (return ()) (deleteSongs . flip drop pl . (+1))
-                           (findByID i pl)
-              _     -> return ()
-    where deleteSongs = mapM_ (delete conn Nothing . sgIndex)
-          findByID i = findIndex ((==) i . (\(ID j) -> j) . sgIndex)
+    let x' = case x of Pos p -> fromInteger p - 1
+                       ID i  -> maybe 0 id (findByID i pl)
+                       _     -> 0
+        ys = case y of Pos p -> drop (max (fromInteger p) x') pl
+                       ID i  -> maybe [] (flip drop pl . max x' . (+1))
+                                      (findByID i pl)
+                       _     -> []
+    deleteMany conn Nothing (map sgIndex (take x' pl ++ ys))
+    where findByID i = findIndex ((==) i . (\(ID j) -> j) . sgIndex)
 
 -- | List directories non-recursively.
 lsdirs :: Connection
