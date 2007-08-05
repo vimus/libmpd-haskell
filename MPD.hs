@@ -31,6 +31,7 @@ module MPD (
             Connection,
             State(..), Status(..), Stats(..),
             Device(..),
+            Query(..), Meta(..),
             Artist, Album, Title, Seconds, PLIndex(..),
             Song(..), Count(..),
 
@@ -84,6 +85,29 @@ type Artist  = String
 type Album   = String
 type Title   = String
 type Seconds = Integer
+
+data Meta = Artist | Album | Title | Track | Name | Genre | Date
+    | Composer | Performer | Disc | Any | Filename
+
+instance Show Meta where
+    show Artist    = "Artist"
+    show Album     = "Album"
+    show Title     = "Title"
+    show Track     = "Track"
+    show Name      = "Name"
+    show Genre     = "Genre"
+    show Date      = "Date"
+    show Composer  = "Composer"
+    show Performer = "Performer"
+    show Disc      = "Disc"
+    show Any       = "Any"
+    show Filename  = "Filename"
+
+-- | A query is comprised of a scope modifier and a query string.
+data Query = Query Meta String
+
+instance Show Query where
+    show (Query meta query) = show meta ++ " " ++ show query
 
 -- | Represents a song's playlist index.
 data PLIndex = PLNone       -- ^ No index.
