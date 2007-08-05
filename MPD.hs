@@ -60,9 +60,9 @@ module MPD (
             password, ping, stats, status,
 
             -- * Extensions\/shortcuts
-            addMany, crop, lsdirs, lsfiles, lsplaylists, findArtist,
-            findAlbum, findTitle, listArtists, listAlbums, listAlbum,
-            searchArtist, searchAlbum, searchTitle, getPlaylist,
+            addMany, deleteMany, crop, lsdirs, lsfiles, lsplaylists,
+            findArtist, findAlbum, findTitle, listArtists, listAlbums,
+            listAlbum, searchArtist, searchAlbum, searchTitle, getPlaylist,
             toggle
            ) where
 
@@ -603,6 +603,18 @@ addMany _ _ [] = return ()
 addMany conn plname [x] = add_ conn plname x
 addMany conn plname xs = getResponses conn (map (cmd ++) xs) >> return ()
     where cmd = maybe ("add ") (\pl -> "playlistadd " ++ show pl ++ " ") plname
+
+-- | Delete a list of songs from a playlist.
+deleteMany :: Connection -> Maybe String -> [PLIndex] -> IO ()
+deleteMany _ _ [] = return ()
+deleteMany conn plname [x] = delete conn plname x
+deleteMany conn (Just plname) xs = getResponses conn (map cmd xs) >> return ()
+    where cmd (Pos x) = "playlistdelete " ++ show plname ++ " " ++ show (x-1)
+          cmd _       = ""
+deleteMany conn Nothing xs = getResponses conn (map cmd xs) >> return ()
+    where cmd (Pos x) = "delete " ++ show (x-1)
+          cmd (ID x)  = "deleteid " ++ show x
+          cmd _       = ""
 
 -- | Crop playlist.
 -- The bounds are inclusive.
