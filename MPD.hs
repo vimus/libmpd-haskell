@@ -226,14 +226,10 @@ update conn  xs = getResponses conn (map ("update " ++) xs) >> return ()
 -- Also one may use \"any\" or \"filename\".
 
 -- | List all metadata of metadata (sic).
-list :: Connection
-     -> String       -- ^ Metadata to list.
-     -> Maybe String -- ^ Optionally specify a scope modifier
-     -> String       -- ^ Query (requires optional arg).
-     -> IO [String]
-list conn metaType metaQuery query = liftM takeValues (getResponse conn cmd)
-    where cmd = "list " ++ metaType ++
-                maybe "" (\x -> " " ++ x ++ " " ++ show query) metaQuery
+list :: Connection -> Meta -- ^ Metadata to list
+     -> Maybe Query -> IO [String]
+list conn mtype query = liftM takeValues (getResponse conn cmd)
+    where cmd = "list " ++ show mtype ++ maybe "" ((" "++) . show) query
 
 -- | Non-recursively list the contents of a database directory.
 lsinfo :: Connection -> Maybe String -- ^ Optionally specify a path.
@@ -257,28 +253,17 @@ listAllinfo conn path = do
     return (map Left dirs ++ map Right songs)
 
 -- | Search the database for entries exactly matching a query.
-find :: Connection
-     -> String      -- ^ Scope modifier
-     -> String      -- ^ Query
-     -> IO [Song]
-find conn searchType query = liftM takeSongs
-    (getResponse conn ("find " ++ searchType ++ " " ++ show query))
+find :: Connection -> Query -> IO [Song]
+find conn query = liftM takeSongs (getResponse conn ("find " ++ show query))
 
 -- | Search the database using case insensitive matching.
-search :: Connection
-       -> String -- ^ Scope modifier
-       -> String -- ^ Query
-       -> IO [Song]
-search conn searchType query = liftM takeSongs
-    (getResponse conn ("search " ++ searchType ++ " " ++ show query))
+search :: Connection -> Query -> IO [Song]
+search conn query = liftM takeSongs (getResponse conn ("search " ++ show query))
 
 -- | Count the number of entries matching a query.
-count :: Connection
-      -> String -- ^ Scope modifier
-      -> String -- ^ Query
-      -> IO Count
-count conn countType query = liftM (takeCountInfo . kvise)
-    (getResponse conn ("count " ++ countType ++ " " ++ show query))
+count :: Connection -> Query -> IO Count
+count conn query = liftM (takeCountInfo . kvise)
+    (getResponse conn ("count " ++ show query))
     where takeCountInfo xs = Count { cSongs    = takeNum "songs" xs,
                                      cPlaytime = takeNum "playtime" xs }
 
@@ -419,21 +404,15 @@ plchangesposid conn plver =
           takePosid xs = (Pos $ takeNum "cpos" xs, ID $ takeNum "Id" xs)
 
 -- | Search for songs in the current playlist with strict matching.
-playlistfind :: Connection
-             -> String  -- ^ Scope modifier.
-             -> String  -- ^ Query
-             -> IO [Song]
-playlistfind  conn searchType query = liftM takeSongs
-    (getResponse conn ("playlistfind " ++ searchType ++ " " ++ show query))
+playlistfind :: Connection -> Query -> IO [Song]
+playlistfind conn query = liftM takeSongs
+    (getResponse conn ("playlistfind " ++ show query))
 
 -- | Search case-insensitively with partial matches for songs in the
 -- current playlist.
-playlistsearch :: Connection
-               -> String  -- ^ Scope modifier.
-               -> String  -- ^ Query
-               -> IO [Song]
-playlistsearch conn searchType query = liftM takeSongs
-    (getResponse conn ("playlistsearch " ++ searchType ++ " " ++ show query))
+playlistsearch :: Connection -> Query -> IO [Song]
+playlistsearch conn query = liftM takeSongs
+    (getResponse conn ("playlistsearch " ++ show query))
 
 -- | Get the currently playing song.
 currentSong :: Connection -> IO (Maybe Song)
@@ -653,15 +632,15 @@ lsplaylists = liftM ((\(_,x,_) -> x) . takeEntries) . flip getResponse "lsinfo"
 
 -- | Search the database for songs relating to an artist.
 findArtist :: Connection -> Artist -> IO [Song]
-findArtist = flip find "artist"
+findArtist c = find c . Query Artist
 
 -- | Search the database for songs relating to an album.
 findAlbum :: Connection -> Album -> IO [Song]
-findAlbum = flip find "album"
+findAlbum c = find c . Query Album
 
 -- | Search the database for songs relating to a song title.
 findTitle :: Connection -> Title -> IO [Song]
-findTitle = flip find "title"
+findTitle c = find c . Query Title
 
 -- | List the artists in the database.
 listArtists :: Connection -> IO [Artist]
@@ -682,15 +661,15 @@ listAlbum conn artist album = liftM (filter ((== artist) . sgArtist))
 
 -- | Search the database for songs relating to an artist using 'search'.
 searchArtist :: Connection -> Artist -> IO [Song]
-searchArtist = flip search "artist"
+searchArtist c = search c . Query Artist
 
 -- | Search the database for songs relating to an album using 'search'.
 searchAlbum :: Connection -> Album -> IO [Song]
-searchAlbum = flip search "album"
+searchAlbum c = search c . Query Album
 
 -- | Search the database for songs relating to a song title.
 searchTitle :: Connection -> Title -> IO [Song]
-searchTitle = flip search "title"
+searchTitle c = search c . Query Title
 
 -- | Retrieve the current playlist.
 -- Equivalent to 'playlistinfo PLNone'.
