@@ -584,6 +584,8 @@ addMany conn plname xs = getResponses conn (map (cmd ++) xs) >> return ()
     where cmd = maybe ("add ") (\pl -> "playlistadd " ++ show pl ++ " ") plname
 
 -- | Delete a list of songs from a playlist.
+-- If there is a duplicate then no further songs will be deleted, so
+-- take care to avoid them.
 deleteMany :: Connection -> Maybe String -> [PLIndex] -> IO ()
 deleteMany _ _ [] = return ()
 deleteMany conn plname [x] = delete conn plname x
@@ -605,6 +607,7 @@ crop conn x y = do
     let x' = case x of Pos p -> fromInteger p
                        ID i  -> maybe 0 id (findByID i pl)
                        _     -> 0
+        -- ensure that no songs are deleted twice with 'max'.
         ys = case y of Pos p -> drop (max (fromInteger p) x') pl
                        ID i  -> maybe [] (flip drop pl . max x' . (+1))
                                       (findByID i pl)
@@ -722,7 +725,7 @@ splitGroups (x:xs) = ((x:us):splitGroups vs)
 takeValues :: [String] -> [String]
 takeValues = snd . unzip . kvise
 
--- | Separate the result of an lsinfo call into directories,
+-- | Separate the result of an lsinfo\/listallinfo call into directories,
 -- playlists, and songs.
 takeEntries :: [String] -> ([String], [String], [Song])
 takeEntries s =
