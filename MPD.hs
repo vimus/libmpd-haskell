@@ -324,6 +324,8 @@ clear conn (Just plname) = getResponse_ conn ("playlistclear " ++ show plname)
 
 -- | Remove a song from a playlist.
 -- If no playlist is specified, current playlist is used.
+-- Note that a playlist position ('Pos') is required when operating on
+-- playlists other than the current.
 delete :: Connection
        -> Maybe String -- ^ Optionally specify a playlist to operate on
        -> PLIndex -> IO ()
@@ -340,6 +342,8 @@ load :: Connection -> String -> IO ()
 load conn = getResponse_ conn . ("load " ++) . show
 
 -- | Move a song to a given position.
+-- Note that a playlist position ('Pos') is required when operating on
+-- playlists other than the current.
 move :: Connection
      -> Maybe String -- ^ Optionally specify a playlist to operate on
      -> PLIndex -> Integer -> IO ()
@@ -371,6 +375,8 @@ save :: Connection -> String -> IO ()
 save conn = getResponse_ conn . ("save " ++) . show
 
 -- | Swap the positions of two songs.
+-- Note that the positions must be of the same type, i.e. mixing 'Pos' and 'ID'
+-- will result in a no-op.
 swap :: Connection -> PLIndex -> PLIndex -> IO ()
 swap conn (Pos x) (Pos y) =
     getResponse_ conn ("swap " ++ show x ++ " " ++ show y)
