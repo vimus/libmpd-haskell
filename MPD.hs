@@ -42,7 +42,6 @@ module MPD (
             disableoutput, enableoutput, kill, outputs, update,
 
             -- * Database commands
-            -- $database
             find, list, listAll, listAllinfo, lsinfo, search, count,
 
             -- * Playlist commands
@@ -245,11 +244,6 @@ update conn  xs = getResponses conn (map ("update " ++) xs) >> return ()
 --
 -- Database commands
 --
--- $database
--- All scope modifiers (i.e. metadata to match against when searching for
--- database entries with certain metadata values) may be any of the
--- values listed by 'tagtypes'.
--- Also one may use \"any\" or \"filename\".
 
 -- | List all metadata of metadata (sic).
 list :: Connection -> Meta -- ^ Metadata to list
