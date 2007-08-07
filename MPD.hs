@@ -704,10 +704,8 @@ listArtists = liftM takeValues . flip getResponse "list artist"
 -- | List the albums in the database, optionally matching a given
 -- artist.
 listAlbums :: Connection -> Maybe Artist -> IO [Album]
-listAlbums conn artist =
-    liftM takeValues
-          -- XXX according to the spec this shouldn't work (but it does)
-          (getResponse conn ("list album " ++ maybe "" show artist))
+listAlbums conn artist = liftM takeValues (getResponse conn ("list album" ++
+    maybe "" ((" artist " ++) . show) artist))
 
 -- | List the songs in an album of some artist.
 listAlbum :: Connection -> Artist -> Album -> IO [Song]
