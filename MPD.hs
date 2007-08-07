@@ -36,7 +36,7 @@ module MPD (
             Song(..), Count(..),
 
             -- * Connections
-            connect,
+            withMPD, connect,
 
             -- * Admin commands
             disableoutput, enableoutput, kill, outputs, update,
@@ -66,6 +66,7 @@ module MPD (
             toggle
            ) where
 
+import Control.Exception (bracket)
 import Control.Monad (liftM, unless)
 import Prelude hiding (repeat)
 import Data.List (isPrefixOf, findIndex)
@@ -193,6 +194,11 @@ data Device =
 --
 -- Basic connection functions
 --
+
+-- | Open a connection to a MPD and perform some action on it in a safe
+-- manner.
+withMPD :: String -> Integer -> (Connection -> IO a) -> IO a
+withMPD host port = bracket (connect host port) close
 
 -- | Create an MPD connection.
 connect :: String      -- ^ Hostname.
