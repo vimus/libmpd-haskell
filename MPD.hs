@@ -86,6 +86,8 @@ type Album   = String
 type Title   = String
 type Seconds = Integer
 
+-- | Available metadata types\/scope modifiers, used for searching the
+-- database for entries with certain metadata values.
 data Meta = Artist | Album | Title | Track | Name | Genre | Date
     | Composer | Performer | Disc | Any | Filename
 
