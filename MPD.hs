@@ -60,7 +60,7 @@ module MPD (
             password, ping, stats, status,
 
             -- * Extensions\/shortcuts
-            addMany, deleteMany, crop, lsdirs, lsfiles, lsplaylists,
+            addMany, deleteMany, crop, prune, lsdirs, lsfiles, lsplaylists,
             findArtist, findAlbum, findTitle, listArtists, listAlbums,
             listAlbum, searchArtist, searchAlbum, searchTitle, getPlaylist,
             toggle
@@ -174,6 +174,11 @@ data Song = Song { sgArtist, sgAlbum, sgTitle, sgFilePath, sgGenre, sgName
                   ,sgDisc   :: (Int, Int) -- ^ (pos. in set, total in set)
                   ,sgIndex  :: PLIndex }
             deriving Show
+
+-- Temporarily avoid writing an overloaded version of 'elem' for use in
+-- 'prune'.
+instance Eq Song where
+    (==) x y = sgFilePath x == sgFilePath y
 
 -- | Describes a 'count'.
 data Count = Count { cSongs    :: Integer -- ^ Number of songs that matches
@@ -646,6 +651,20 @@ crop conn x y = do
                        _     -> []
     deleteMany conn Nothing (map sgIndex (take x' pl ++ ys))
     where findByID i = findIndex ((==) i . (\(ID j) -> j) . sgIndex)
+
+-- | Remove duplicate playlist entries.
+prune :: Connection -> IO ()
+prune conn = findDuplicates conn >>= deleteMany conn Nothing
+
+-- Find duplicate playlist entries.
+findDuplicates :: Connection -> IO [PLIndex]
+findDuplicates =
+    liftM (map ((\(ID x) -> ID x) . sgIndex) . flip dups ([],[])) .
+        flip playlistinfo PLNone
+    where dups [] (_, dup) = dup
+          dups (x:xs) (ys, dup)
+            | x `elem` xs && x `notElem` ys = dups xs (ys, x:dup)
+            | otherwise                     = dups xs (x:ys, dup)
 
 -- | List directories non-recursively.
 lsdirs :: Connection
