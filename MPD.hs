@@ -711,8 +711,8 @@ listAlbums conn artist =
 
 -- | List the songs in an album of some artist.
 listAlbum :: Connection -> Artist -> Album -> IO [Song]
-listAlbum conn artist album = liftM (filter ((== artist) . sgArtist))
-    (findAlbum conn album)
+listAlbum conn artist album = find conn (MultiQuery [Query Artist artist
+                                                    ,Query Album album])
 
 -- | Search the database for songs relating to an artist using 'search'.
 searchArtist :: Connection -> Artist -> IO [Song]
