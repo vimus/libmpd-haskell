@@ -343,7 +343,6 @@ delete :: Connection
 delete _ _ PLNone = return ()
 delete conn Nothing (Pos x) = getResponse_ conn ("delete " ++ show x)
 delete conn Nothing (ID x) = getResponse_ conn ("deleteid " ++ show x)
--- XXX assume that playlistdelete expects positions and not ids.
 delete conn (Just plname) (Pos x) =
     getResponse_ conn ("playlistdelete " ++ show plname ++ " " ++ show x)
 delete _ _ _ = return ()
@@ -363,7 +362,6 @@ move conn Nothing (Pos from) to =
     getResponse_ conn ("move " ++ show from ++ " " ++ show to)
 move conn Nothing (ID from) to =
     getResponse_ conn ("moveid " ++ show from ++ " " ++ show to)
--- XXX assumes that playlistmove expects positions and not ids
 move conn (Just plname) (Pos from) to =
     getResponse_ conn ("playlistmove " ++ show plname ++ " " ++ show from ++
                        " " ++ show to)
