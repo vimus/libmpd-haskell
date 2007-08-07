@@ -201,11 +201,11 @@ withMPD :: String -> Integer -> (Connection -> IO a) -> IO a
 withMPD host port = bracket (connect host port) close
 
 -- | Create an MPD connection.
-connect :: String      -- ^ Hostname.
-        -> PortNumber  -- ^ Port number.
+connect :: String   -- ^ Hostname.
+        -> Integer  -- ^ Port number.
         -> IO Connection
 connect host port = withSocketsDo $ do
-    conn <- liftM Conn . connectTo host $ PortNumber port
+    conn <- liftM Conn . connectTo host . PortNumber $ fromInteger port
     mpd <- checkConn conn
     if mpd then return conn
            else close conn >> fail ("no MPD at " ++ host ++ ":" ++ show port)
