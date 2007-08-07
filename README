@@ -5,7 +5,7 @@
 Dependencies:
     The Glasgow Haskell Compiler >= 6.4       http://haskell.org/ghc
     Cabal > 1.0                               http://haskell.org/cabal
-    network                                   http://haskell.org/ghc
+    network                                   http://hackage.haskell.org/cgi-bin/hackage-scripts/package/network
 
 Building:
     $ chmod +x configure Setup.lhs
