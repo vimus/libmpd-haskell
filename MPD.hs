@@ -106,10 +106,13 @@ instance Show Meta where
     show Filename  = "Filename"
 
 -- | A query is comprised of a scope modifier and a query string.
-data Query = Query Meta String
+data Query = Query Meta String  -- ^ Simple query.
+           | MultiQuery [Query] -- ^ Query with multiple conditions.
 
 instance Show Query where
     show (Query meta query) = show meta ++ " " ++ show query
+    show (MultiQuery xs)    = show xs
+    showList xs _ = unwords $ map show xs
 
 -- | Represents a song's playlist index.
 data PLIndex = PLNone       -- ^ No index.
