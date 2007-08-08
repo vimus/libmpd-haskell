@@ -79,7 +79,7 @@ import System.IO
 --
 
 -- | A connection to an MPD server.
-newtype Connection = Conn Handle
+newtype Connection = Conn (Handle, IO (Maybe String))
 
 type Artist  = String
 type Album   = String
@@ -212,14 +212,24 @@ connect :: String   -- ^ Hostname.
         -> Integer  -- ^ Port number.
         -> IO Connection
 connect host port = withSocketsDo $ do
-    conn <- liftM Conn . connectTo host . PortNumber $ fromInteger port
+    handle <- connectTo host . PortNumber $ fromInteger port
+    conn <- return $ Conn (handle, return Nothing)
     mpd <- checkConn conn
     if mpd then return conn
            else close conn >> fail ("no MPD at " ++ host ++ ":" ++ show port)
 
+-- | Create an MPD connection that can supply passwords when needed.
+connectAuth :: String            -- ^ Hostname.
+            -> Integer           -- ^ Port number.
+            -> IO (Maybe String) -- ^ An action to supply a password.
+            -> IO Connection
+connectAuth host port getpw = do
+  (Conn (h,_)) <- connect host port
+  return (Conn (h,getpw))
+
 -- | Check that an MPD daemon is at the other end of a connection.
 checkConn :: Connection -> IO Bool
-checkConn (Conn h) = liftM (isPrefixOf "OK MPD") (hGetLine h)
+checkConn (Conn (h,_)) = liftM (isPrefixOf "OK MPD") (hGetLine h)
 
 --
 -- Admin commands
@@ -235,7 +245,7 @@ enableoutput conn = getResponse_ conn . ("enableoutput " ++) . show
 
 -- | Kill the server. Obviously, the connection is then invalid.
 kill :: Connection -> IO ()
-kill (Conn h) = hPutStrLn h "kill" >> hClose h
+kill (Conn (h,_)) = hPutStrLn h "kill" >> hClose h
 
 -- | Retrieve information for all output devices.
 outputs :: Connection -> IO [Device]
@@ -526,11 +536,11 @@ volume conn = getResponse_ conn . ("volume " ++) . show
 
 -- | Clear the current error message in status.
 clearerror :: Connection -> IO ()
-clearerror (Conn h) = hPutStrLn h "clearerror" >> hClose h
+clearerror (Conn (h,_)) = hPutStrLn h "clearerror" >> hClose h
 
 -- | Close a MPD connection.
 close :: Connection -> IO ()
-close (Conn h) = hPutStrLn h "close" >> hClose h
+close (Conn (h,_)) = hPutStrLn h "close" >> hClose h
 
 -- | Retrieve a list of available commands.
 commands :: Connection -> IO [String]
@@ -734,13 +744,19 @@ getResponse_ c x = getResponse c x >> return ()
 
 -- | Get the lines of the daemon's response to a given command.
 getResponse :: Connection -> String -> IO [String]
-getResponse (Conn h) cmd = hPutStrLn h cmd >> hFlush h >> f []
-    where f acc = do
-              l <- hGetLine h
-              case l of
-                  "OK"              -> return (reverse acc)
-                  ('A':'C':'K':_:e) -> fail e
-                  _                 -> f (l:acc)
+getResponse conn@(Conn (h, getpw)) cmd = hPutStrLn h cmd >> hFlush h >> f []
+    where f acc = hGetLine h >>= procline acc
+          procline acc l | l == "OK" = return (reverse acc)
+                         | "ACK [4@0]" `isPrefixOf` l = tryPassword
+                         | "ACK" `isPrefixOf` l = fail l
+                         | otherwise = f (l:acc)
+          tryPassword = do
+            pw' <- getpw
+            maybe (fail "Password needed")
+                  (\pw -> hPutStrLn h ("password " ++ pw) >> hFlush h) pw'
+            result <- hGetLine h
+            case result of "OK" -> getResponse conn cmd
+                           _    -> tryPassword
 
 -- | Get the lines of the daemon's response to a list of commands.
 getResponses :: Connection -> [String] -> IO [String]
