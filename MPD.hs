@@ -115,8 +115,7 @@ instance Show Query where
     showList xs _ = unwords $ map show xs
 
 -- | Represents a song's playlist index.
-data PLIndex = PLNone       -- ^ No index.
-             | Pos Integer  -- ^ A playlist position index (starting from 0).
+data PLIndex = Pos Integer  -- ^ A playlist position index (starting from 0).
              | ID Integer   -- ^ A playlist ID number.
                deriving Show
 
@@ -137,10 +136,10 @@ data Status =
              stPlaylistVersion   :: Integer,
              stPlaylistLength    :: Integer,
              -- | Current song's position in the playlist.
-             stSongPos           :: PLIndex,
+             stSongPos           :: Maybe PLIndex,
              -- | Each song in the playlist has an identifier to more
              --   robustly identify it.
-             stSongID            :: PLIndex,
+             stSongID            :: Maybe PLIndex,
              -- | (Seconds played, song length in seconds).
              stTime              :: (Seconds,Seconds),
              -- | Bitrate of playing song in kilobytes per second.
@@ -175,7 +174,7 @@ data Song = Song { sgArtist, sgAlbum, sgTitle, sgFilePath, sgGenre, sgName
                   ,sgDate   :: Int        -- ^ year
                   ,sgTrack  :: (Int, Int) -- ^ (track number, total tracks)
                   ,sgDisc   :: (Int, Int) -- ^ (pos. in set, total in set)
-                  ,sgIndex  :: PLIndex }
+                  ,sgIndex  :: Maybe PLIndex }
             deriving Show
 
 -- Temporarily avoid writing an overloaded version of 'elem' for use in
@@ -343,7 +342,6 @@ clear conn (Just plname) = getResponse_ conn ("playlistclear " ++ show plname)
 delete :: Connection
        -> Maybe String -- ^ Optionally specify a playlist to operate on
        -> PLIndex -> IO ()
-delete _ _ PLNone = return ()
 delete conn Nothing (Pos x) = getResponse_ conn ("delete " ++ show x)
 delete conn Nothing (ID x) = getResponse_ conn ("deleteid " ++ show x)
 delete conn (Just plname) (Pos x) =
@@ -360,7 +358,6 @@ load conn = getResponse_ conn . ("load " ++) . show
 move :: Connection
      -> Maybe String -- ^ Optionally specify a playlist to operate on
      -> PLIndex -> Integer -> IO ()
-move _ _ PLNone _ = return ()
 move conn Nothing (Pos from) to =
     getResponse_ conn ("move " ++ show from ++ " " ++ show to)
 move conn Nothing (ID from) to =
@@ -402,13 +399,13 @@ shuffle = flip getResponse_ "shuffle"
 
 -- | Retrieve metadata for songs in the current playlist.
 playlistinfo :: Connection
-            -> PLIndex   -- ^ Optional playlist index.
+            -> Maybe PLIndex   -- ^ Optional playlist index.
             -> IO [Song]
 playlistinfo conn x = liftM takeSongs (getResponse conn cmd)
     where cmd = case x of
-                    Pos x' -> "playlistinfo " ++ show x'
-                    ID x'  -> "playlistid " ++ show x'
-                    _      -> "playlistinfo"
+                    Just (Pos x') -> "playlistinfo " ++ show x'
+                    Just (ID x')  -> "playlistid " ++ show x'
+                    Nothing       -> "playlistinfo"
 
 -- | Retrieve metadata for files in a given playlist.
 listplaylistinfo :: Connection -> String -> IO [Song]
@@ -471,10 +468,10 @@ crossfade :: Connection -> Seconds -> IO ()
 crossfade conn = getResponse_ conn . ("crossfade " ++) . show
 
 -- | Begin\/continue playing.
-play :: Connection -> PLIndex -> IO ()
-play conn PLNone  = getResponse_ conn "play"
-play conn (Pos x) = getResponse_ conn ("play " ++ show x)
-play conn (ID x)  = getResponse_ conn ("playid " ++ show x)
+play :: Connection -> Maybe PLIndex -> IO ()
+play conn Nothing        = getResponse_ conn "play"
+play conn (Just (Pos x)) = getResponse_ conn ("play " ++ show x)
+play conn (Just (ID x))  = getResponse_ conn ("playid " ++ show x)
 
 -- | Pause playing.
 pause :: Connection -> Bool -> IO ()
@@ -494,12 +491,12 @@ previous = flip getResponse_ "previous"
 
 -- | Seek to some point in a song.
 -- Seeks in current song if no position is given.
-seek :: Connection -> PLIndex -> Seconds -> IO ()
-seek conn (Pos x) time =
+seek :: Connection -> Maybe PLIndex -> Seconds -> IO ()
+seek conn (Just (Pos x)) time =
     getResponse_ conn ("seek " ++ show x ++ " " ++ show time)
-seek conn (ID x) time =
+seek conn (Just (ID x)) time =
     getResponse_ conn ("seekid " ++ show x ++ " " ++ show time)
-seek conn PLNone time = do
+seek conn Nothing time = do
     st <- status conn
     unless (stState st == Stopped) (seek conn (stSongID st) time)
 
@@ -584,9 +581,8 @@ status = liftM (parseStatus . kvise) . flip getResponse "status"
                      stPlaylistVersion = takeNum "playlist" xs,
                      stPlaylistLength = takeNum "playlistlength" xs,
                      stXFadeWidth = takeNum "xfade" xs,
-                     stSongPos =
-                         maybe PLNone (Pos . read) $ lookup "song" xs,
-                     stSongID = maybe PLNone (ID . read) $ lookup "songid" xs,
+                     stSongPos = takeIndex Pos "song" xs,
+                     stSongID = takeIndex ID "songid" xs,
                      stTime = maybe (0,0) parseTime $ lookup "time" xs,
                      stBitrate = takeNum "bitrate" xs,
                      stAudio = maybe (0,0,0) parseAudio $ lookup "audio" xs,
@@ -611,7 +607,7 @@ toggle conn = do
     st <- status conn
     case stState st of
          Playing -> pause conn True
-         _       -> play conn PLNone
+         _       -> play conn Nothing
 
 -- | Add a list of songs\/folders to a playlist.
 -- Should be more efficient than running 'add' many times.
@@ -633,25 +629,24 @@ deleteMany conn (Just plname) xs = getResponses conn (map cmd xs) >> return ()
 deleteMany conn Nothing xs = getResponses conn (map cmd xs) >> return ()
     where cmd (Pos x) = "delete " ++ show x
           cmd (ID x)  = "deleteid " ++ show x
-          cmd _       = ""
 
 -- | Crop playlist.
 -- The bounds are inclusive.
--- If 'PLNone' or an invalid 'ID' is passed the cropping will leave your
--- playlist alone on that side.
-crop :: Connection -> PLIndex -> PLIndex -> IO ()
+-- If 'Nothing' or 'ID' is passed the cropping will leave your playlist alone
+-- on that side.
+crop :: Connection -> Maybe PLIndex -> Maybe PLIndex -> IO ()
 crop conn x y = do
-    pl <- playlistinfo conn PLNone
-    let x' = case x of Pos p -> fromInteger p
-                       ID i  -> maybe 0 id (findByID i pl)
-                       _     -> 0
+    pl <- playlistinfo conn Nothing
+    let x' = case x of Just (Pos p) -> fromInteger p
+                       Just (ID i)  -> maybe 0 id (findByID i pl)
+                       Nothing      -> 0
         -- ensure that no songs are deleted twice with 'max'.
-        ys = case y of Pos p -> drop (max (fromInteger p) x') pl
-                       ID i  -> maybe [] (flip drop pl . max x' . (+1))
+        ys = case y of Just (Pos p) -> drop (max (fromInteger p) x') pl
+                       Just (ID i)  -> maybe [] (flip drop pl . max x' . (+1))
                                       (findByID i pl)
-                       _     -> []
-    deleteMany conn Nothing (map sgIndex (take x' pl ++ ys))
-    where findByID i = findIndex ((==) i . (\(ID j) -> j) . sgIndex)
+                       Nothing      -> []
+    deleteMany conn Nothing (mapMaybe sgIndex (take x' pl ++ ys))
+    where findByID i = findIndex ((==) i . (\(ID j) -> j) . fromJust . sgIndex)
 
 -- | Remove duplicate playlist entries.
 prune :: Connection -> IO ()
@@ -660,8 +655,8 @@ prune conn = findDuplicates conn >>= deleteMany conn Nothing
 -- Find duplicate playlist entries.
 findDuplicates :: Connection -> IO [PLIndex]
 findDuplicates =
-    liftM (map ((\(ID x) -> ID x) . sgIndex) . flip dups ([],[])) .
-        flip playlistinfo PLNone
+    liftM (map ((\(ID x) -> ID x) . fromJust . sgIndex) . flip dups ([],[])) .
+        flip playlistinfo Nothing
     where dups [] (_, dup) = dup
           dups (x:xs) (ys, dup)
             | x `elem` xs && x `notElem` ys = dups xs (ys, x:dup)
@@ -725,9 +720,9 @@ searchTitle :: Connection -> Title -> IO [Song]
 searchTitle c = search c . Query Title
 
 -- | Retrieve the current playlist.
--- Equivalent to 'playlistinfo PLNone'.
+-- Equivalent to 'playlistinfo Nothing'.
 getPlaylist :: Connection -> IO [Song]
-getPlaylist = flip playlistinfo PLNone
+getPlaylist = flip playlistinfo Nothing
 
 --
 -- Miscellaneous functions.
@@ -806,14 +801,19 @@ takeSongInfo xs =
           sgDisc      = maybe (0, 0) parseTrack $ lookup "Disc" xs,
           sgFilePath  = takeString "file" xs,
           sgLength    = takeNum "Time" xs,
-          sgIndex     = maybe PLNone (ID . read) $ lookup "Id" xs
+          sgIndex     = takeIndex ID "Id" xs
          }
     where parseTrack x = let (trck, tot) = break (== '/') x
                          in (read trck, parseNum (drop 1 tot))
 
+
 -- Helpers for retrieving values from an assoc. list.
 takeString :: String -> [(String, String)] -> String
 takeString v = fromMaybe "" . lookup v
+
+takeIndex :: (Integer -> PLIndex) -> String -> [(String, String)]
+          -> Maybe PLIndex
+takeIndex c v = maybe Nothing (Just . c . parseNum) . lookup v
 
 takeNum :: (Read a, Num a) => String -> [(String, String)] -> a
 takeNum v = maybe 0 parseNum . lookup v
