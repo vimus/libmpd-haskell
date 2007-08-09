@@ -63,7 +63,7 @@ module MPD (
             addMany, deleteMany, crop, prune, lsdirs, lsfiles, lsplaylists,
             findArtist, findAlbum, findTitle, listArtists, listAlbums,
             listAlbum, searchArtist, searchAlbum, searchTitle, getPlaylist,
-            toggle
+            toggle, updateid
            ) where
 
 import Control.Exception (bracket)
@@ -610,6 +610,14 @@ status = liftM (parseStatus . kvise) . flip getResponse "status"
 --
 -- Extensions\/shortcuts.
 --
+
+-- | Like 'update', but returns the update job id.
+updateid :: Connection -> [String] -> IO Integer
+updateid conn paths = liftM (read . head . takeValues) cmd
+  where cmd = case paths of
+                []  -> getResponse conn "update"
+                [x] -> getResponse conn ("update " ++ x)
+                xs  -> getResponses conn (map ("update " ++) xs)
 
 -- | Toggles play\/pause. Plays if stopped.
 toggle :: Connection -> IO ()
