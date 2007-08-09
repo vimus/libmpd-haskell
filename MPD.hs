@@ -36,7 +36,7 @@ module MPD (
             Song(..), Count(..),
 
             -- * Connections
-            withMPD, connect,
+            withMPD, connect, connectAuth,
 
             -- * Admin commands
             disableoutput, enableoutput, kill, outputs, update,
