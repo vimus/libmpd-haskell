@@ -259,7 +259,8 @@ outputs conn = liftM (map takeDevInfo . splitGroups . kvise)
             }
 
 -- | Update the server's database.
-update :: Connection -> [String] -> IO ()
+update :: Connection -> [String] -- ^ Optionally specify a list of paths
+       -> IO ()
 update conn  [] = getResponse_ conn "update"
 update conn [x] = getResponse_ conn ("update " ++ x)
 update conn  xs = getResponses conn (map ("update " ++) xs) >> return ()
