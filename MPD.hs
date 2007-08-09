@@ -227,7 +227,7 @@ connectAuth host port getpw = do
   (Conn (h,_)) <- connect host port
   return (Conn (h,getpw))
 
--- | Check that an MPD daemon is at the other end of a connection.
+-- Check that a MPD daemon is at the other end of a connection.
 checkConn :: Connection -> IO Bool
 checkConn (Conn (h,_)) = liftM (isPrefixOf "OK MPD") (hGetLine h)
 
@@ -738,11 +738,11 @@ getPlaylist = flip playlistinfo Nothing
 -- Miscellaneous functions.
 --
 
--- | Run getResponse but discard the response.
+-- Run getResponse but discard the response.
 getResponse_ :: Connection -> String -> IO ()
 getResponse_ c x = getResponse c x >> return ()
 
--- | Get the lines of the daemon's response to a given command.
+-- Get the lines of the daemon's response to a given command.
 getResponse :: Connection -> String -> IO [String]
 getResponse conn@(Conn (h, getpw)) cmd = hPutStrLn h cmd >> hFlush h >> f []
     where f acc = hGetLine h >>= procline acc
@@ -758,22 +758,22 @@ getResponse conn@(Conn (h, getpw)) cmd = hPutStrLn h cmd >> hFlush h >> f []
             case result of "OK" -> getResponse conn cmd
                            _    -> tryPassword
 
--- | Get the lines of the daemon's response to a list of commands.
+-- Get the lines of the daemon's response to a list of commands.
 getResponses :: Connection -> [String] -> IO [String]
 getResponses conn cmds = getResponse conn .
     unlines $ "command_list_begin" : cmds ++ ["command_list_end"]
 
--- | Break up a list of strings into an assoc. list, separating at
+-- Break up a list of strings into an assoc. list, separating at
 -- the first ':'.
 kvise :: [String] -> [(String, String)]
 kvise = map f
     where f x = let (k,v) = break (== ':') x in
                 (k,dropWhile (== ' ') $ drop 1 v)
 
--- | Takes an assoc. list with recurring keys, and groups each cycle of
---   keys with their values together. The first key of each cycle needs
---   to be present in every cycle for it to work, but the rest don't
---   affect anything.
+-- Takes an assoc. list with recurring keys, and groups each cycle of
+-- keys with their values together. The first key of each cycle needs
+-- to be present in every cycle for it to work, but the rest don't
+-- affect anything.
 --
 -- > splitGroups [(1,'a'),(2,'b'),(1,'c'),(2,'d')] ==
 -- >     [[(1,'a'),(2,'b')],[(1,'c'),(2,'d')]]
@@ -782,11 +782,11 @@ splitGroups [] = []
 splitGroups (x:xs) = ((x:us):splitGroups vs)
     where (us,vs) = break (\y -> fst x == fst y) xs
 
--- | Run 'kvise' and return only the values.
+-- Run 'kvise' and return only the values.
 takeValues :: [String] -> [String]
 takeValues = snd . unzip . kvise
 
--- | Separate the result of an lsinfo\/listallinfo call into directories,
+-- Separate the result of an lsinfo\/listallinfo call into directories,
 -- playlists, and songs.
 takeEntries :: [String] -> ([String], [String], [Song])
 takeEntries s =
@@ -796,11 +796,11 @@ takeEntries s =
                                        | k == "playlist"  = (ds, v:pls, ss)
                                        | otherwise        = (ds, pls, x:ss)
 
--- | Build a list of song instances from a response.
+-- Build a list of song instances from a response.
 takeSongs :: [String] -> [Song]
 takeSongs = map takeSongInfo . splitGroups . kvise
 
--- |  Builds a song instance from an assoc. list.
+-- Builds a song instance from an assoc. list.
 takeSongInfo :: [(String,String)] -> Song
 takeSongInfo xs =
     Song {
