@@ -116,7 +116,8 @@ instance Show Query where
 
 -- | Represents a song's playlist index.
 data PLIndex = Pos Integer  -- ^ A playlist position index (starting from 0).
-             | ID Integer   -- ^ A playlist ID number.
+             | ID Integer   -- ^ A playlist ID number that more robustly
+                            --   identifies a song.
                deriving Show
 
 -- | Represents the different playback states.
@@ -137,15 +138,13 @@ data Status =
              stPlaylistLength    :: Integer,
              -- | Current song's position in the playlist.
              stSongPos           :: Maybe PLIndex,
-             -- | Each song in the playlist has an identifier to more
-             --   robustly identify it.
+             -- | Current song's playlist id.
              stSongID            :: Maybe PLIndex,
-             -- | (Seconds played, song length in seconds).
+             -- | (time elapsed, total time)
              stTime              :: (Seconds,Seconds),
              -- | Bitrate of playing song in kilobytes per second.
              stBitrate           :: Int,
-             -- | MPD can fade between tracks. This is the time it takes to
-             --   do so.
+             -- | Crossfade time.
              stXFadeWidth        :: Seconds,
              -- | (samplerate, bits, channels)
              stAudio             :: (Int,Int,Int),
@@ -162,16 +161,17 @@ data Stats =
           , stsSongs      :: Integer -- ^ Number of songs.
           , stsUptime     :: Seconds -- ^ Daemon uptime in seconds.
           , stsPlaytime   :: Seconds -- ^ Time length of music played.
-          , stsDbPlaytime :: Seconds -- ^ Sum of all song times in db.
-          , stsDbUpdate   :: Integer -- ^ Last db update in UNIX time.
+          , stsDbPlaytime :: Seconds -- ^ Total play time of all the songs in
+                                     --   the database.
+          , stsDbUpdate   :: Integer -- ^ Last database update in UNIX time.
           }
     deriving Show
 
 -- | Description of a song.
 data Song = Song { sgArtist, sgAlbum, sgTitle, sgFilePath, sgGenre, sgName
                   ,sgComposer, sgPerformer :: String
-                  ,sgLength :: Seconds    -- ^ length in seconds
-                  ,sgDate   :: Int        -- ^ year
+                  ,sgLength :: Seconds    -- ^ Length in seconds
+                  ,sgDate   :: Int        -- ^ Year
                   ,sgTrack  :: (Int, Int) -- ^ (track number, total tracks)
                   ,sgDisc   :: (Int, Int) -- ^ (pos. in set, total in set)
                   ,sgIndex  :: Maybe PLIndex }
@@ -194,7 +194,7 @@ data Count = Count { cSongs    :: Integer -- ^ Number of songs that matches
 data Device =
     Device { dOutputID      :: Int    -- ^ Output's id number
            , dOutputName    :: String -- ^ Output's name as defined in the MPD
-                                      -- configuration file
+                                      --   configuration file
            , dOutputEnabled :: Bool }
     deriving Show
 
@@ -763,14 +763,14 @@ getResponses :: Connection -> [String] -> IO [String]
 getResponses conn cmds = getResponse conn .
     unlines $ "command_list_begin" : cmds ++ ["command_list_end"]
 
--- | Break up a list of strings into an assoc list, separating at
+-- | Break up a list of strings into an assoc. list, separating at
 -- the first ':'.
 kvise :: [String] -> [(String, String)]
 kvise = map f
     where f x = let (k,v) = break (== ':') x in
                 (k,dropWhile (== ' ') $ drop 1 v)
 
--- | Takes a assoc list with recurring keys, and groups each cycle of
+-- | Takes an assoc. list with recurring keys, and groups each cycle of
 --   keys with their values together. The first key of each cycle needs
 --   to be present in every cycle for it to work, but the rest don't
 --   affect anything.
@@ -797,11 +797,10 @@ takeEntries s =
                                        | otherwise        = (ds, pls, x:ss)
 
 -- | Build a list of song instances from a response.
--- Returns an empty list if input is empty.
 takeSongs :: [String] -> [Song]
 takeSongs = map takeSongInfo . splitGroups . kvise
 
--- |  Builds a song instance from an assoc list.
+-- |  Builds a song instance from an assoc. list.
 takeSongInfo :: [(String,String)] -> Song
 takeSongInfo xs =
     Song {
