@@ -212,21 +212,19 @@ withMPD host port = bracket (connect host port) close
 connect :: String   -- ^ Hostname.
         -> Integer  -- ^ Port number.
         -> IO Connection
-connect host port = withSocketsDo $ do
-    handle <- connectTo host . PortNumber $ fromInteger port
-    conn <- return $ Conn (handle, return Nothing)
-    mpd <- checkConn conn
-    if mpd then return conn
-           else close conn >> fail ("no MPD at " ++ host ++ ":" ++ show port)
+connect = flip (flip . connectAuth) $ return Nothing
 
 -- | Create an MPD connection that can supply passwords when needed.
 connectAuth :: String            -- ^ Hostname.
             -> Integer           -- ^ Port number.
             -> IO (Maybe String) -- ^ An action to supply a password.
             -> IO Connection
-connectAuth host port getpw = do
-  (Conn (h,_)) <- connect host port
-  return (Conn (h,getpw))
+connectAuth host port getpw = withSocketsDo $ do
+    handle <- connectTo host . PortNumber $ fromInteger port
+    conn   <- return $ Conn (handle, getpw)
+    mpd    <- checkConn conn
+    if mpd then return conn
+           else close conn >> fail ("no MPD at " ++ host ++ ":" ++ show port)
 
 -- Check that a MPD daemon is at the other end of a connection.
 checkConn :: Connection -> IO Bool
