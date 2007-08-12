@@ -69,6 +69,7 @@ module MPD (
 import Control.Exception (bracket)
 import Control.Monad (liftM, unless)
 import Prelude hiding (repeat)
+import Data.IORef (IORef, newIORef, atomicModifyIORef)
 import Data.List (isPrefixOf, findIndex)
 import Data.Maybe
 import Network
@@ -742,6 +743,11 @@ searchTitle c = search c . Query Title
 -- Equivalent to 'playlistinfo Nothing'.
 getPlaylist :: Connection -> IO [Song]
 getPlaylist = flip playlistinfo Nothing
+
+-- | Create an action that produces passwords for a connection.
+mkPasswordGen :: [String] -> IO (IO (Maybe String))
+mkPasswordGen = liftM f . newIORef
+    where f = flip atomicModifyIORef $ \xs -> (drop 1 xs, listToMaybe xs)
 
 --
 -- Miscellaneous functions.
