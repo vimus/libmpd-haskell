@@ -63,7 +63,7 @@ module MPD (
             addMany, deleteMany, crop, prune, lsdirs, lsfiles, lsplaylists,
             findArtist, findAlbum, findTitle, listArtists, listAlbums,
             listAlbum, searchArtist, searchAlbum, searchTitle, getPlaylist,
-            toggle, updateid
+            toggle, updateid, mkPasswordGen
            ) where
 
 import Control.Exception (bracket)
