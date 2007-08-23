@@ -25,8 +25,8 @@ Initialisation:
     Provide a running MPD's hostname and port to MPD.connect.
 
 Limitations:
-    Very little actual functionality is working yet, but the interface
-    is mostly there to see and link to.
+    Most of the API is complete, but some parts, most notably parsing, is
+    not yet as good as it could be.
 
 Platforms:
     libmpd-haskell has been confirmed to work on:
