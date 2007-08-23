@@ -28,7 +28,7 @@
 
 module MPD (
             -- * Data types
-            Connection,
+            MPD, ACK(..),
             State(..), Status(..), Stats(..),
             Device(..),
             Query(..), Meta(..),
@@ -36,7 +36,7 @@ module MPD (
             Song(..), Count(..),
 
             -- * Connections
-            withMPD, connect, connectAuth,
+            withMPD, withMPD_,
 
             -- * Admin commands
             disableoutput, enableoutput, kill, outputs, update,
@@ -63,24 +63,22 @@ module MPD (
             addMany, deleteMany, crop, prune, lsdirs, lsfiles, lsplaylists,
             findArtist, findAlbum, findTitle, listArtists, listAlbums,
             listAlbum, searchArtist, searchAlbum, searchTitle, getPlaylist,
-            toggle, updateid, mkPasswordGen
+            toggle, updateid, mkPasswordGen, catchMPD
+
            ) where
 
-import Control.Exception (bracket)
 import Control.Monad (liftM, unless)
 import Prelude hiding (repeat)
-import Data.IORef (IORef, newIORef, atomicModifyIORef)
-import Data.List (isPrefixOf, findIndex)
+import Data.IORef (newIORef, atomicModifyIORef)
+import Data.List (findIndex)
 import Data.Maybe
-import Network
 import System.IO
+
+import Prim
 
 --
 -- Data Types
 --
-
--- | A connection to an MPD server.
-newtype Connection = Conn (Handle, IO (Maybe String))
 
 type Artist  = String
 type Album   = String
@@ -199,57 +197,23 @@ data Device =
            , dOutputEnabled :: Bool }
     deriving Show
 
---
--- Basic connection functions
---
-
--- | Open a connection to a MPD and perform some action on it in a safe
--- manner.
-withMPD :: String -> Integer -> (Connection -> IO a) -> IO a
-withMPD host port = bracket (connect host port) close
-
--- | Create an MPD connection.
-connect :: String   -- ^ Hostname.
-        -> Integer  -- ^ Port number.
-        -> IO Connection
-connect = flip (flip . connectAuth) $ return Nothing
-
--- | Create an MPD connection that can supply passwords when needed.
-connectAuth :: String            -- ^ Hostname.
-            -> Integer           -- ^ Port number.
-            -> IO (Maybe String) -- ^ An action to supply a password.
-            -> IO Connection
-connectAuth host port getpw = withSocketsDo $ do
-    handle <- connectTo host . PortNumber $ fromInteger port
-    conn   <- return $ Conn (handle, getpw)
-    mpd    <- checkConn conn
-    if mpd then return conn
-           else close conn >> fail ("no MPD at " ++ host ++ ":" ++ show port)
-
--- Check that a MPD daemon is at the other end of a connection.
-checkConn :: Connection -> IO Bool
-checkConn (Conn (h,_)) = liftM (isPrefixOf "OK MPD") (hGetLine h)
 
 --
 -- Admin commands
 --
 
 -- | Turn off an output device.
-disableoutput :: Connection -> Int -> IO ()
-disableoutput conn = getResponse_ conn . ("disableoutput " ++) . show
+disableoutput :: Int -> MPD ()
+disableoutput = getResponse_ . ("disableoutput " ++) . show
 
 -- | Turn on an output device.
-enableoutput :: Connection -> Int -> IO ()
-enableoutput conn = getResponse_ conn . ("enableoutput " ++) . show
-
--- | Kill the server. Obviously, the connection is then invalid.
-kill :: Connection -> IO ()
-kill (Conn (h,_)) = hPutStrLn h "kill" >> hClose h
+enableoutput :: Int -> MPD ()
+enableoutput = getResponse_ . ("enableoutput " ++) . show
 
 -- | Retrieve information for all output devices.
-outputs :: Connection -> IO [Device]
-outputs conn = liftM (map takeDevInfo . splitGroups . kvise)
-    (getResponse conn "outputs")
+outputs :: MPD [Device]
+outputs = liftM (map takeDevInfo . splitGroups . kvise)
+    (getResponse "outputs")
     where
         takeDevInfo xs = Device {
             dOutputID      = takeNum "outputid" xs,
@@ -258,55 +222,55 @@ outputs conn = liftM (map takeDevInfo . splitGroups . kvise)
             }
 
 -- | Update the server's database.
-update :: Connection -> [String] -- ^ Optionally specify a list of paths
-       -> IO ()
-update conn  [] = getResponse_ conn "update"
-update conn [x] = getResponse_ conn ("update " ++ x)
-update conn  xs = getResponses conn (map ("update " ++) xs) >> return ()
+update :: [String] -- ^ Optionally specify a list of paths
+       -> MPD ()
+update  [] = getResponse_ "update"
+update [x] = getResponse_ ("update " ++ x)
+update  xs = getResponses (map ("update " ++) xs) >> return ()
 
 --
 -- Database commands
 --
 
 -- | List all metadata of metadata (sic).
-list :: Connection -> Meta -- ^ Metadata to list
-     -> Maybe Query -> IO [String]
-list conn mtype query = liftM takeValues (getResponse conn cmd)
+list :: Meta -- ^ Metadata to list
+     -> Maybe Query -> MPD [String]
+list mtype query = liftM takeValues (getResponse cmd)
     where cmd = "list " ++ show mtype ++ maybe "" ((" "++) . show) query
 
 -- | Non-recursively list the contents of a database directory.
-lsinfo :: Connection -> Maybe String -- ^ Optionally specify a path.
-       -> IO [Either String Song]
-lsinfo conn path = do
+lsinfo :: Maybe String -- ^ Optionally specify a path.
+       -> MPD [Either String Song]
+lsinfo path = do
     (dirs,_,songs) <- liftM takeEntries
-                      (getResponse conn ("lsinfo " ++ maybe "" show path))
+                      (getResponse ("lsinfo " ++ maybe "" show path))
     return (map Left dirs ++ map Right songs)
 
 -- | List the songs (without metadata) in a database directory recursively.
-listAll :: Connection -> Maybe String -> IO [String]
-listAll conn path = liftM (map snd . filter ((== "file") . fst) . kvise)
-                          (getResponse conn ("listall " ++ maybe "" show path))
+listAll :: Maybe String -> MPD [String]
+listAll path = liftM (map snd . filter ((== "file") . fst) . kvise)
+                     (getResponse ("listall " ++ maybe "" show path))
 
 -- | Recursive 'lsinfo'.
-listAllinfo :: Connection -> Maybe String -- ^ Optionally specify a path
-            -> IO [Either String Song]
-listAllinfo conn path = do
+listAllinfo :: Maybe String -- ^ Optionally specify a path
+            -> MPD [Either String Song]
+listAllinfo path = do
     (dirs,_,songs) <- liftM takeEntries
-                      (getResponse conn ("listallinfo " ++ maybe "" show path))
+                      (getResponse ("listallinfo " ++ maybe "" show path))
     return (map Left dirs ++ map Right songs)
 
 -- | Search the database for entries exactly matching a query.
-find :: Connection -> Query -> IO [Song]
-find conn query = liftM takeSongs (getResponse conn ("find " ++ show query))
+find :: Query -> MPD [Song]
+find query = liftM takeSongs (getResponse ("find " ++ show query))
 
 -- | Search the database using case insensitive matching.
-search :: Connection -> Query -> IO [Song]
-search conn query = liftM takeSongs (getResponse conn ("search " ++ show query))
+search :: Query -> MPD [Song]
+search query = liftM takeSongs (getResponse ("search " ++ show query))
 
 -- | Count the number of entries matching a query.
-count :: Connection -> Query -> IO Count
-count conn query = liftM (takeCountInfo . kvise)
-    (getResponse conn ("count " ++ show query))
+count :: Query -> MPD Count
+count query = liftM (takeCountInfo . kvise)
+                    (getResponse ("count " ++ show query))
     where takeCountInfo xs = Count { cSongs    = takeNum "songs" xs,
                                      cPlaytime = takeNum "playtime" xs }
 
@@ -318,154 +282,145 @@ count conn query = liftM (takeCountInfo . kvise)
 -- playlist.
 
 -- | Like 'add', but returns a playlist id.
-addid :: Connection -> String -> IO Integer
-addid conn x =
-    liftM (read . snd . head . kvise) (getResponse conn ("addid " ++ show x))
+addid :: String -> MPD Integer
+addid x =
+    liftM (read . snd . head . kvise) (getResponse ("addid " ++ show x))
 
 -- | Like 'add_' but returns a list of the files added.
-add :: Connection -> Maybe String -> String -> IO [String]
-add conn plname x = add_ conn plname x >> listAll conn (Just x)
+add :: Maybe String -> String -> MPD [String]
+add plname x = add_ plname x >> listAll (Just x)
 
 -- | Add a song (or a whole directory) to a playlist.
 -- Adds to current if no playlist is specified.
 -- Will create a new playlist if the one specified does not already exist.
-add_ :: Connection
-     -> Maybe String -- ^ Optionally specify a playlist to operate on
-     -> String
-     -> IO ()
-add_ conn Nothing       = getResponse_ conn . ("add " ++) . show
-add_ conn (Just plname) = getResponse_ conn .
-                          (("playlistadd " ++ show plname ++ " ") ++) . show
+add_ :: Maybe String -- ^ Optionally specify a playlist to operate on
+     -> String -> MPD ()
+add_ Nothing       = getResponse_ . ("add " ++) . show
+add_ (Just plname) = getResponse_ .
+                     (("playlistadd " ++ show plname ++ " ") ++) . show
 
 -- | Clear a playlist. Clears current playlist if no playlist is specified.
 -- If the specified playlist does not exist, it will be created.
-clear :: Connection
-      -> Maybe String -- ^ Optional name of a playlist to clear.
-      -> IO ()
-clear conn Nothing       = getResponse_ conn "clear"
-clear conn (Just plname) = getResponse_ conn ("playlistclear " ++ show plname)
+clear :: Maybe String -- ^ Optional name of a playlist to clear.
+      -> MPD ()
+clear Nothing       = getResponse_ "clear"
+clear (Just plname) = getResponse_ ("playlistclear " ++ show plname)
 
 -- | Remove a song from a playlist.
 -- If no playlist is specified, current playlist is used.
 -- Note that a playlist position ('Pos') is required when operating on
 -- playlists other than the current.
-delete :: Connection
-       -> Maybe String -- ^ Optionally specify a playlist to operate on
-       -> PLIndex -> IO ()
-delete conn Nothing (Pos x) = getResponse_ conn ("delete " ++ show x)
-delete conn Nothing (ID x) = getResponse_ conn ("deleteid " ++ show x)
-delete conn (Just plname) (Pos x) =
-    getResponse_ conn ("playlistdelete " ++ show plname ++ " " ++ show x)
-delete _ _ _ = return ()
+delete :: Maybe String -- ^ Optionally specify a playlist to operate on
+       -> PLIndex -> MPD ()
+delete Nothing (Pos x) = getResponse_ ("delete " ++ show x)
+delete Nothing (ID x) = getResponse_ ("deleteid " ++ show x)
+delete (Just plname) (Pos x) =
+    getResponse_ ("playlistdelete " ++ show plname ++ " " ++ show x)
+delete _ _ = return ()
 
 -- | Load an existing playlist.
-load :: Connection -> String -> IO ()
-load conn = getResponse_ conn . ("load " ++) . show
+load :: String -> MPD ()
+load = getResponse_ . ("load " ++) . show
 
 -- | Move a song to a given position.
 -- Note that a playlist position ('Pos') is required when operating on
 -- playlists other than the current.
-move :: Connection
-     -> Maybe String -- ^ Optionally specify a playlist to operate on
-     -> PLIndex -> Integer -> IO ()
-move conn Nothing (Pos from) to =
-    getResponse_ conn ("move " ++ show from ++ " " ++ show to)
-move conn Nothing (ID from) to =
-    getResponse_ conn ("moveid " ++ show from ++ " " ++ show to)
-move conn (Just plname) (Pos from) to =
-    getResponse_ conn ("playlistmove " ++ show plname ++ " " ++ show from ++
+move :: Maybe String -- ^ Optionally specify a playlist to operate on
+     -> PLIndex -> Integer -> MPD ()
+move Nothing (Pos from) to =
+    getResponse_ ("move " ++ show from ++ " " ++ show to)
+move Nothing (ID from) to =
+    getResponse_ ("moveid " ++ show from ++ " " ++ show to)
+move (Just plname) (Pos from) to =
+    getResponse_ ("playlistmove " ++ show plname ++ " " ++ show from ++
                        " " ++ show to)
-move _ _ _ _ = return ()
+move _ _ _ = return ()
 
 -- | Delete existing playlist.
-rm :: Connection -> String -> IO ()
-rm conn = getResponse_ conn . ("rm " ++) . show
+rm :: String -> MPD ()
+rm = getResponse_ . ("rm " ++) . show
 
 -- | Rename an existing playlist.
-rename :: Connection
-       -> String -- ^ Name of playlist to be renamed
+rename :: String -- ^ Name of playlist to be renamed
        -> String -- ^ New playlist name
-       -> IO ()
-rename conn plname new =
-    getResponse_ conn ("rename " ++ show plname ++ " " ++ show new)
+       -> MPD ()
+rename plname new =
+    getResponse_ ("rename " ++ show plname ++ " " ++ show new)
 
 -- | Save the current playlist.
-save :: Connection -> String -> IO ()
-save conn = getResponse_ conn . ("save " ++) . show
+save :: String -> MPD ()
+save = getResponse_ . ("save " ++) . show
 
 -- | Swap the positions of two songs.
 -- Note that the positions must be of the same type, i.e. mixing 'Pos' and 'ID'
 -- will result in a no-op.
-swap :: Connection -> PLIndex -> PLIndex -> IO ()
-swap conn (Pos x) (Pos y) =
-    getResponse_ conn ("swap " ++ show x ++ " " ++ show y)
-swap conn (ID x) (ID y) =
-    getResponse_ conn ("swapid " ++ show x ++ " " ++ show y)
-swap _ _ _ = return ()
+swap :: PLIndex -> PLIndex -> MPD ()
+swap (Pos x) (Pos y) = getResponse_ ("swap "   ++ show x ++ " " ++ show y)
+swap (ID x)  (ID y)  = getResponse_ ("swapid " ++ show x ++ " " ++ show y)
+swap _ _ = return ()
 
 -- | Shuffle the playlist.
-shuffle :: Connection -> IO ()
-shuffle = flip getResponse_ "shuffle"
+shuffle :: MPD ()
+shuffle = getResponse_ "shuffle"
 
 -- | Retrieve metadata for songs in the current playlist.
-playlistinfo :: Connection
-            -> Maybe PLIndex   -- ^ Optional playlist index.
-            -> IO [Song]
-playlistinfo conn x = liftM takeSongs (getResponse conn cmd)
+playlistinfo :: Maybe PLIndex   -- ^ Optional playlist index.
+             -> MPD [Song]
+playlistinfo x = liftM takeSongs (getResponse cmd)
     where cmd = case x of
                     Just (Pos x') -> "playlistinfo " ++ show x'
                     Just (ID x')  -> "playlistid " ++ show x'
                     Nothing       -> "playlistinfo"
 
 -- | Retrieve metadata for files in a given playlist.
-listplaylistinfo :: Connection -> String -> IO [Song]
-listplaylistinfo conn = liftM takeSongs . getResponse conn .
+listplaylistinfo :: String -> MPD [Song]
+listplaylistinfo = liftM takeSongs . getResponse .
     ("listplaylistinfo " ++) . show
 
 -- | Retrieve a list of files in a given playlist.
-listplaylist :: Connection -> String -> IO [String]
-listplaylist conn = liftM takeValues . getResponse conn .
+listplaylist :: String -> MPD [String]
+listplaylist = liftM takeValues . getResponse .
     ("listplaylist " ++) . show
 
 -- | Retrieve file paths and positions of songs in the current playlist.
 -- Note that this command is only included for completeness sake; it's
 -- deprecated and likely to disappear at any time.
-playlist :: Connection -> IO [(PLIndex, String)]
-playlist = liftM (map f) . flip getResponse "playlist"
+playlist :: MPD [(PLIndex, String)]
+playlist = liftM (map f) (getResponse "playlist")
     -- meh, the response here deviates from just about all other commands
     where f s = let (pos, name) = break (== ':') s
                 in (Pos $ read pos, drop 1 name)
 
 -- | Retrieve a list of changed songs currently in the playlist since
 -- a given playlist version.
-plchanges :: Connection -> Integer -> IO [Song]
-plchanges conn = liftM takeSongs . getResponse conn . ("plchanges " ++) . show
+plchanges :: Integer -> MPD [Song]
+plchanges = liftM takeSongs . getResponse . ("plchanges " ++) . show
 
 -- | Like 'plchanges' but only returns positions and ids.
-plchangesposid :: Connection -> Integer -> IO [(PLIndex, PLIndex)]
-plchangesposid conn plver =
-    liftM (map takePosid . splitGroups . kvise) (getResponse conn cmd)
+plchangesposid :: Integer -> MPD [(PLIndex, PLIndex)]
+plchangesposid plver =
+    liftM (map takePosid . splitGroups . kvise) (getResponse cmd)
     where cmd          = "plchangesposid " ++ show plver
           takePosid xs = (Pos $ takeNum "cpos" xs, ID $ takeNum "Id" xs)
 
 -- | Search for songs in the current playlist with strict matching.
-playlistfind :: Connection -> Query -> IO [Song]
-playlistfind conn query = liftM takeSongs
-    (getResponse conn ("playlistfind " ++ show query))
+playlistfind :: Query -> MPD [Song]
+playlistfind query = liftM takeSongs
+    (getResponse ("playlistfind " ++ show query))
 
 -- | Search case-insensitively with partial matches for songs in the
 -- current playlist.
-playlistsearch :: Connection -> Query -> IO [Song]
-playlistsearch conn query = liftM takeSongs
-    (getResponse conn ("playlistsearch " ++ show query))
+playlistsearch :: Query -> MPD [Song]
+playlistsearch query = liftM takeSongs
+    (getResponse ("playlistsearch " ++ show query))
 
 -- | Get the currently playing song.
-currentSong :: Connection -> IO (Maybe Song)
-currentSong conn = do
-    currStatus <- status conn
+currentSong :: MPD (Maybe Song)
+currentSong = do
+    currStatus <- status
     if stState currStatus == Stopped
         then return Nothing
-        else do ls <- liftM kvise (getResponse conn "currentsong")
+        else do ls <- liftM kvise (getResponse "currentsong")
                 return $ if null ls then Nothing
                                     else Just (takeSongInfo ls)
 
@@ -474,103 +429,95 @@ currentSong conn = do
 --
 
 -- | Set crossfading between songs.
-crossfade :: Connection -> Seconds -> IO ()
-crossfade conn = getResponse_ conn . ("crossfade " ++) . show
+crossfade :: Seconds -> MPD ()
+crossfade = getResponse_ . ("crossfade " ++) . show
 
 -- | Begin\/continue playing.
-play :: Connection -> Maybe PLIndex -> IO ()
-play conn Nothing        = getResponse_ conn "play"
-play conn (Just (Pos x)) = getResponse_ conn ("play " ++ show x)
-play conn (Just (ID x))  = getResponse_ conn ("playid " ++ show x)
+play :: Maybe PLIndex -> MPD ()
+play Nothing        = getResponse_ "play"
+play (Just (Pos x)) = getResponse_ ("play " ++ show x)
+play (Just (ID x))  = getResponse_ ("playid " ++ show x)
 
 -- | Pause playing.
-pause :: Connection -> Bool -> IO ()
-pause conn = getResponse_ conn . ("pause " ++) . showBool
+pause :: Bool -> MPD ()
+pause = getResponse_ . ("pause " ++) . showBool
 
 -- | Stop playing.
-stop :: Connection -> IO ()
-stop = flip getResponse_ "stop"
+stop :: MPD ()
+stop = getResponse_ "stop"
 
 -- | Play the next song.
-next :: Connection -> IO ()
-next = flip getResponse_ "next"
+next :: MPD ()
+next = getResponse_ "next"
 
 -- | Play the previous song.
-previous :: Connection -> IO ()
-previous = flip getResponse_ "previous"
+previous :: MPD ()
+previous = getResponse_ "previous"
 
 -- | Seek to some point in a song.
 -- Seeks in current song if no position is given.
-seek :: Connection -> Maybe PLIndex -> Seconds -> IO ()
-seek conn (Just (Pos x)) time =
-    getResponse_ conn ("seek " ++ show x ++ " " ++ show time)
-seek conn (Just (ID x)) time =
-    getResponse_ conn ("seekid " ++ show x ++ " " ++ show time)
-seek conn Nothing time = do
-    st <- status conn
-    unless (stState st == Stopped) (seek conn (stSongID st) time)
+seek :: Maybe PLIndex -> Seconds -> MPD ()
+seek (Just (Pos x)) time =
+    getResponse_ ("seek " ++ show x ++ " " ++ show time)
+seek (Just (ID x)) time =
+    getResponse_ ("seekid " ++ show x ++ " " ++ show time)
+seek Nothing time = do
+    st <- status
+    unless (stState st == Stopped) (seek (stSongID st) time)
 
 -- | Set random playing.
-random :: Connection -> Bool -> IO ()
-random conn = getResponse_ conn . ("random " ++) . showBool
+random :: Bool -> MPD ()
+random = getResponse_ . ("random " ++) . showBool
 
 -- | Set repeating.
-repeat :: Connection -> Bool -> IO ()
-repeat conn = getResponse_ conn . ("repeat " ++) . showBool
+repeat :: Bool -> MPD ()
+repeat = getResponse_ . ("repeat " ++) . showBool
 
 -- | Set the volume.
-setVolume :: Connection -> Int -> IO ()
-setVolume conn = getResponse_ conn . ("setvol " ++) . show
+setVolume :: Int -> MPD ()
+setVolume = getResponse_ . ("setvol " ++) . show
 
 -- | Increase or decrease volume by a given percent, e.g.
 -- 'volume 10' will increase the volume by 10 percent, while
 -- 'volume (-10)' will decrease it by the same amount.
 -- Note that this command is only included for completeness sake ; it's
 -- deprecated and may disappear at any time.
-volume :: Connection -> Int -> IO ()
-volume conn = getResponse_ conn . ("volume " ++) . show
+volume :: Int -> MPD ()
+volume = getResponse_ . ("volume " ++) . show
 
 --
 -- Miscellaneous commands
 --
 
--- | Clear the current error message in status.
-clearerror :: Connection -> IO ()
-clearerror (Conn (h,_)) = hPutStrLn h "clearerror" >> hClose h
-
--- | Close a MPD connection.
-close :: Connection -> IO ()
-close (Conn (h,_)) = hPutStrLn h "close" >> hClose h
-
 -- | Retrieve a list of available commands.
-commands :: Connection -> IO [String]
-commands = liftM takeValues . flip getResponse "commands"
+commands :: MPD [String]
+commands = liftM takeValues (getResponse "commands")
 
 -- | Retrieve a list of unavailable commands.
-notcommands :: Connection -> IO [String]
-notcommands = liftM takeValues . flip getResponse "notcommands"
+notcommands :: MPD [String]
+notcommands = liftM takeValues (getResponse "notcommands")
 
 -- | Retrieve a list of available song metadata.
-tagtypes :: Connection -> IO [String]
-tagtypes = liftM takeValues . flip getResponse "tagtypes"
+tagtypes :: MPD [String]
+tagtypes = liftM takeValues (getResponse "tagtypes")
 
 -- | Retrieve a list of supported urlhandlers.
-urlhandlers :: Connection -> IO [String]
-urlhandlers = liftM takeValues . flip getResponse "urlhandlers"
+urlhandlers :: MPD [String]
+urlhandlers = liftM takeValues (getResponse "urlhandlers")
 
 -- XXX should the password be quoted?
 -- | Send password to server to authenticate session.
 -- Password is sent as plain text.
-password :: Connection -> String -> IO ()
-password conn = getResponse_ conn . ("password " ++)
+password :: String -> MPD ()
+password = getResponse_ . ("password " ++)
 
 -- | Check that the server is still responding.
-ping :: Connection -> IO ()
-ping = flip getResponse_ "ping"
+ping :: MPD ()
+ping = getResponse_ "ping"
 
 -- | Get server statistics.
-stats :: Connection -> IO Stats
-stats = liftM (parseStats . kvise) . flip getResponse "stats"
+stats :: MPD Stats
+stats = liftM (parseStats . kvise) (getResponse "stats")
     where parseStats xs =
                 Stats { stsArtists = takeNum "artists" xs,
                         stsAlbums = takeNum "albums" xs,
@@ -581,8 +528,8 @@ stats = liftM (parseStats . kvise) . flip getResponse "stats"
                         stsDbUpdate = takeNum "db_update" xs }
 
 -- | Get the server's status.
-status :: Connection -> IO Status
-status = liftM (parseStatus . kvise) . flip getResponse "status"
+status :: MPD Status
+status = liftM (parseStatus . kvise) (getResponse "status")
     where parseStatus xs =
               Status { stState = maybe Stopped parseState $ lookup "state" xs,
                      stVolume = takeNum "volume" xs,
@@ -612,39 +559,39 @@ status = liftM (parseStatus . kvise) . flip getResponse "status"
 --
 
 -- | Like 'update', but returns the update job id.
-updateid :: Connection -> [String] -> IO Integer
-updateid conn paths = liftM (read . head . takeValues) cmd
+updateid :: [String] -> MPD Integer
+updateid paths = liftM (read . head . takeValues) cmd
   where cmd = case paths of
-                []  -> getResponse conn "update"
-                [x] -> getResponse conn ("update " ++ x)
-                xs  -> getResponses conn (map ("update " ++) xs)
+                []  -> getResponse "update"
+                [x] -> getResponse ("update " ++ x)
+                xs  -> getResponses (map ("update " ++) xs)
 
 -- | Toggles play\/pause. Plays if stopped.
-toggle :: Connection -> IO ()
-toggle conn = do
-    st <- status conn
+toggle :: MPD ()
+toggle = do
+    st <- status
     case stState st of
-         Playing -> pause conn True
-         _       -> play conn Nothing
+         Playing -> pause True
+         _       -> play Nothing
 
 -- | Add a list of songs\/folders to a playlist.
 -- Should be more efficient than running 'add' many times.
-addMany :: Connection -> Maybe String -> [String] -> IO ()
-addMany _ _ [] = return ()
-addMany conn plname [x] = add_ conn plname x
-addMany conn plname xs = getResponses conn (map (cmd ++) xs) >> return ()
+addMany :: Maybe String -> [String] -> MPD ()
+addMany _ [] = return ()
+addMany plname [x] = add_ plname x
+addMany plname xs = getResponses (map (cmd ++) xs) >> return ()
     where cmd = maybe ("add ") (\pl -> "playlistadd " ++ show pl ++ " ") plname
 
 -- | Delete a list of songs from a playlist.
 -- If there is a duplicate then no further songs will be deleted, so
 -- take care to avoid them.
-deleteMany :: Connection -> Maybe String -> [PLIndex] -> IO ()
-deleteMany _ _ [] = return ()
-deleteMany conn plname [x] = delete conn plname x
-deleteMany conn (Just plname) xs = getResponses conn (map cmd xs) >> return ()
+deleteMany :: Maybe String -> [PLIndex] -> MPD ()
+deleteMany _ [] = return ()
+deleteMany plname [x] = delete plname x
+deleteMany (Just plname) xs = getResponses (map cmd xs) >> return ()
     where cmd (Pos x) = "playlistdelete " ++ show plname ++ " " ++ show x
           cmd _       = ""
-deleteMany conn Nothing xs = getResponses conn (map cmd xs) >> return ()
+deleteMany Nothing xs = getResponses (map cmd xs) >> return ()
     where cmd (Pos x) = "delete " ++ show x
           cmd (ID x)  = "deleteid " ++ show x
 
@@ -652,9 +599,9 @@ deleteMany conn Nothing xs = getResponses conn (map cmd xs) >> return ()
 -- The bounds are inclusive.
 -- If 'Nothing' or 'ID' is passed the cropping will leave your playlist alone
 -- on that side.
-crop :: Connection -> Maybe PLIndex -> Maybe PLIndex -> IO ()
-crop conn x y = do
-    pl <- playlistinfo conn Nothing
+crop :: Maybe PLIndex -> Maybe PLIndex -> MPD ()
+crop x y = do
+    pl <- playlistinfo Nothing
     let x' = case x of Just (Pos p) -> fromInteger p
                        Just (ID i)  -> maybe 0 id (findByID i pl)
                        Nothing      -> 0
@@ -663,84 +610,82 @@ crop conn x y = do
                        Just (ID i)  -> maybe [] (flip drop pl . max x' . (+1))
                                       (findByID i pl)
                        Nothing      -> []
-    deleteMany conn Nothing (mapMaybe sgIndex (take x' pl ++ ys))
+    deleteMany Nothing (mapMaybe sgIndex (take x' pl ++ ys))
     where findByID i = findIndex ((==) i . (\(ID j) -> j) . fromJust . sgIndex)
 
 -- | Remove duplicate playlist entries.
-prune :: Connection -> IO ()
-prune conn = findDuplicates conn >>= deleteMany conn Nothing
+prune :: MPD ()
+prune = findDuplicates >>= deleteMany Nothing
 
 -- Find duplicate playlist entries.
-findDuplicates :: Connection -> IO [PLIndex]
+findDuplicates :: MPD [PLIndex]
 findDuplicates =
-    liftM (map ((\(ID x) -> ID x) . fromJust . sgIndex) . flip dups ([],[])) .
-        flip playlistinfo Nothing
+    liftM (map ((\(ID x) -> ID x) . fromJust . sgIndex) . flip dups ([],[])) $
+        playlistinfo Nothing
     where dups [] (_, dup) = dup
           dups (x:xs) (ys, dup)
             | x `elem` xs && x `notElem` ys = dups xs (ys, x:dup)
             | otherwise                     = dups xs (x:ys, dup)
 
 -- | List directories non-recursively.
-lsdirs :: Connection
-       -> Maybe String -- ^ optional path.
-       -> IO [String]
-lsdirs conn path = liftM ((\(x,_,_) -> x) . takeEntries)
-                         (getResponse conn ("lsinfo " ++ maybe "" show path))
+lsdirs :: Maybe String -- ^ optional path.
+       -> MPD [String]
+lsdirs path = liftM ((\(x,_,_) -> x) . takeEntries)
+                    (getResponse ("lsinfo " ++ maybe "" show path))
 
 -- | List files non-recursively.
-lsfiles :: Connection
-        -> Maybe String -- ^ optional path.
-        -> IO [String]
-lsfiles conn path = liftM (map sgFilePath . (\(_,_,x) -> x) . takeEntries)
-                          (getResponse conn ("lsinfo " ++ maybe "" show path))
+lsfiles :: Maybe String -- ^ optional path.
+        -> MPD [String]
+lsfiles path = liftM (map sgFilePath . (\(_,_,x) -> x) . takeEntries)
+                     (getResponse ("lsinfo " ++ maybe "" show path))
 
 -- | List all playlists.
-lsplaylists :: Connection -> IO [String]
-lsplaylists = liftM ((\(_,x,_) -> x) . takeEntries) . flip getResponse "lsinfo"
+lsplaylists :: MPD [String]
+lsplaylists = liftM ((\(_,x,_) -> x) . takeEntries) (getResponse "lsinfo")
 
 -- | Search the database for songs relating to an artist.
-findArtist :: Connection -> Artist -> IO [Song]
-findArtist c = find c . Query Artist
+findArtist :: Artist -> MPD [Song]
+findArtist = find . Query Artist
 
 -- | Search the database for songs relating to an album.
-findAlbum :: Connection -> Album -> IO [Song]
-findAlbum c = find c . Query Album
+findAlbum :: Album -> MPD [Song]
+findAlbum = find . Query Album
 
 -- | Search the database for songs relating to a song title.
-findTitle :: Connection -> Title -> IO [Song]
-findTitle c = find c . Query Title
+findTitle :: Title -> MPD [Song]
+findTitle = find . Query Title
 
 -- | List the artists in the database.
-listArtists :: Connection -> IO [Artist]
-listArtists = liftM takeValues . flip getResponse "list artist"
+listArtists :: MPD [Artist]
+listArtists = liftM takeValues (getResponse "list artist")
 
 -- | List the albums in the database, optionally matching a given
 -- artist.
-listAlbums :: Connection -> Maybe Artist -> IO [Album]
-listAlbums conn artist = liftM takeValues (getResponse conn ("list album" ++
+listAlbums :: Maybe Artist -> MPD [Album]
+listAlbums artist = liftM takeValues (getResponse ("list album" ++
     maybe "" ((" artist " ++) . show) artist))
 
 -- | List the songs in an album of some artist.
-listAlbum :: Connection -> Artist -> Album -> IO [Song]
-listAlbum conn artist album = find conn (MultiQuery [Query Artist artist
-                                                    ,Query Album album])
+listAlbum :: Artist -> Album -> MPD [Song]
+listAlbum artist album = find (MultiQuery [Query Artist artist
+                                          ,Query Album album])
 
 -- | Search the database for songs relating to an artist using 'search'.
-searchArtist :: Connection -> Artist -> IO [Song]
-searchArtist c = search c . Query Artist
+searchArtist :: Artist -> MPD [Song]
+searchArtist = search . Query Artist
 
 -- | Search the database for songs relating to an album using 'search'.
-searchAlbum :: Connection -> Album -> IO [Song]
-searchAlbum c = search c . Query Album
+searchAlbum :: Album -> MPD [Song]
+searchAlbum = search . Query Album
 
 -- | Search the database for songs relating to a song title.
-searchTitle :: Connection -> Title -> IO [Song]
-searchTitle c = search c . Query Title
+searchTitle :: Title -> MPD [Song]
+searchTitle = search . Query Title
 
 -- | Retrieve the current playlist.
 -- Equivalent to 'playlistinfo Nothing'.
-getPlaylist :: Connection -> IO [Song]
-getPlaylist = flip playlistinfo Nothing
+getPlaylist :: MPD [Song]
+getPlaylist = playlistinfo Nothing
 
 -- | Create an action that produces passwords for a connection.
 mkPasswordGen :: [String] -> IO (IO (Maybe String))
@@ -752,28 +697,12 @@ mkPasswordGen = liftM f . newIORef
 --
 
 -- Run getResponse but discard the response.
-getResponse_ :: Connection -> String -> IO ()
-getResponse_ c x = getResponse c x >> return ()
-
--- Get the lines of the daemon's response to a given command.
-getResponse :: Connection -> String -> IO [String]
-getResponse conn@(Conn (h, getpw)) cmd = hPutStrLn h cmd >> hFlush h >> f []
-    where f acc = hGetLine h >>= procline acc
-          procline acc l | l == "OK" = return (reverse acc)
-                         | "ACK [4@0]" `isPrefixOf` l = tryPassword
-                         | "ACK" `isPrefixOf` l = fail l
-                         | otherwise = f (l:acc)
-          tryPassword = do
-            pw' <- getpw
-            maybe (fail "Password needed")
-                  (\pw -> hPutStrLn h ("password " ++ pw) >> hFlush h) pw'
-            result <- hGetLine h
-            case result of "OK" -> getResponse conn cmd
-                           _    -> tryPassword
+getResponse_ :: String -> MPD ()
+getResponse_ x = getResponse x >> return ()
 
 -- Get the lines of the daemon's response to a list of commands.
-getResponses :: Connection -> [String] -> IO [String]
-getResponses conn cmds = getResponse conn .
+getResponses :: [String] -> MPD [String]
+getResponses cmds = getResponse .
     unlines $ "command_list_begin" : cmds ++ ["command_list_end"]
 
 -- Break up a list of strings into an assoc. list, separating at
