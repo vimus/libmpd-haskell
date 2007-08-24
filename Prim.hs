@@ -43,7 +43,7 @@ module Prim (
              module Control.Monad.Trans
             ) where
 
-import Control.Monad (liftM)
+import Control.Monad (liftM, unless)
 import Control.Exception (finally)
 import Control.Monad.Trans
 import Prelude hiding (repeat)
@@ -61,7 +61,7 @@ import System.IO
 -- don't export the field names.
 data Connection = Conn { connHostName :: String
                        , connPortNum  :: Integer
-                       , connHandle   :: Handle
+                       , connHandle   :: IORef (Maybe Handle)
                        , connGetPass  :: IO (Maybe String)
                        }
 
@@ -86,15 +86,15 @@ instance Show ACK where
 -- This is basically a state and an error monad combined. It's just
 -- nice if we can have a few custom functions that fiddle with the
 -- internals.
-newtype MPD a = MPD { runMPD :: IORef Connection -> IO (Either ACK a) }
+newtype MPD a = MPD { runMPD :: Connection -> IO (Either ACK a) }
 
 instance Functor MPD where
-    fmap f m = MPD $ \cRef -> either Left (Right . f) `liftM` runMPD m cRef
+    fmap f m = MPD $ \conn -> either Left (Right . f) `liftM` runMPD m conn
 
 instance Monad MPD where
     return a = MPD $ \_ -> return (Right a)
-    m >>= f  = MPD $ \cRef -> runMPD m cRef >>=
-                              either (return . Left) (flip runMPD cRef . f)
+    m >>= f  = MPD $ \conn -> runMPD m conn >>=
+                              either (return . Left) (flip runMPD conn . f)
     fail err = MPD $ \_ -> return $ Left (Custom err)
 
 instance MonadIO MPD where
@@ -123,10 +123,11 @@ withMPD :: String            -- ^ Host name.
         -> IO (Maybe String) -- ^ An action that supplies passwords.
         -> MPD a             -- ^ The action to run.
         -> IO (Either ACK a)
-withMPD host port getpw m =
-    connect host port getpw >>= maybe (return $ Left NoMPD) withConn
-    where withConn c = do r <- newIORef c
-                          finally (runMPD m r) (readIORef r >>= closeIO)
+withMPD host port getpw m = do
+    hRef <- newIORef Nothing
+    connect host port hRef
+    readIORef hRef >>= maybe (return $ Left NoMPD)
+        (\_ -> finally (runMPD m (Conn host port hRef getpw)) (closeIO hRef))
 
 -- | Run an MPD action against a server with no provision for passwords.
 withMPD_ :: String -> Integer -> MPD a -> IO (Either ACK a)
@@ -134,48 +135,48 @@ withMPD_ = flip (flip . withMPD) (return Nothing)
 
 -- Connect to an MPD server.
 connect :: String -> Integer -- host and port
-        -> IO (Maybe String) -- a password suppplier
-        -> IO (Maybe Connection)
-connect host port getpw =
+        -> IORef (Maybe Handle) -> IO ()
+connect host port hRef =
     withSocketsDo $ do
+        closeIO hRef
         handle <- connectTo host . PortNumber $ fromInteger port
-        conn   <- return $ Conn host port handle getpw
-        mpd    <- checkConn conn
-        if mpd then return (Just conn) else closeIO conn >> return Nothing
+        writeIORef hRef (Just handle)
+        checkConn handle >>= flip unless (closeIO hRef)
 
 -- Check that an MPD daemon is at the other end of a connection.
-checkConn :: Connection -> IO Bool
-checkConn conn = isPrefixOf "OK MPD" `liftM` hGetLine (connHandle conn)
+checkConn :: Handle -> IO Bool
+checkConn h = isPrefixOf "OK MPD" `liftM` hGetLine h
 
 -- Close a connection.
-closeIO :: Connection -> IO ()
-closeIO conn = hPutStrLn h "close" >> hClose h
-    where h = connHandle conn
+closeIO :: IORef (Maybe Handle) -> IO ()
+closeIO hRef = do
+    readIORef hRef >>= maybe (return ())
+                             (\h -> hPutStrLn h "close" >> hClose h)
+    writeIORef hRef Nothing
 
 -- Refresh a connection.
 reconnect :: MPD ()
-reconnect = MPD $ \cRef -> do
-    conn@(Conn host port _ getpw) <- readIORef cRef
-    closeIO conn >> connect host port getpw >>=
-        maybe (return $ Left NoMPD)
-              (\conn' -> writeIORef cRef conn' >> return (Right ()))
+reconnect = MPD $ \(Conn host port hRef _) -> do
+    connect host port hRef
+    liftM (maybe (Left NoMPD) (const $ Right ())) (readIORef hRef)
 
+-- XXX this doesn't use the password supplying feature.
+--
 -- | Kill the server. Obviously, the connection is then invalid.
 kill :: MPD ()
-kill  = MPD $ \cRef -> do c <- readIORef cRef
-                          let h = connHandle c
-                          hPutStrLn h "kill" >> hClose h
-                          return (Left NoMPD)
+kill = MPD $ \conn -> do
+    readIORef (connHandle conn) >>=
+        maybe (return ()) (\h -> hPutStrLn h "kill" >> hClose h)
+    writeIORef (connHandle conn) Nothing
+    return (Left NoMPD)
 
 -- | Send a command to the MPD and return the result.
 getResponse :: String -> MPD [String]
-getResponse cmd = MPD $ \cRef -> do
-    -- XXX put in connection testing stuff here.
-    -- if False then runMPD reconnect cRef else return (Right ())
-    conn <- readIORef cRef
-    let h = connHandle conn
-    hPutStrLn h cmd >> hFlush h
-    loop h (tryPassword cRef (getResponse cmd)) []
+getResponse cmd = MPD $ \conn -> do
+    readIORef (connHandle conn) >>=
+        maybe (return $ Left NoMPD)
+              (\h -> hPutStrLn h cmd >> hFlush h >>
+                     loop h (tryPassword conn (getResponse cmd)) [])
     where loop h tryPw acc = do
               l <- hGetLine h
               parseResponse (loop h tryPw) l acc >>= either
@@ -184,17 +185,16 @@ getResponse cmd = MPD $ \cRef -> do
 
 -- Send a password to MPD and run an action on success, return an ACK
 -- on failure.
-tryPassword :: IORef Connection
+tryPassword :: Connection
             -> MPD a  -- run on success
             -> IO (Either ACK a)
-tryPassword cRef cont = do
-    conn <- readIORef cRef
-    let h = connHandle conn
-    connGetPass conn >>= maybe (return $ Left Auth)
-        (\pw -> do hPutStrLn h ("password " ++ pw) >> hFlush h
-                   result <- hGetLine h
-                   case result of "OK" -> runMPD cont cRef
-                                  _    -> tryPassword cRef cont)
+tryPassword conn cont = do
+    readIORef (connHandle conn) >>= maybe (return $ Left NoMPD)
+        (\h -> connGetPass conn >>= maybe (return $ Left Auth)
+                   (\pw -> do hPutStrLn h ("password " ++ pw) >> hFlush h
+                              result <- hGetLine h
+                              case result of "OK" -> runMPD cont conn
+                                             _    -> tryPassword conn cont))
 
 splitAck :: String -> (String, String, String)
 splitAck s = (take 3 prefix, code, drop 2 msg)
@@ -220,15 +220,14 @@ parseResponse f s acc
     | isPrefixOf "OK" s  = return $ Right (reverse acc)
     | otherwise          = f (s:acc)
 
+-- XXX this doesn't use the password supplying feature.
+--
 -- | Clear the current error message in status.
 clearerror :: MPD ()
-clearerror = MPD $ \cRef -> do
-    (Conn _ _ h _) <- readIORef cRef
-    hPutStrLn h "clearerror" >> hClose h
-    return (Right ())
+clearerror = MPD $ \conn -> do
+    readIORef (connHandle conn) >>= maybe (return $ Left NoMPD)
+        (\h -> hPutStrLn h "clearerror" >> hClose h >> return (Right ()))
 
--- should this return an error?
---
--- | Close a MPD connection.
+-- | Close an MPD connection.
 close :: MPD ()
-close = MPD $ \cRef -> readIORef cRef >>= closeIO >> return (Right ())
+close = MPD $ \conn -> closeIO (connHandle conn) >> return (Right ())
