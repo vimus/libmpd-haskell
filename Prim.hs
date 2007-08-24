@@ -35,7 +35,7 @@ module Prim (
              withMPD, withMPD_,
 
              -- * Errors
-             catchMPD,
+             throwMPD, catchMPD,
 
              -- * Interacting
              getResponse, clearerror, close, reconnect, kill,
@@ -101,19 +101,14 @@ instance MonadIO MPD where
     liftIO m = MPD $ \_ -> liftM Right m
 
 
-{-
--- I've skipped throwMPD because it doesn't really make sense for ACKs
--- to be thrown from user code.
-
 -- | Throw an exception.
 throwMPD :: ACK -> MPD ()
 throwMPD e = MPD $ \_ -> return (Left e)
--}
 
 -- | Catch an exception from an action.
 catchMPD :: MPD a -> (ACK -> MPD a) -> MPD a
-catchMPD m h = MPD $ \cRef ->
-    runMPD m cRef >>= either (flip runMPD cRef . h) (return . Right)
+catchMPD m h = MPD $ \conn ->
+    runMPD m conn >>= either (flip runMPD conn . h) (return . Right)
 
 
 {-
