@@ -52,6 +52,7 @@ import Data.List (isPrefixOf)
 import Data.Maybe
 import Network
 import System.IO
+import System.IO.Error (isEOFError)
 
 --
 -- Data types.
@@ -178,10 +179,14 @@ getResponse cmd = MPD $ \conn -> do
               (\h -> hPutStrLn h cmd >> hFlush h >>
                      loop h (tryPassword conn (getResponse cmd)) [])
     where loop h tryPw acc = do
-              l <- hGetLine h
-              parseResponse (loop h tryPw) l acc >>= either
-                  (\x -> case x of Auth -> tryPw; _ -> return (Left x))
-                  (return . Right)
+              getln h (\l -> parseResponse (loop h tryPw) l acc >>= either
+                          (\x -> case x of Auth -> tryPw; _ -> return (Left x))
+                          (return . Right))
+          getln h cont =
+              catch (liftM Right $ hGetLine h) (return . Left) >>=
+                  either (\e -> if isEOFError e then return (Left NoMPD)
+                                                else ioError e)
+                         cont
 
 -- Send a password to MPD and run an action on success, return an ACK
 -- on failure.
