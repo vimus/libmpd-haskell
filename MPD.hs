@@ -303,8 +303,7 @@ add_ (Just plname) = getResponse_ .
 -- If the specified playlist does not exist, it will be created.
 clear :: Maybe String -- ^ Optional name of a playlist to clear.
       -> MPD ()
-clear Nothing       = getResponse_ "clear"
-clear (Just plname) = getResponse_ ("playlistclear " ++ show plname)
+clear = getResponse_ . maybe "clear" (("playlistclear " ++) . show)
 
 -- | Remove a song from a playlist.
 -- If no playlist is specified, current playlist is used.
