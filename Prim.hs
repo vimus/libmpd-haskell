@@ -32,7 +32,7 @@ module Prim (
              MPD, ACK(..),
 
              -- * Running an action
-             withMPD, withMPD_,
+             withMPDEx,
 
              -- * Errors
              throwMPD, catchMPD,
@@ -133,20 +133,16 @@ catchMPD m h = MPD $ \conn ->
 -}
 
 -- | Run an MPD action against a server.
-withMPD :: String            -- ^ Host name.
-        -> Integer           -- ^ Port number.
-        -> IO (Maybe String) -- ^ An action that supplies passwords.
-        -> MPD a             -- ^ The action to run.
-        -> IO (Either ACK a)
-withMPD host port getpw m = do
+withMPDEx :: String            -- ^ Host name.
+          -> Integer           -- ^ Port number.
+          -> IO (Maybe String) -- ^ An action that supplies passwords.
+          -> MPD a             -- ^ The action to run.
+          -> IO (Either ACK a)
+withMPDEx host port getpw m = do
     hRef <- newIORef Nothing
     connect host port hRef
     readIORef hRef >>= maybe (return $ Left NoMPD)
         (\_ -> finally (runMPD m (Conn host port hRef getpw)) (closeIO hRef))
-
--- | Run an MPD action against a server with no provision for passwords.
-withMPD_ :: String -> Integer -> MPD a -> IO (Either ACK a)
-withMPD_ = flip (flip . withMPD) (return Nothing)
 
 -- Connect to an MPD server.
 connect :: String -> Integer -- host and port

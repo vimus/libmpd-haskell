@@ -36,7 +36,7 @@ module MPD (
             Song(..), Count(..),
 
             -- * Connections
-            withMPD, withMPD_,
+            withMPD, withMPDEx,
 
             -- * Admin commands
             disableoutput, enableoutput, kill, outputs, update,
@@ -72,7 +72,9 @@ import Prelude hiding (repeat)
 import Data.IORef (newIORef, atomicModifyIORef)
 import Data.List (findIndex)
 import Data.Maybe
+import System.Environment (getEnv)
 import System.IO
+import System.IO.Error (isDoesNotExistError, ioError)
 
 import Prim
 
@@ -197,6 +199,18 @@ data Device =
            , dOutputEnabled :: Bool }
     deriving Show
 
+
+withMPD :: MPD a -> IO (Either ACK a)
+withMPD m = do
+    port <- liftM read (getEnvDefault "MPD_PORT" "6600")
+    (pw,host) <- liftM (break (== '@')) (getEnvDefault "MPD_HOST" "localhost")
+    let (host',pw') = if null host then (pw,host) else (drop 1 host,pw)
+    pwGen <- mkPasswordGen [pw']
+    withMPDEx host' port pwGen m
+    where
+        getEnvDefault x dflt =
+            catch (getEnv x) (\e -> if isDoesNotExistError e
+                                    then return dflt else ioError e)
 
 --
 -- Admin commands
