@@ -71,6 +71,8 @@ data ACK = NoMPD                 -- ^ MPD not responding
          | Auth                  -- ^ ACK [4\@0]
          | Busy                  -- ^ ACK [54\@0]
          | UnknownCommand String -- ^ ACK [5\@0]
+         | FileNotFound String   -- ^ ACK [50\@0]
+         | FileExists String     -- ^ ACK [56\@0]
          | Custom String
 
 instance Show ACK where
@@ -78,6 +80,8 @@ instance Show ACK where
     show Auth               = "Password needed"
     show Busy               = "Already updating"
     show (UnknownCommand s) = "Unknown command: " ++ s
+    show (FileNotFound s)   = "File or directory does not exist: " ++ s
+    show (FileExists s)     = "File or directory already exists: " ++ s
     show (Custom s)         = s
 
 
@@ -214,7 +218,13 @@ parseAck :: String -> ACK
 parseAck s = case code of
                   "[4@0]"  -> Auth
                   "[54@0]" -> Busy
-                  _       -> Custom msg
+                  {- XXX need to extract what commands/files are
+                  - unknown/missing/existing
+                  "[5@0]"  -> UnknownCommand
+                  "[50@0]" -> FileNotFound
+                  "[56@0]" -> FileExists
+                  -}
+                  _        -> Custom msg
     where (_, code, msg) = splitAck s
 
 -- Consume response and return a Response.
