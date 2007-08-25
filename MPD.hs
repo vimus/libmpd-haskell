@@ -385,7 +385,6 @@ listplaylist = liftM takeValues . getResponse . ("listplaylist " ++) . show
 -- deprecated and likely to disappear at any time.
 playlist :: MPD [(PLIndex, String)]
 playlist = liftM (map f) (getResponse "playlist")
-    -- meh, the response here deviates from just about all other commands
     where f s = let (pos, name) = break (== ':') s
                 in (Pos $ read pos, drop 1 name)
 
