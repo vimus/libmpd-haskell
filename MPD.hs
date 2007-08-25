@@ -225,8 +225,8 @@ outputs = liftM (map takeDevInfo . splitGroups . kvise)
 update :: [String] -- ^ Optionally specify a list of paths
        -> MPD ()
 update  [] = getResponse_ "update"
-update [x] = getResponse_ ("update " ++ x)
-update  xs = getResponses (map ("update " ++) xs) >> return ()
+update [x] = getResponse_ ("update " ++ show x)
+update  xs = getResponses (map (("update " ++) . show) xs) >> return ()
 
 --
 -- Database commands
