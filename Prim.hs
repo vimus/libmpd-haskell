@@ -73,6 +73,12 @@ data ACK = NoMPD                 -- ^ MPD not responding
          | UnknownCommand String -- ^ ACK [5\@0]
          | FileNotFound String   -- ^ ACK [50\@0]
          | FileExists String     -- ^ ACK [56\@0]
+         | System                -- ^ ACK [52\@0]
+         | PlaylistLoad          -- ^ ACK [53\@0]
+         | NotPlaying            -- ^ ACK [55\@0]
+         | PlaylistMax           -- ^ ACK [51\@0]
+         | InvalidArgument       -- ^ ACK [2\@0]
+         | InvalidPassword       -- ^ ACK [3\@0]
          | Custom String
 
 instance Show ACK where
@@ -82,9 +88,13 @@ instance Show ACK where
     show (UnknownCommand s) = "Unknown command: " ++ s
     show (FileNotFound s)   = "File or directory does not exist: " ++ s
     show (FileExists s)     = "File or directory already exists: " ++ s
+    show System             = "System error"
+    show PlaylistLoad       = "Failed to load playlist"
+    show PlaylistMax        = "Playlist full"
+    show InvalidArgument    = "Invalid argument"
+    show InvalidPassword    = "Invalid password"
+    show NotPlaying         = "Playback stopped"
     show (Custom s)         = s
-
-
 
 -- Export the type name but not the constructor or the field.
 --
@@ -216,6 +226,12 @@ parseAck :: String -> ACK
 parseAck s = case code of
                   "[4@0]"  -> Auth
                   "[54@0]" -> Busy
+                  "[2@0]"  -> InvalidArgument
+                  "[3@0]"  -> InvalidPassword
+                  "[51@0]" -> PlaylistMax
+                  "[52@0]" -> System
+                  "[53@0]" -> PlaylistLoad
+                  "[55@0]" -> NotPlaying
                   {- XXX need to extract what commands/files are
                   - unknown/missing/existing
                   "[5@0]"  -> UnknownCommand
