@@ -699,11 +699,11 @@ getPlaylist :: MPD [Song]
 getPlaylist = playlistinfo Nothing
 
 -- | Create an action that produces passwords for a connection. You
--- can pass these to 'withMPD' and it will use them to get passwords
+-- can pass these to 'withMPDEx' and it will use them to get passwords
 -- to send to the server until one works or it runs out of them.
 --
 -- > do gen <- mkPasswordGen ["password1", "password2"]
--- >    withMPD "localhost" 6600 gen (update [])
+-- >    withMPDEx "localhost" 6600 gen (update [])
 mkPasswordGen :: [String] -> IO (IO (Maybe String))
 mkPasswordGen = liftM f . newIORef
     where f = flip atomicModifyIORef $ \xs -> (drop 1 xs, listToMaybe xs)
