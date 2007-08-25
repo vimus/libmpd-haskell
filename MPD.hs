@@ -378,8 +378,7 @@ listplaylistinfo = liftM takeSongs . getResponse .
 
 -- | Retrieve a list of files in a given playlist.
 listplaylist :: String -> MPD [String]
-listplaylist = liftM takeValues . getResponse .
-    ("listplaylist " ++) . show
+listplaylist = liftM takeValues . getResponse . ("listplaylist " ++) . show
 
 -- | Retrieve file paths and positions of songs in the current playlist.
 -- Note that this command is only included for completeness sake; it's
