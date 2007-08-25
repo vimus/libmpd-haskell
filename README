@@ -1,6 +1,6 @@
 
-           libmpd-haskell : A MPD client library for Haskell
-         -----------------------------------------------------
+           libmpd-haskell : An MPD client library for Haskell
+         ------------------------------------------------------
 
 Dependencies:
     The Glasgow Haskell Compiler >= 6.4       http://haskell.org/ghc

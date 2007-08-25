@@ -7,7 +7,7 @@ Author:          Ben Sinclair
 Maintainer:      bsinclai@turing.une.edu.au
 Stability:       alpha
 Homepage:        http://turing.une.edu.au/~bsinclai/code/libmpd-haskell.html
-Synopsis:        A MPD client library.
+Synopsis:        An MPD client library.
 Tested-With:     GHC == 6.5, GHC == 6.6.1, Hugs == 2006.9
 Build-Depends:   base, network, mtl
 Exposed-Modules: MPD, Prim

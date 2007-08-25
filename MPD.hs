@@ -1,5 +1,5 @@
 {-
-    libmpd for Haskell, a MPD client library.
+    libmpd for Haskell, an MPD client library.
     Copyright (C) 2005  Ben Sinclair <bsinclai@turing.une.edu.au>
 
     This library is free software; you can redistribute it and/or

@@ -1,5 +1,5 @@
 {-
-    libmpd for Haskell, a MPD client library.
+    libmpd for Haskell, an MPD client library.
     Copyright (C) 2005  Ben Sinclair <bsinclai@turing.une.edu.au>
 
     This library is free software; you can redistribute it and/or
@@ -58,7 +58,7 @@ import System.IO.Error (isEOFError)
 -- Data types.
 --
 
--- | A connection to a MPD server.
+-- | A connection to an MPD server.
 -- don't export the field names.
 data Connection = Conn { connHostName :: String
                        , connPortNum  :: Integer
