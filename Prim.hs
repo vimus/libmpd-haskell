@@ -159,7 +159,7 @@ closeIO hRef = do
                              (\h -> hPutStrLn h "close" >> hClose h)
     writeIORef hRef Nothing
 
--- Refresh a connection.
+-- | Refresh a connection.
 reconnect :: MPD ()
 reconnect = MPD $ \(Conn host port hRef _) -> do
     connect host port hRef
