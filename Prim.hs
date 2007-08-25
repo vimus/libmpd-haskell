@@ -231,7 +231,7 @@ parseResponse f s acc
 clearerror :: MPD ()
 clearerror = MPD $ \conn -> do
     readIORef (connHandle conn) >>= maybe (return $ Left NoMPD)
-        (\h -> hPutStrLn h "clearerror" >> hClose h >> return (Right ()))
+        (\h -> hPutStrLn h "clearerror" >> hFlush h >> return (Right ()))
 
 -- | Close an MPD connection.
 close :: MPD ()
