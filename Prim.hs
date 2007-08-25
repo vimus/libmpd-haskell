@@ -105,7 +105,6 @@ instance Monad MPD where
 instance MonadIO MPD where
     liftIO m = MPD $ \_ -> liftM Right m
 
-
 -- | Throw an exception.
 throwMPD :: ACK -> MPD ()
 throwMPD e = MPD $ \_ -> return (Left e)
@@ -114,7 +113,6 @@ throwMPD e = MPD $ \_ -> return (Left e)
 catchMPD :: MPD a -> (ACK -> MPD a) -> MPD a
 catchMPD m h = MPD $ \conn ->
     runMPD m conn >>= either (flip runMPD conn . h) (return . Right)
-
 
 {-
 --
