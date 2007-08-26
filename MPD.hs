@@ -199,7 +199,6 @@ data Device =
            , dOutputEnabled :: Bool }
     deriving Show
 
-
 -- | Run an MPD action using localhost:6600 as the default host:port,
 -- or whatever is found in the environment variables MPD_HOST and
 -- MPD_PORT. If MPD_HOST is of the form "password\@host" then the
@@ -782,7 +781,6 @@ takeSongInfo xs =
          }
     where parseTrack x = let (trck, tot) = break (== '/') x
                          in (read trck, parseNum (drop 1 tot))
-
 
 -- Helpers for retrieving values from an assoc. list.
 takeString :: String -> [(String, String)] -> String
