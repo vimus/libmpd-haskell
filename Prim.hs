@@ -68,6 +68,7 @@ data Connection = Conn { connHostName :: String
 
 -- | Represents various MPD errors (aka. ACKs).
 data ACK = NoMPD                 -- ^ MPD not responding
+         | TimedOut              -- ^ The connection timed out.
          | Auth                  -- ^ ACK [4\@0]
          | Busy                  -- ^ ACK [54\@0]
          | UnknownCommand String -- ^ ACK [5\@0]
@@ -83,6 +84,7 @@ data ACK = NoMPD                 -- ^ MPD not responding
 
 instance Show ACK where
     show NoMPD              = "Could not connect to MPD"
+    show TimedOut           = "MPD connection timed out"
     show Auth               = "Password needed"
     show Busy               = "Already updating"
     show (UnknownCommand s) = "Unknown command: " ++ s
@@ -196,7 +198,7 @@ getResponse cmd = MPD $ \conn -> do
                           (return . Right))
           getln h cont =
               catch (liftM Right $ hGetLine h) (return . Left) >>=
-                  either (\e -> if isEOFError e then return (Left NoMPD)
+                  either (\e -> if isEOFError e then return (Left TimedOut)
                                                 else ioError e)
                          cont
 
