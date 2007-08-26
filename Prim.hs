@@ -69,17 +69,18 @@ data Connection = Conn { connHostName :: String
 -- | Represents various MPD errors (aka. ACKs).
 data ACK = NoMPD                  -- ^ MPD not responding
          | TimedOut               -- ^ The connection timed out.
-         | Auth                   -- ^ ACK [4\@0]
-         | Busy                   -- ^ ACK [54\@0]
-         | UnknownCommand String  -- ^ ACK [5\@0]
-         | FileNotFound           -- ^ ACK [50\@0]
-         | FileExists String      -- ^ ACK [56\@0]
-         | System String          -- ^ ACK [52\@0]
-         | PlaylistLoad           -- ^ ACK [53\@0]
-         | NotPlaying             -- ^ ACK [55\@0]
-         | PlaylistMax            -- ^ ACK [51\@0]
-         | InvalidArgument String -- ^ ACK [2\@0]
-         | InvalidPassword        -- ^ ACK [3\@0]
+         | Auth                   -- ^ Authentication required (ACK [4\@0])
+         | Busy                   -- ^ Update already running (ACK [54\@0])
+         | UnknownCommand String  -- ^ Unknown command (ACK [5\@0])
+         | FileNotFound           -- ^ File or directory not found (ACK [50\@0])
+         | FileExists String      -- ^ File already exists (ACK [56\@0])
+         | System String          -- ^ A system error (ACK [52\@0])
+         | PlaylistLoad           -- ^ Playlist loading failed (ACK [53\@0])
+         | NotPlaying             -- ^ An operation requiring playback
+                                  --   got interrupted (ACK [55\@0])
+         | PlaylistMax            -- ^ Playlist at maximum size (ACK [51\@0])
+         | InvalidArgument String -- ^ Invalid argument passed (ACK [2\@0])
+         | InvalidPassword        -- ^ Invalid password supplied (ACK [3\@0])
          | Custom String
 
 instance Show ACK where
