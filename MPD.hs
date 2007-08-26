@@ -201,7 +201,7 @@ data Device =
 
 -- | Run an MPD action using localhost:6600 as the default host:port,
 -- or whatever is found in the environment variables MPD_HOST and
--- MPD_PORT. If MPD_HOST is of the form "password\@host" then the
+-- MPD_PORT. If MPD_HOST is of the form \"password\@host\" then the
 -- password will be supplied as well.
 withMPD :: MPD a -> IO (Either ACK a)
 withMPD m = do
