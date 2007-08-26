@@ -57,7 +57,7 @@ module MPD (
 
             -- * Miscellaneous commands
             clearerror, close, commands, notcommands, tagtypes, urlhandlers,
-            password, ping, stats, status,
+            password, ping, reconnect, stats, status,
 
             -- * Extensions\/shortcuts
             addMany, deleteMany, crop, prune, lsdirs, lsfiles, lsplaylists,
