@@ -24,7 +24,7 @@
 -- Stability   : alpha
 -- Portability : Haskell 98
 --
--- MPD client library.
+-- Core functionality.
 
 module Prim (
 
