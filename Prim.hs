@@ -69,34 +69,34 @@ data Connection = Conn { connHostName :: String
 -- | Represents various MPD errors (aka. ACKs).
 data ACK = NoMPD                  -- ^ MPD not responding
          | TimedOut               -- ^ The connection timed out.
-         | Auth                   -- ^ Authentication required (ACK 4)
-         | Busy                   -- ^ Update already running (ACK 54)
-         | UnknownCommand String  -- ^ Unknown command (ACK 5)
-         | FileNotFound           -- ^ File or directory not found ACK 50)
-         | FileExists String      -- ^ File already exists (ACK 56)
-         | System String          -- ^ A system error (ACK 52)
-         | PlaylistLoad           -- ^ Playlist loading failed (ACK 53)
-         | NotPlaying             -- ^ An operation requiring playback
-                                  --   got interrupted (ACK 55)
-         | PlaylistMax            -- ^ Playlist at maximum size (ACK 51)
          | InvalidArgument String -- ^ Invalid argument passed (ACK 2)
          | InvalidPassword        -- ^ Invalid password supplied (ACK 3)
+         | Auth                   -- ^ Authentication required (ACK 4)
+         | UnknownCommand String  -- ^ Unknown command (ACK 5)
+         | FileNotFound           -- ^ File or directory not found ACK 50)
+         | PlaylistMax            -- ^ Playlist at maximum size (ACK 51)
+         | System String          -- ^ A system error (ACK 52)
+         | PlaylistLoad           -- ^ Playlist loading failed (ACK 53)
+         | Busy                   -- ^ Update already running (ACK 54)
+         | NotPlaying             -- ^ An operation requiring playback
+                                  --   got interrupted (ACK 55)
+         | FileExists String      -- ^ File already exists (ACK 56)
          | Custom String
 
 instance Show ACK where
     show NoMPD               = "Could not connect to MPD"
     show TimedOut            = "MPD connection timed out"
-    show Auth                = "Password needed"
-    show Busy                = "Already updating"
-    show (UnknownCommand s)  = s
-    show FileNotFound        = "File or directory does not exist"
-    show (FileExists s)      = s
-    show (System s)          = "System error: " ++ s
-    show PlaylistLoad        = "Failed to load playlist"
-    show PlaylistMax         = "Playlist full"
     show (InvalidArgument s) = "Invalid argument: " ++ s
     show InvalidPassword     = "Invalid password"
+    show Auth                = "Password needed"
+    show (UnknownCommand s)  = s
+    show FileNotFound        = "File or directory does not exist"
+    show PlaylistMax         = "Playlist full"
+    show (System s)          = "System error: " ++ s
+    show PlaylistLoad        = "Failed to load playlist"
+    show Busy                = "Already updating"
     show NotPlaying          = "Playback stopped"
+    show (FileExists s)      = s
     show (Custom s)          = s
 
 -- Export the type name but not the constructor or the field.
@@ -227,16 +227,16 @@ splitAck s = (code, cmd, msg)
 
 parseAck :: String -> ACK
 parseAck s = case code of
-                  "4"  -> Auth
-                  "54" -> Busy
                   "2"  -> InvalidArgument msg
                   "3"  -> InvalidPassword
+                  "4"  -> Auth
+                  "5"  -> UnknownCommand msg
+                  "50" -> FileNotFound
                   "51" -> PlaylistMax
                   "52" -> System msg
                   "53" -> PlaylistLoad
+                  "54" -> Busy
                   "55" -> NotPlaying
-                  "5"  -> UnknownCommand msg
-                  "50" -> FileNotFound
                   "56" -> FileExists msg
                   _        -> Custom msg
     where (code, _, msg) = splitAck s
