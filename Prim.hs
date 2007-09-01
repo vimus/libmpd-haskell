@@ -219,23 +219,21 @@ splitAck s = (take 3 prefix, code, drop 2 msg)
     (code, msg')   = break (== ' ') rest
     (prefix, rest) = splitAt 4 s
 
--- > parseAck "ACK [5@0] {} unknown command \"pong\"" = Custom "unknown
--- command \"pong\""
 parseAck :: String -> ACK
 parseAck s = case code of
-                  "[4@0]"  -> Auth
-                  "[54@0]" -> Busy
-                  "[2@0]"  -> InvalidArgument msg
-                  "[3@0]"  -> InvalidPassword
-                  "[51@0]" -> PlaylistMax
-                  "[52@0]" -> System msg
-                  "[53@0]" -> PlaylistLoad
-                  "[55@0]" -> NotPlaying
-                  "[5@0]"  -> UnknownCommand msg
-                  "[50@0]" -> FileNotFound
-                  "[56@0]" -> FileExists msg
+                  "4"  -> Auth
+                  "54" -> Busy
+                  "2"  -> InvalidArgument msg
+                  "3"  -> InvalidPassword
+                  "51" -> PlaylistMax
+                  "52" -> System msg
+                  "53" -> PlaylistLoad
+                  "55" -> NotPlaying
+                  "5"  -> UnknownCommand msg
+                  "50" -> FileNotFound
+                  "56" -> FileExists msg
                   _        -> Custom msg
-    where (_, code, msg) = splitAck s
+    where (code, _, msg) = splitAck s
 
 -- Consume response and return a Response.
 parseResponse :: ([String] -> IO (Either ACK [String]))
