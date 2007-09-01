@@ -31,6 +31,8 @@ Limitations:
 Platforms:
     libmpd-haskell has been confirmed to work on:
         Linux/x86
+    Seems to work on Windows XP as well, but there is no MPD support for
+    that platform.
 
 Latest Sources:
     darcs get http://turing.une.edu.au/~bsinclai/code/libmpd-haskell
