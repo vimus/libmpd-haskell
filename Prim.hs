@@ -212,12 +212,18 @@ tryPassword conn cont = do
                               case result of "OK" -> runMPD cont conn
                                              _    -> tryPassword conn cont))
 
+-- Break an ACK into (error code, current command, message).
+-- ACKs are of the form:
+-- ACK [error@command_listNum] {current_command} message_text\n
 splitAck :: String -> (String, String, String)
-splitAck s = (take 3 prefix, code, drop 2 msg)
-  where
-    (_, msg)       = break (== '}') msg'
-    (code, msg')   = break (== ' ') rest
-    (prefix, rest) = splitAt 4 s
+splitAck s = (code, cmd, msg)
+    where (code, notCode) = between (== '[') (== '@') s
+          (cmd, notCmd)   = between (== '{') (== '}') notCode
+          msg             = drop 1 . snd $ break (== ' ') notCmd
+
+          -- take whatever is between 'f' and 'g'.
+          between f g xs  = let (_, y) = break f xs
+                            in break g (drop 1 y)
 
 parseAck :: String -> ACK
 parseAck s = case code of
