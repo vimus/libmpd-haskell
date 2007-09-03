@@ -113,7 +113,7 @@ instance Monad MPD where
     return a = MPD $ \_ -> return (Right a)
     m >>= f  = MPD $ \conn -> runMPD m conn >>=
                               either (return . Left) (flip runMPD conn . f)
-    fail err = MPD $ \_ -> return $ Left (Custom err)
+    fail err = MPD $ \_ -> return . Left $ Custom err
 
 instance MonadIO MPD where
     liftIO m = MPD $ \_ -> liftM Right m
@@ -245,8 +245,8 @@ parseAck s = case code of
 parseResponse :: ([String] -> IO (Either ACK [String]))
               -> String -> [String] -> IO (Either ACK [String])
 parseResponse f s acc
-    | isPrefixOf "ACK" s = return $ Left (parseAck s)
-    | isPrefixOf "OK" s  = return $ Right (reverse acc)
+    | isPrefixOf "ACK" s = return . Left $ parseAck s
+    | isPrefixOf "OK" s  = return . Right $ reverse acc
     | otherwise          = f (s:acc)
 
 -- XXX this doesn't use the password supplying feature.
