@@ -183,6 +183,18 @@ kill = MPD $ \conn -> do
     writeIORef (connHandle conn) Nothing
     return (Left NoMPD)
 
+-- XXX this doesn't use the password supplying feature.
+--
+-- | Clear the current error message in status.
+clearerror :: MPD ()
+clearerror = MPD $ \conn -> do
+    readIORef (connHandle conn) >>= maybe (return $ Left NoMPD)
+        (\h -> hPutStrLn h "clearerror" >> hFlush h >> return (Right ()))
+
+-- | Close an MPD connection.
+close :: MPD ()
+close = MPD $ \conn -> closeIO (connHandle conn) >> return (Right ())
+
 -- | Send a command to the MPD and return the result.
 getResponse :: String -> MPD [String]
 getResponse cmd = MPD $ \conn -> do
@@ -255,15 +267,3 @@ parseResponse f s acc
     | isPrefixOf "ACK" s = return . Left $ parseAck s
     | isPrefixOf "OK" s  = return . Right $ reverse acc
     | otherwise          = f (s:acc)
-
--- XXX this doesn't use the password supplying feature.
---
--- | Clear the current error message in status.
-clearerror :: MPD ()
-clearerror = MPD $ \conn -> do
-    readIORef (connHandle conn) >>= maybe (return $ Left NoMPD)
-        (\h -> hPutStrLn h "clearerror" >> hFlush h >> return (Right ()))
-
--- | Close an MPD connection.
-close :: MPD ()
-close = MPD $ \conn -> closeIO (connHandle conn) >> return (Right ())
