@@ -29,7 +29,7 @@
 module Prim (
 
              -- * Data types
-             MPD, ACK(..),
+             MPD, ACK(..), ACKType(..),
 
              -- * Running an action
              withMPDEx,
@@ -66,38 +66,32 @@ data Connection = Conn { connHostName :: String
                        , connGetPass  :: IO (Maybe String)
                        }
 
--- | Represents various MPD errors (aka. ACKs).
-data ACK = NoMPD                  -- ^ MPD not responding
-         | TimedOut               -- ^ The connection timed out.
-         | InvalidArgument String -- ^ Invalid argument passed (ACK 2)
-         | InvalidPassword        -- ^ Invalid password supplied (ACK 3)
-         | Auth                   -- ^ Authentication required (ACK 4)
-         | UnknownCommand String  -- ^ Unknown command (ACK 5)
-         | FileNotFound           -- ^ File or directory not found ACK 50)
-         | PlaylistMax            -- ^ Playlist at maximum size (ACK 51)
-         | System String          -- ^ A system error (ACK 52)
-         | PlaylistLoad           -- ^ Playlist loading failed (ACK 53)
-         | Busy                   -- ^ Update already running (ACK 54)
-         | NotPlaying             -- ^ An operation requiring playback
-                                  --   got interrupted (ACK 55)
-         | FileExists String      -- ^ File already exists (ACK 56)
-         | Custom String
+-- | The ACK type is used to signal errors, both from the MPD and otherwise.
+data ACK = NoMPD              -- ^ MPD not responding
+         | TimedOut           -- ^ The connection timed out
+         | Custom String      -- ^ Used for misc. errors
+         | ACK ACKType String -- ^ ACK type and a message from the server.
 
 instance Show ACK where
-    show NoMPD               = "Could not connect to MPD"
-    show TimedOut            = "MPD connection timed out"
-    show (InvalidArgument s) = "Invalid argument: " ++ s
-    show InvalidPassword     = "Invalid password"
-    show Auth                = "Password needed"
-    show (UnknownCommand s)  = s
-    show FileNotFound        = "File or directory does not exist"
-    show PlaylistMax         = "Playlist full"
-    show (System s)          = "System error: " ++ s
-    show PlaylistLoad        = "Failed to load playlist"
-    show Busy                = "Already updating"
-    show NotPlaying          = "Playback stopped"
-    show (FileExists s)      = s
-    show (Custom s)          = s
+    show NoMPD      = "Could not connect to MPD"
+    show TimedOut   = "MPD connection timed out"
+    show (Custom s) = s
+    show (ACK _ s)  = s
+
+-- | Represents various MPD errors (aka. ACKs).
+data ACKType = InvalidArgument  -- ^ Invalid argument passed (ACK 2)
+             | InvalidPassword  -- ^ Invalid password supplied (ACK 3)
+             | Auth             -- ^ Authentication required (ACK 4)
+             | UnknownCommand   -- ^ Unknown command (ACK 5)
+             | FileNotFound     -- ^ File or directory not found ACK 50)
+             | PlaylistMax      -- ^ Playlist at maximum size (ACK 51)
+             | System           -- ^ A system error (ACK 52)
+             | PlaylistLoad     -- ^ Playlist loading failed (ACK 53)
+             | Busy             -- ^ Update already running (ACK 54)
+             | NotPlaying       -- ^ An operation requiring playback
+                                --   got interrupted (ACK 55)
+             | FileExists       -- ^ File already exists (ACK 56)
+             | UnknownACK       -- ^ An unknown ACK (aka. bug)
 
 -- Export the type name but not the constructor or the field.
 --
@@ -198,7 +192,9 @@ getResponse cmd = MPD $ \conn -> do
                      loop h (tryPassword conn (getResponse cmd)) [])
     where loop h tryPw acc = do
               getln h (\l -> parseResponse (loop h tryPw) l acc >>= either
-                          (\x -> case x of Auth -> tryPw; _ -> return (Left x))
+                          (\x -> case x of
+                                      ACK Auth _ -> tryPw
+                                      _          -> return $ Left x)
                           (return . Right))
           getln h cont =
               catch (liftM Right $ hGetLine h) (return . Left) >>=
@@ -213,7 +209,8 @@ tryPassword :: Connection
             -> IO (Either ACK a)
 tryPassword conn cont = do
     readIORef (connHandle conn) >>= maybe (return $ Left NoMPD)
-        (\h -> connGetPass conn >>= maybe (return $ Left Auth)
+        (\h -> connGetPass conn >>= maybe (return . Left $
+                                            ACK Auth "Password required")
                    (\pw -> do hPutStrLn h ("password " ++ pw) >> hFlush h
                               result <- hGetLine h
                               case result of "OK" -> runMPD cont conn
@@ -233,20 +230,23 @@ splitAck s = (code, cmd, msg)
                             in break g (drop 1 y)
 
 parseAck :: String -> ACK
-parseAck s = case code of
-                  "2"  -> InvalidArgument msg
-                  "3"  -> InvalidPassword
-                  "4"  -> Auth
-                  "5"  -> UnknownCommand msg
-                  "50" -> FileNotFound
-                  "51" -> PlaylistMax
-                  "52" -> System msg
-                  "53" -> PlaylistLoad
-                  "54" -> Busy
-                  "55" -> NotPlaying
-                  "56" -> FileExists msg
-                  _        -> Custom msg
-    where (code, _, msg) = splitAck s
+parseAck s = ACK ack msg
+
+    where
+        ack = case code of
+                "2"  -> InvalidArgument
+                "3"  -> InvalidPassword
+                "4"  -> Auth
+                "5"  -> UnknownCommand
+                "50" -> FileNotFound
+                "51" -> PlaylistMax
+                "52" -> System
+                "53" -> PlaylistLoad
+                "54" -> Busy
+                "55" -> NotPlaying
+                "56" -> FileExists
+                _    -> UnknownACK
+        (code, _, msg) = splitAck s
 
 -- Consume response and return a Response.
 parseResponse :: ([String] -> IO (Either ACK [String]))
