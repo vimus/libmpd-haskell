@@ -22,9 +22,6 @@ Use:
     when compiling, or add it to the `Build-Depends' list in your
     `_.cabal' file.
 
-Initialisation:
-    Provide a running MPD's hostname and port to MPD.connect.
-
 Limitations:
     Most of the API is complete, but some parts, most notably parsing, is
     not yet as good as it could be.
