@@ -151,9 +151,16 @@ connect :: String -> Integer -- host and port
 connect host port hRef =
     withSocketsDo $ do
         closeIO hRef
-        handle <- connectTo host . PortNumber $ fromInteger port
-        writeIORef hRef (Just handle)
-        checkConn handle >>= flip unless (closeIO hRef)
+        --handle <- connectTo host . PortNumber $ fromInteger port
+        handle <- safeConnectTo host port
+        writeIORef hRef handle
+        maybe (return ()) (\h -> checkConn h >>= flip unless (closeIO hRef))
+              handle
+
+safeConnectTo :: String -> Integer -> IO (Maybe Handle)
+safeConnectTo host port =
+    catch (liftM Just $ connectTo host (PortNumber $ fromInteger port))
+          (const $ return Nothing)
 
 -- Check that an MPD daemon is at the other end of a connection.
 checkConn :: Handle -> IO Bool
