@@ -27,7 +27,6 @@
 -- Core functionality.
 
 module Prim (
-
              -- * Data types
              MPD, ACK(..), ACKType(..),
 
