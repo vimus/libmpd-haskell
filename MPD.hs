@@ -28,7 +28,7 @@
 
 module MPD (
             -- * Data types
-            MPD, ACK(..), Response,
+            MPD, ACK(..), ACKType, Response,
             State(..), Status(..), Stats(..),
             Device(..),
             Query(..), Meta(..),
