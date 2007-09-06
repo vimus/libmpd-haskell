@@ -38,8 +38,6 @@ module Prim (
 
              -- * Interacting
              getResponse, clearerror, close, reconnect, kill,
-
-             module Control.Monad.Trans
             ) where
 
 import Control.Monad (liftM, unless)
