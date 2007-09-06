@@ -100,7 +100,7 @@ type Response a = Either ACK a
 -- This is basically a state and an error monad combined. It's just
 -- nice if we can have a few custom functions that fiddle with the
 -- internals.
-newtype MPD a = MPD { runMPD :: Connection -> IO (Either ACK a) }
+newtype MPD a = MPD { runMPD :: Connection -> IO (Response a) }
 
 instance Functor MPD where
     fmap f m = MPD $ \conn -> either Left (Right . f) `liftM` runMPD m conn
@@ -134,7 +134,7 @@ withMPDEx :: String            -- ^ Host name.
           -> Integer           -- ^ Port number.
           -> IO (Maybe String) -- ^ An action that supplies passwords.
           -> MPD a             -- ^ The action to run.
-          -> IO (Either ACK a)
+          -> IO (Response a)
 withMPDEx host port getpw m = do
     hRef <- newIORef Nothing
     connect host port hRef
@@ -220,7 +220,7 @@ getResponse cmd = MPD $ \conn -> do
 -- on failure.
 tryPassword :: Connection
             -> MPD a  -- run on success
-            -> IO (Either ACK a)
+            -> IO (Response a)
 tryPassword conn cont = do
     readIORef (connHandle conn) >>= maybe (return $ Left NoMPD)
         (\h -> connGetPass conn >>= maybe (return . Left $
@@ -263,8 +263,8 @@ parseAck s = ACK ack msg
         (code, _, msg) = splitAck s
 
 -- Consume response and return a Response.
-parseResponse :: ([String] -> IO (Either ACK [String]))
-              -> String -> [String] -> IO (Either ACK [String])
+parseResponse :: ([String] -> IO (Response [String])) -> String -> [String]
+              -> IO (Response [String])
 parseResponse f s acc
     | isPrefixOf "ACK" s = return . Left $ parseAck s
     | isPrefixOf "OK" s  = return . Right $ reverse acc

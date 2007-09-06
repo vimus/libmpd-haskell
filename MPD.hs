@@ -28,7 +28,7 @@
 
 module MPD (
             -- * Data types
-            MPD, ACK(..),
+            MPD, ACK(..), Response,
             State(..), Status(..), Stats(..),
             Device(..),
             Query(..), Meta(..),
@@ -203,7 +203,7 @@ data Device =
 -- or whatever is found in the environment variables MPD_HOST and
 -- MPD_PORT. If MPD_HOST is of the form \"password\@host\" then the
 -- password will be supplied as well.
-withMPD :: MPD a -> IO (Either ACK a)
+withMPD :: MPD a -> IO (Response a)
 withMPD m = do
     port <- liftM read (getEnvDefault "MPD_PORT" "6600")
     (pw,host) <- liftM (break (== '@')) (getEnvDefault "MPD_HOST" "localhost")
