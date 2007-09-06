@@ -23,8 +23,8 @@ Use:
     `_.cabal' file.
 
 Limitations:
-    Most of the API is complete, but some parts, most notably parsing, is
-    not yet as good as it could be.
+    Most of the API is complete, but some parts, most notably parsing, are
+    not yet as good as they could be.
 
 Platforms:
     libmpd-haskell has been confirmed to work on:
