@@ -598,7 +598,7 @@ addMany plname xs = getResponses (map (cmd ++) xs) >> return ()
 
 -- | Delete a list of songs from a playlist.
 -- If there is a duplicate then no further songs will be deleted, so
--- take care to avoid them.
+-- take care to avoid them (see 'prune' for this).
 deleteMany :: Maybe String -> [PLIndex] -> MPD ()
 deleteMany _ [] = return ()
 deleteMany plname [x] = delete plname x
