@@ -28,7 +28,7 @@
 
 module Prim (
              -- * Data types
-             MPD, ACK(..), ACKType(..),
+             MPD, ACK(..), ACKType(..), Response,
 
              -- * Running an action
              withMPDEx,
@@ -91,6 +91,9 @@ data ACKType = InvalidArgument  -- ^ Invalid argument passed (ACK 2)
                                 --   got interrupted (ACK 55)
              | FileExists       -- ^ File already exists (ACK 56)
              | UnknownACK       -- ^ An unknown ACK (aka. bug)
+
+-- | A response is either an ACK or some result.
+type Response a = Either ACK a
 
 -- Export the type name but not the constructor or the field.
 --
