@@ -12,6 +12,6 @@ Category:        Network
 Tested-With:     GHC == 6.5, GHC == 6.6.1, Hugs == 2006.9
 Build-Depends:   base, network, mtl
 Exposed-Modules: Network.MPD
-Other-Modules:   Network.MPD.Prim
+Other-Modules:   Network.MPD.Prim, Network.MPD.Commands
 ghc-options:     -Wall -O2
 ghc-prof-options: -auto-all -prof
