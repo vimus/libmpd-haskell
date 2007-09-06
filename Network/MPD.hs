@@ -17,7 +17,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 -}
 
--- | Module    : MPD
+-- | Module    : Network.MPD
 -- Copyright   : (c) Ben Sinclair 2005-2007
 -- License     : LGPL
 -- Maintainer  : bsinclai@turing.une.edu.au
@@ -26,7 +26,7 @@
 --
 -- MPD client library.
 
-module MPD (
+module Network.MPD (
             -- * Data types
             MPD, ACK(..), ACKType, Response,
             State(..), Status(..), Stats(..),
@@ -76,7 +76,7 @@ import System.Environment (getEnv)
 import System.IO
 import System.IO.Error (isDoesNotExistError, ioError)
 
-import Prim
+import Network.MPD.Prim
 
 --
 -- Data Types

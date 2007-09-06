@@ -11,7 +11,7 @@ Synopsis:        An MPD client library.
 Category:        Network
 Tested-With:     GHC == 6.5, GHC == 6.6.1, Hugs == 2006.9
 Build-Depends:   base, network, mtl
-Exposed-Modules: MPD
-Other-Modules:   Prim
+Exposed-Modules: Network.MPD
+Other-Modules:   Network.MPD.Prim
 ghc-options:     -Wall -O2
 ghc-prof-options: -auto-all -prof
