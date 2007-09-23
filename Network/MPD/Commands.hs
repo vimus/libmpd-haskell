@@ -96,7 +96,7 @@ instance Show Meta where
     show Any       = "Any"
     show Filename  = "Filename"
 
--- | A query is comprised of a scope modifier and a query string.
+-- | A query is composed of a scope modifier and a query string.
 data Query = Query Meta String  -- ^ Simple query.
            | MultiQuery [Query] -- ^ Query with multiple conditions.
 
