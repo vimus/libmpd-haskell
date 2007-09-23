@@ -599,7 +599,7 @@ crop x y = do
                        Just (ID i)  -> maybe [] (flip drop pl . max x' . (+1))
                                       (findByID i pl)
                        Nothing      -> []
-    deleteMany Nothing (mapMaybe sgIndex (take x' pl ++ ys))
+    deleteMany Nothing . mapMaybe sgIndex $ take x' pl ++ ys
     where findByID i = findIndex ((==) i . (\(ID j) -> j) . fromJust . sgIndex)
 
 -- | Remove duplicate playlist entries.
