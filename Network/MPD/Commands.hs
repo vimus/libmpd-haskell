@@ -716,7 +716,7 @@ takeValues = snd . unzip . kvise
 -- playlists, and songs.
 takeEntries :: [String] -> ([String], [String], [Song])
 takeEntries s =
-    (dirs, playlists, map takeSongInfo $ splitGroups (reverse filedata))
+    (dirs, playlists, map takeSongInfo . splitGroups $ reverse filedata)
     where (dirs, playlists, filedata) = foldl split ([], [], []) $ kvise s
           split (ds, pls, ss) x@(k, v) | k == "directory" = (v:ds, pls, ss)
                                        | k == "playlist"  = (ds, v:pls, ss)
