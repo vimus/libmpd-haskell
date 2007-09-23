@@ -137,7 +137,7 @@ withMPDEx host port getpw m = do
     hRef <- newIORef Nothing
     connect host port hRef
     readIORef hRef >>= maybe (return $ Left NoMPD)
-        (\_ -> finally (runMPD m (Conn host port hRef getpw)) (closeIO hRef))
+        (\_ -> finally (runMPD m $ Conn host port hRef getpw) (closeIO hRef))
 
 -- Connect to an MPD server.
 connect :: String -> Integer -- host and port
