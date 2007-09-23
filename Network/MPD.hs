@@ -31,7 +31,7 @@ module Network.MPD (
     MPD, ACK(..), ACKType(..), Response,
     module Network.MPD.Commands,
     -- * Connections
-    withMPD, withMPDEx,
+    withMPD, withMPDEx, kill,
     -- * Misc.
     throwMPD, catchMPD
     ) where
