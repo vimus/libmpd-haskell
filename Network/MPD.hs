@@ -28,7 +28,7 @@
 
 module Network.MPD (
     -- * Basic data types
-    MPD, ACK(..), ACKType, Response,
+    MPD, ACK(..), ACKType(..), Response,
     module Network.MPD.Commands,
     -- * Connections
     withMPD, withMPDEx,
