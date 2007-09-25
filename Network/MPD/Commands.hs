@@ -394,8 +394,7 @@ plchangesposid plver =
 
 -- | Search for songs in the current playlist with strict matching.
 playlistfind :: Query -> MPD [Song]
-playlistfind query = liftM takeSongs
-    (getResponse ("playlistfind " ++ show query))
+playlistfind = liftM takeSongs . getResponse . ("playlistfind " ++) . show
 
 -- | Search case-insensitively with partial matches for songs in the
 -- current playlist.
