@@ -399,8 +399,7 @@ playlistfind = liftM takeSongs . getResponse . ("playlistfind " ++) . show
 -- | Search case-insensitively with partial matches for songs in the
 -- current playlist.
 playlistsearch :: Query -> MPD [Song]
-playlistsearch query = liftM takeSongs
-    (getResponse ("playlistsearch " ++ show query))
+playlistsearch = liftM takeSongs . getResponse . ("playlistsearch " ++) . show
 
 -- | Get the currently playing song.
 currentSong :: MPD (Maybe Song)
