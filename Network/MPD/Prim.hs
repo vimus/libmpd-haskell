@@ -147,7 +147,6 @@ connect :: String -> Integer -- host and port
 connect host port hRef =
     withSocketsDo $ do
         closeIO hRef
-        --handle <- connectTo host . PortNumber $ fromInteger port
         handle <- safeConnectTo host port
         writeIORef hRef handle
         maybe (return ()) (\h -> checkConn h >>= flip unless (closeIO hRef))
