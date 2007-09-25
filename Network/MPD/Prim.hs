@@ -28,7 +28,7 @@
 
 module Network.MPD.Prim (
              -- * Data types
-             MPD, ACK(..), ACKType(..), Response,
+             MPD, MPDError(..), ACKType(..), Response,
 
              -- * Running an action
              withMPDEx,
@@ -63,13 +63,15 @@ data Connection = Conn { connHostName :: String
                        , connGetPass  :: IO (Maybe String)
                        }
 
--- | The ACK type is used to signal errors, both from the MPD and otherwise.
-data ACK = NoMPD              -- ^ MPD not responding
-         | TimedOut           -- ^ The connection timed out
-         | Custom String      -- ^ Used for misc. errors
-         | ACK ACKType String -- ^ ACK type and a message from the server.
+-- | The MPDError type is used to signal errors, both from the MPD and
+-- otherwise.
+data MPDError = NoMPD              -- ^ MPD not responding
+              | TimedOut           -- ^ The connection timed out
+              | Custom String      -- ^ Used for misc. errors
+              | ACK ACKType String -- ^ ACK type and a message from the
+                                   --   server.
 
-instance Show ACK where
+instance Show MPDError where
     show NoMPD      = "Could not connect to MPD"
     show TimedOut   = "MPD connection timed out"
     show (Custom s) = s
@@ -91,7 +93,7 @@ data ACKType = InvalidArgument  -- ^ Invalid argument passed (ACK 2)
              | UnknownACK       -- ^ An unknown ACK (aka. bug)
 
 -- | A response is either an ACK or some result.
-type Response a = Either ACK a
+type Response a = Either MPDError a
 
 -- Export the type name but not the constructor or the field.
 --
@@ -113,11 +115,11 @@ instance MonadIO MPD where
     liftIO m = MPD $ \_ -> liftM Right m
 
 -- | Throw an exception.
-throwMPD :: ACK -> MPD ()
+throwMPD :: MPDError -> MPD ()
 throwMPD e = MPD $ \_ -> return (Left e)
 
 -- | Catch an exception from an action.
-catchMPD :: MPD a -> (ACK -> MPD a) -> MPD a
+catchMPD :: MPD a -> (MPDError -> MPD a) -> MPD a
 catchMPD m h = MPD $ \conn ->
     runMPD m conn >>= either (flip runMPD conn . h) (return . Right)
 
@@ -241,7 +243,7 @@ splitAck s = (code, cmd, msg)
           between f g xs  = let (_, y) = break f xs
                             in break g (drop 1 y)
 
-parseAck :: String -> ACK
+parseAck :: String -> MPDError
 parseAck s = ACK ack msg
 
     where
