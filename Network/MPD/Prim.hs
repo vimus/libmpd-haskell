@@ -245,7 +245,6 @@ splitAck s = (code, cmd, msg)
 
 parseAck :: String -> MPDError
 parseAck s = ACK ack msg
-
     where
         ack = case code of
                 "2"  -> InvalidArgument
