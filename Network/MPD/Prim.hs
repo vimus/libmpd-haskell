@@ -227,7 +227,7 @@ foo :: IO (Response a)                                      -- setup
     -> (IO (Response [b]) -> MPDError -> IO (Response [b])) -- handler
     -> IO (Response [b])
 foo sup rdr onErr = start []
-    where start acc = sup >>= either (return . Left) (\x -> readAll x [])
+    where start acc = sup >>= either (return . Left) (\x -> readAll x acc)
           readAll x acc =
               rdr x >>= either (onErr (start acc))
                                (maybe result (\y -> readAll x (y:acc)))
