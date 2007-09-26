@@ -476,6 +476,10 @@ volume = getResponse_ . ("volume " ++) . show
 -- Miscellaneous commands
 --
 
+-- | Clear the current error message in status.
+clearerror :: MPD ()
+clearerror = getResponse "clearerror" >> return ()
+
 -- | Retrieve a list of available commands.
 commands :: MPD [String]
 commands = liftM takeValues (getResponse "commands")

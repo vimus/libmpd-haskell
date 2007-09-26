@@ -37,7 +37,7 @@ module Network.MPD.Prim (
              throwMPD, catchMPD,
 
              -- * Interacting
-             getResponse, clearerror, close, reconnect, kill,
+             getResponse, close, reconnect, kill,
             ) where
 
 import Control.Monad (liftM, unless)
@@ -174,23 +174,14 @@ reconnect = MPD $ \(Conn host port hRef _) -> do
     connect host port hRef
     liftM (maybe (Left NoMPD) (const $ Right ())) (readIORef hRef)
 
--- XXX this doesn't use the password supplying feature.
---
 -- | Kill the server. Obviously, the connection is then invalid.
 kill :: MPD ()
-kill = MPD $ \conn -> do
-    readIORef (connHandle conn) >>=
-        maybe (return ()) (\h -> hPutStrLn h "kill" >> hClose h)
-    writeIORef (connHandle conn) Nothing
-    return (Left NoMPD)
-
--- XXX this doesn't use the password supplying feature.
---
--- | Clear the current error message in status.
-clearerror :: MPD ()
-clearerror = MPD $ \conn -> do
-    readIORef (connHandle conn) >>= maybe (return $ Left NoMPD)
-        (\h -> hPutStrLn h "clearerror" >> hFlush h >> return (Right ()))
+kill = catchMPD (getResponse "kill") cleanup >> return ()
+    where cleanup TimedOut = MPD $ \conn -> do
+              readIORef (connHandle conn) >>= maybe (return ()) hClose
+              writeIORef (connHandle conn) Nothing
+              return (Right [])
+          cleanup x = throwMPD x >> return []
 
 -- | Close an MPD connection.
 close :: MPD ()
@@ -198,36 +189,49 @@ close = MPD $ \conn -> closeIO (connHandle conn) >> return (Right ())
 
 -- | Send a command to the MPD and return the result.
 getResponse :: String -> MPD [String]
-getResponse cmd = MPD $ \conn -> do
-    readIORef (connHandle conn) >>=
-        maybe (return $ Left NoMPD)
-              (\h -> hPutStrLn h cmd >> hFlush h >>
-                     loop h (tryPassword conn (getResponse cmd)) [])
-    where loop h tryPw acc = do
-              getln h (\l -> parseResponse (loop h tryPw) l acc >>= either
-                          (\x -> case x of
-                                      ACK Auth _ -> tryPw
-                                      _          -> return $ Left x)
-                          (return . Right))
-          getln h cont =
-              catch (liftM Right $ hGetLine h) (return . Left) >>=
-                  either (\e -> if isEOFError e then return (Left TimedOut)
-                                                else ioError e)
-                         cont
+getResponse cmd = MPD $ \conn -> foo (sendCmd conn) reader (givePW conn)
+    where sendCmd conn =
+              readIORef (connHandle conn) >>=
+              maybe (return $ Left NoMPD)
+                    (\h -> hPutStrLn h cmd >> hFlush h >> return (Right h))
+          reader h = getLineTO h >>= return . (either Left parseResponse)
+          givePW conn cont (ACK Auth _) = tryPassword conn cont
+          givePW _ _ ack = return (Left ack)
 
--- Send a password to MPD and run an action on success, return an ACK
--- on failure.
-tryPassword :: Connection
-            -> MPD a  -- run on success
-            -> IO (Response a)
-tryPassword conn cont = do
-    readIORef (connHandle conn) >>= maybe (return $ Left NoMPD)
-        (\h -> connGetPass conn >>= maybe (return . Left $
-                                            ACK Auth "Password required")
-                   (\pw -> do hPutStrLn h ("password " ++ pw) >> hFlush h
-                              result <- hGetLine h
-                              case result of "OK" -> runMPD cont conn
-                                             _    -> tryPassword conn cont))
+-- Get a line of text, handling a timed-out connection.
+getLineTO :: Handle -> IO (Response String)
+getLineTO h = catch (liftM Right $ hGetLine h)
+                    (\err -> if isEOFError err then return $ Left TimedOut
+                                               else ioError err)
+
+-- Send a password to MPD and run an action on success.
+tryPassword :: Connection -> IO (Response a) -> IO (Response a)
+tryPassword conn cont =
+    readIORef (connHandle conn) >>= maybe (return $ Left NoMPD) get
+    where
+        get h = connGetPass conn >>=
+                maybe (return . Left $ ACK Auth "Password required") (send h)
+        send h pw = do hPutStrLn h ("password " ++ pw) >> hFlush h
+                       result <- hGetLine h
+                       case result of "OK" -> cont
+                                      _    -> tryPassword conn cont
+
+-- XXX suggestions for names welcome.
+--
+-- Run a setup action before a recurrent reader. If the reader returns
+-- Nothing it has finished reading. If an MPDError is returned a
+-- handler is called with an action that, when invoked, will run the
+-- setup action again and continue.
+foo :: IO (Response a)                                      -- setup
+    -> (a -> IO (Response (Maybe b)))                       -- reader
+    -> (IO (Response [b]) -> MPDError -> IO (Response [b])) -- handler
+    -> IO (Response [b])
+foo sup rdr onErr = start []
+    where start acc = sup >>= either (return . Left) (\x -> readAll x [])
+          readAll x acc =
+              rdr x >>= either (onErr (start acc))
+                               (maybe result (\y -> readAll x (y:acc)))
+              where result = return $ Right (reverse acc)
 
 -- Break an ACK into (error code, current command, message).
 -- ACKs are of the form:
@@ -261,9 +265,7 @@ parseAck s = ACK ack msg
         (code, _, msg) = splitAck s
 
 -- Consume response and return a Response.
-parseResponse :: ([String] -> IO (Response [String])) -> String -> [String]
-              -> IO (Response [String])
-parseResponse f s acc
-    | isPrefixOf "ACK" s = return . Left $ parseAck s
-    | isPrefixOf "OK" s  = return . Right $ reverse acc
-    | otherwise          = f (s:acc)
+parseResponse :: String -> Response (Maybe String)
+parseResponse s | isPrefixOf "ACK" s = Left  $ parseAck s
+                | isPrefixOf "OK" s  = Right Nothing
+                | otherwise          = Right $ Just s
