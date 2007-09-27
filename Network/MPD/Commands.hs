@@ -478,7 +478,7 @@ volume = getResponse_ . ("volume " ++) . show
 
 -- | Clear the current error message in status.
 clearerror :: MPD ()
-clearerror = getResponse "clearerror" >> return ()
+clearerror = getResponse_ "clearerror"
 
 -- | Retrieve a list of available commands.
 commands :: MPD [String]
