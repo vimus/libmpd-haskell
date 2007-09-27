@@ -27,18 +27,18 @@
 -- Core functionality.
 
 module Network.MPD.Prim (
-             -- * Data types
-             MPD, MPDError(..), ACKType(..), Response,
+    -- * Data types
+    MPD, MPDError(..), ACKType(..), Response,
 
-             -- * Running an action
-             withMPDEx,
+    -- * Running an action
+    withMPDEx,
 
-             -- * Errors
-             throwMPD, catchMPD,
+    -- * Errors
+    throwMPD, catchMPD,
 
-             -- * Interacting
-             getResponse, close, reconnect, kill,
-            ) where
+    -- * Interacting
+    getResponse, close, reconnect, kill,
+    ) where
 
 import Control.Monad (liftM, unless)
 import Control.Exception (finally)
