@@ -233,18 +233,11 @@ foo sup rdr onErr = start []
                                (maybe result (\y -> readAll x (y:acc)))
               where result = return $ Right (reverse acc)
 
--- Break an ACK into (error code, current command, message).
--- ACKs are of the form:
--- ACK [error@command_listNum] {current_command} message_text\n
-splitAck :: String -> (String, String, String)
-splitAck s = (code, cmd, msg)
-    where (code, notCode) = between (== '[') (== '@') s
-          (cmd, notCmd)   = between (== '{') (== '}') notCode
-          msg             = drop 1 . snd $ break (== ' ') notCmd
-
-          -- take whatever is between 'f' and 'g'.
-          between f g xs  = let (_, y) = break f xs
-                            in break g (drop 1 y)
+-- Consume response and return a Response.
+parseResponse :: String -> Response (Maybe String)
+parseResponse s | isPrefixOf "ACK" s = Left  $ parseAck s
+                | isPrefixOf "OK" s  = Right Nothing
+                | otherwise          = Right $ Just s
 
 parseAck :: String -> MPDError
 parseAck s = ACK ack msg
@@ -264,8 +257,15 @@ parseAck s = ACK ack msg
                 _    -> UnknownACK
         (code, _, msg) = splitAck s
 
--- Consume response and return a Response.
-parseResponse :: String -> Response (Maybe String)
-parseResponse s | isPrefixOf "ACK" s = Left  $ parseAck s
-                | isPrefixOf "OK" s  = Right Nothing
-                | otherwise          = Right $ Just s
+-- Break an ACK into (error code, current command, message).
+-- ACKs are of the form:
+-- ACK [error@command_listNum] {current_command} message_text\n
+splitAck :: String -> (String, String, String)
+splitAck s = (code, cmd, msg)
+    where (code, notCode) = between (== '[') (== '@') s
+          (cmd, notCmd)   = between (== '{') (== '}') notCode
+          msg             = drop 1 . snd $ break (== ' ') notCmd
+
+          -- take whatever is between 'f' and 'g'.
+          between f g xs  = let (_, y) = break f xs
+                            in break g (drop 1 y)
