@@ -307,7 +307,7 @@ delete Nothing (Pos x) = getResponse_ ("delete " ++ show x)
 delete Nothing (ID x) = getResponse_ ("deleteid " ++ show x)
 delete (Just plname) (Pos x) =
     getResponse_ ("playlistdelete " ++ show plname ++ " " ++ show x)
-delete _ _ = return ()
+delete _ _ = fail "'delete' within a playlist doesn't accept a playlist ID"
 
 -- | Load an existing playlist.
 load :: String -> MPD ()
@@ -325,7 +325,7 @@ move Nothing (ID from) to =
 move (Just plname) (Pos from) to =
     getResponse_ ("playlistmove " ++ show plname ++ " " ++ show from ++
                        " " ++ show to)
-move _ _ _ = return ()
+move _ _ _ = fail "'move' within a playlist doesn't accept a playlist ID"
 
 -- | Delete existing playlist.
 rm :: String -> MPD ()
@@ -348,7 +348,7 @@ save = getResponse_ . ("save " ++) . show
 swap :: PLIndex -> PLIndex -> MPD ()
 swap (Pos x) (Pos y) = getResponse_ ("swap "   ++ show x ++ " " ++ show y)
 swap (ID x)  (ID y)  = getResponse_ ("swapid " ++ show x ++ " " ++ show y)
-swap _ _ = return ()
+swap _ _ = fail "'swap' cannot mix position and ID arguments"
 
 -- | Shuffle the playlist.
 shuffle :: MPD ()
