@@ -189,7 +189,7 @@ close = MPD $ \conn -> closeIO (connHandle conn) >> return (Right ())
 
 -- | Send a command to the MPD and return the result.
 getResponse :: String -> MPD [String]
-getResponse cmd = MPD $ \conn -> foo (sendCmd conn) reader (givePW conn)
+getResponse cmd = MPD $ \conn -> respRead (sendCmd conn) reader (givePW conn)
     where sendCmd conn =
               readIORef (connHandle conn) >>=
               maybe (return $ Left NoMPD)
@@ -222,11 +222,11 @@ tryPassword conn cont =
 -- Nothing it has finished reading. If an MPDError is returned a
 -- handler is called with an action that, when invoked, will run the
 -- setup action again and continue.
-foo :: IO (Response a)                                      -- setup
-    -> (a -> IO (Response (Maybe b)))                       -- reader
-    -> (IO (Response [b]) -> MPDError -> IO (Response [b])) -- handler
-    -> IO (Response [b])
-foo sup rdr onErr = start []
+respRead :: IO (Response a)                                      -- setup
+         -> (a -> IO (Response (Maybe b)))                       -- reader
+         -> (IO (Response [b]) -> MPDError -> IO (Response [b])) -- handler
+         -> IO (Response [b])
+respRead sup rdr onErr = start []
     where start acc = sup >>= either (return . Left) (\x -> readAll x acc)
           readAll x acc =
               rdr x >>= either (onErr (start acc))
