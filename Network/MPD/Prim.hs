@@ -123,11 +123,9 @@ catchMPD :: MPD a -> (MPDError -> MPD a) -> MPD a
 catchMPD m h = MPD $ \conn ->
     runMPD m conn >>= either (flip runMPD conn . h) (return . Right)
 
-{-
 --
 -- Basic connection functions
 --
--}
 
 -- | Run an MPD action against a server.
 withMPDEx :: String            -- ^ Host name.
