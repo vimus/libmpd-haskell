@@ -11,7 +11,7 @@ Synopsis:           An MPD client library.
 Category:           Network, Sound
 Tested-With:        GHC == 6.5, GHC == 6.6.1, Hugs == 2006.9
 Build-Depends:      base, network, mtl
-Extra-Source-Files: TODO README
+Extra-Source-Files: TODO README ChangeLog
 Exposed-Modules:    Network.MPD
 Other-Modules:      Network.MPD.Prim, Network.MPD.Commands
 ghc-options:        -Wall -O2
