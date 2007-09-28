@@ -222,10 +222,10 @@ tryPassword conn cont =
 -- Nothing it has finished reading. If an MPDError is returned a
 -- handler is called with an action that, when invoked, will run the
 -- setup action again and continue.
-respRead :: IO (Response a)                                      -- setup
-         -> (a -> IO (Response (Maybe b)))                       -- reader
-         -> (IO (Response [b]) -> MPDError -> IO (Response [b])) -- handler
-         -> IO (Response [b])
+respRead :: IO (Either e a)                               -- setup
+         -> (a -> IO (Either e (Maybe b)))                -- reader
+         -> (IO (Either e [b]) -> e -> IO (Either e [b])) -- handler
+         -> IO (Either e [b])
 respRead sup rdr onErr = start []
     where start acc = sup >>= either (return . Left) (\x -> readAll x acc)
           readAll x acc =
