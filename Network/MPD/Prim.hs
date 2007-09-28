@@ -219,9 +219,9 @@ tryPassword conn cont =
 -- XXX suggestions for names welcome.
 --
 -- Run a setup action before a recurrent reader. If the reader returns
--- Nothing it has finished reading. If an MPDError is returned a
--- handler is called with an action that, when invoked, will run the
--- setup action again and continue.
+-- Nothing it has finished reading. If an error is returned a handler
+-- is called with an action that, when invoked, will run the setup
+-- action again and continue.
 respRead :: IO (Either e a)                               -- setup
          -> (a -> IO (Either e (Maybe b)))                -- reader
          -> (IO (Either e [b]) -> e -> IO (Either e [b])) -- handler
