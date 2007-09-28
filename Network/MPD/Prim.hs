@@ -176,7 +176,7 @@ reconnect = MPD $ \(Conn host port hRef _) -> do
 
 -- | Kill the server. Obviously, the connection is then invalid.
 kill :: MPD ()
-kill = catchMPD (getResponse "kill") cleanup >> return ()
+kill = getResponse "kill" `catchMPD` cleanup >> return ()
     where cleanup TimedOut = MPD $ \conn -> do
               readIORef (connHandle conn) >>= maybe (return ()) hClose
               writeIORef (connHandle conn) Nothing
