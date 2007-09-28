@@ -4,14 +4,15 @@ License:         LGPL
 License-file:    LICENSE
 Copyright:       Ben Sinclair 2005-2007
 Author:          Ben Sinclair
-Maintainer:      bsinclai@turing.une.edu.au
-Stability:       alpha
-Homepage:        http://turing.une.edu.au/~bsinclai/code/libmpd-haskell.html
-Synopsis:        An MPD client library.
-Category:        Network, Sound
-Tested-With:     GHC == 6.5, GHC == 6.6.1, Hugs == 2006.9
-Build-Depends:   base, network, mtl
-Exposed-Modules: Network.MPD
-Other-Modules:   Network.MPD.Prim, Network.MPD.Commands
-ghc-options:     -Wall -O2
-ghc-prof-options: -auto-all -prof
+Maintainer:         bsinclai@turing.une.edu.au
+Stability:          alpha
+Homepage:           http://turing.une.edu.au/~bsinclai/code/libmpd-haskell.html
+Synopsis:           An MPD client library.
+Category:           Network, Sound
+Tested-With:        GHC == 6.5, GHC == 6.6.1, Hugs == 2006.9
+Build-Depends:      base, network, mtl
+Extra-Source-Files: TODO README
+Exposed-Modules:    Network.MPD
+Other-Modules:      Network.MPD.Prim, Network.MPD.Commands
+ghc-options:        -Wall -O2
+ghc-prof-options:   -auto-all -prof
