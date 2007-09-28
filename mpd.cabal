@@ -1,9 +1,9 @@
-Name:            mpd
-Version:         0.1
-License:         LGPL
-License-file:    LICENSE
-Copyright:       Ben Sinclair 2005-2007
-Author:          Ben Sinclair
+Name:               mpd
+Version:            0.1
+License:            LGPL
+License-file:       LICENSE
+Copyright:          Ben Sinclair 2005-2007
+Author:             Ben Sinclair
 Maintainer:         bsinclai@turing.une.edu.au
 Stability:          alpha
 Homepage:           http://turing.une.edu.au/~bsinclai/code/libmpd-haskell.html
