@@ -1,6 +1,6 @@
 
-           libmpd-haskell : An MPD client library for Haskell
-         ------------------------------------------------------
+              libmpd : An MPD client library for Haskell
+             --------------------------------------------
 
 Dependencies:
     The Glasgow Haskell Compiler >= 6.4       http://haskell.org/ghc
@@ -18,16 +18,16 @@ Building:
     default with newer GHCs.
 
 Use:
-    Import the MPD module and specify the mpd package (-package mpd)
-    when compiling, or add it to the `Build-Depends' list in your
-    `_.cabal' file.
+    Import the Network.MPD module and specify the libmpd package
+    (-package libmpd) when compiling, or add it to the `Build-Depends'
+    list in your `_.cabal' file.
 
 Limitations:
     Most of the API is complete, but some parts, most notably parsing, are
     not yet as good as they could be.
 
 Platforms:
-    libmpd-haskell has been confirmed to work on:
+    libmpd has been confirmed to work on:
         Linux/x86
     Seems to work on Windows XP as well, but there is no MPD support for
     that platform.
