@@ -559,11 +559,8 @@ updateid paths = liftM (read . head . takeValues) cmd
 
 -- | Toggles play\/pause. Plays if stopped.
 toggle :: MPD ()
-toggle = do
-    st <- status
-    case stState st of
-         Playing -> pause True
-         _       -> play Nothing
+toggle = status >>= \st -> case stState st of Playing -> pause True
+                                              _       -> play Nothing
 
 -- | Add a list of songs\/folders to a playlist.
 -- Should be more efficient than running 'add' many times.
