@@ -204,7 +204,7 @@ enableoutput = getResponse_ . ("enableoutput " ++) . show
 
 -- | Retrieve information for all output devices.
 outputs :: MPD [Device]
-outputs = liftM (map takeDevInfo . splitGroups . kvise)
+outputs = liftM (map takeDevInfo . splitGroups . toAssoc)
     (getResponse "outputs")
     where
         takeDevInfo xs = Device {
@@ -240,7 +240,7 @@ lsinfo path = do
 
 -- | List the songs (without metadata) in a database directory recursively.
 listAll :: Maybe String -> MPD [String]
-listAll path = liftM (map snd . filter ((== "file") . fst) . kvise)
+listAll path = liftM (map snd . filter ((== "file") . fst) . toAssoc)
                      (getResponse ("listall " ++ maybe "" show path))
 
 -- | Recursive 'lsinfo'.
@@ -261,7 +261,7 @@ search query = liftM takeSongs (getResponse ("search " ++ show query))
 
 -- | Count the number of entries matching a query.
 count :: Query -> MPD Count
-count query = liftM (takeCountInfo . kvise)
+count query = liftM (takeCountInfo . toAssoc)
                     (getResponse ("count " ++ show query))
     where takeCountInfo xs = Count { cSongs    = takeNum "songs" xs,
                                      cPlaytime = takeNum "playtime" xs }
@@ -276,7 +276,7 @@ count query = liftM (takeCountInfo . kvise)
 -- | Like 'add', but returns a playlist id.
 addid :: String -> MPD Integer
 addid x =
-    liftM (read . snd . head . kvise) (getResponse ("addid " ++ show x))
+    liftM (read . snd . head . toAssoc) (getResponse ("addid " ++ show x))
 
 -- | Like 'add_' but returns a list of the files added.
 add :: Maybe String -> String -> MPD [String]
@@ -388,7 +388,7 @@ plchanges = liftM takeSongs . getResponse . ("plchanges " ++) . show
 -- | Like 'plchanges' but only returns positions and ids.
 plchangesposid :: Integer -> MPD [(PLIndex, PLIndex)]
 plchangesposid plver =
-    liftM (map takePosid . splitGroups . kvise) (getResponse cmd)
+    liftM (map takePosid . splitGroups . toAssoc) (getResponse cmd)
     where cmd          = "plchangesposid " ++ show plver
           takePosid xs = (Pos $ takeNum "cpos" xs, ID $ takeNum "Id" xs)
 
@@ -407,7 +407,7 @@ currentSong = do
     currStatus <- status
     if stState currStatus == Stopped
         then return Nothing
-        else do ls <- liftM kvise (getResponse "currentsong")
+        else do ls <- liftM toAssoc (getResponse "currentsong")
                 return $ if null ls then Nothing
                                     else Just (takeSongInfo ls)
 
@@ -508,7 +508,7 @@ ping = getResponse_ "ping"
 
 -- | Get server statistics.
 stats :: MPD Stats
-stats = liftM (parseStats . kvise) (getResponse "stats")
+stats = liftM (parseStats . toAssoc) (getResponse "stats")
     where parseStats xs =
                 Stats { stsArtists = takeNum "artists" xs,
                         stsAlbums = takeNum "albums" xs,
@@ -520,7 +520,7 @@ stats = liftM (parseStats . kvise) (getResponse "stats")
 
 -- | Get the server's status.
 status :: MPD Status
-status = liftM (parseStatus . kvise) (getResponse "status")
+status = liftM (parseStatus . toAssoc) (getResponse "status")
     where parseStatus xs =
               Status { stState = maybe Stopped parseState $ lookup "state" xs,
                      stVolume = takeNum "volume" xs,
@@ -690,8 +690,8 @@ getResponses cmds = getResponse (concat . intersperse "\n" $ cmds')
 
 -- Break up a list of strings into an assoc. list, separating at
 -- the first ':'.
-kvise :: [String] -> [(String, String)]
-kvise = map f
+toAssoc :: [String] -> [(String, String)]
+toAssoc = map f
     where f x = let (k,v) = break (== ':') x in
                 (k,dropWhile (== ' ') $ drop 1 v)
 
@@ -707,23 +707,23 @@ splitGroups [] = []
 splitGroups (x:xs) = ((x:us):splitGroups vs)
     where (us,vs) = break (\y -> fst x == fst y) xs
 
--- Run 'kvise' and return only the values.
+-- Run 'toAssoc' and return only the values.
 takeValues :: [String] -> [String]
-takeValues = snd . unzip . kvise
+takeValues = snd . unzip . toAssoc
 
 -- Separate the result of an lsinfo\/listallinfo call into directories,
 -- playlists, and songs.
 takeEntries :: [String] -> ([String], [String], [Song])
 takeEntries s =
     (dirs, playlists, map takeSongInfo . splitGroups $ reverse filedata)
-    where (dirs, playlists, filedata) = foldl split ([], [], []) $ kvise s
+    where (dirs, playlists, filedata) = foldl split ([], [], []) $ toAssoc s
           split (ds, pls, ss) x@(k, v) | k == "directory" = (v:ds, pls, ss)
                                        | k == "playlist"  = (ds, v:pls, ss)
                                        | otherwise        = (ds, pls, x:ss)
 
 -- Build a list of song instances from a response.
 takeSongs :: [String] -> [Song]
-takeSongs = map takeSongInfo . splitGroups . kvise
+takeSongs = map takeSongInfo . splitGroups . toAssoc
 
 -- Builds a song instance from an assoc. list.
 takeSongInfo :: [(String,String)] -> Song
