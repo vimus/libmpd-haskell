@@ -55,8 +55,10 @@ import System.IO.Error (isEOFError)
 -- Data types.
 --
 
+-- The field names should not be exported.
+-- The accessors 'connPortNum' and 'connHandle' are not used, though
+-- the fields are used (see 'reconnect').
 -- | A connection to an MPD server.
--- don't export the field names.
 data Connection = Conn { connHostName :: String
                        , connPortNum  :: Integer
                        , connHandle   :: IORef (Maybe Handle)
