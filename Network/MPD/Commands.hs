@@ -65,7 +65,7 @@ import Network.MPD.Prim
 
 import Control.Monad (liftM, unless)
 import Prelude hiding (repeat)
-import Data.List (findIndex)
+import Data.List (findIndex, intersperse)
 import Data.Maybe
 
 --
