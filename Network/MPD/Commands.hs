@@ -97,6 +97,14 @@ instance Show Meta where
     show Filename  = "Filename"
 
 -- | A query is composed of a scope modifier and a query string.
+--
+-- To match entries where album equals \"Foo\", use:
+--
+-- > Query Album "Foo"
+--
+-- To match entries where album equals \"Foo\" and artist equals \"Bar\", use:
+--
+-- > MultiQuery [Query Album "Foo", Query Artist "Bar"]
 data Query = Query Meta String  -- ^ Simple query.
            | MultiQuery [Query] -- ^ Query with multiple conditions.
 
