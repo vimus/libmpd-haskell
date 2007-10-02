@@ -98,6 +98,14 @@ type Response a = Either MPDError a
 
 -- Export the type name but not the constructor or the field.
 -- | The MPD monad is basically a state and an error monad combined.
+--
+-- To use the error throwing\/catching capabilities:
+--
+-- > import Control.Monad.Error
+--
+-- To run IO actions within MPD:
+--
+-- > import Control.Monad.Trans
 newtype MPD a = MPD { runMPD :: Connection -> IO (Response a) }
 
 instance Functor MPD where
