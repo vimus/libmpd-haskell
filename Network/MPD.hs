@@ -33,7 +33,7 @@ module Network.MPD (
     -- * Connections
     withMPD, withMPDEx,
     -- * Misc.
-    kill, throwMPD, catchMPD
+    kill
     ) where
 
 import Network.MPD.Commands

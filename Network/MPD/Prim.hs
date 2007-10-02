@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-
     libmpd for Haskell, an MPD client library.
     Copyright (C) 2005-2007  Ben Sinclair <bsinclai@turing.une.edu.au>
@@ -22,7 +23,7 @@
 -- License     : LGPL
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
--- Portability : Haskell 98
+-- Portability : not Haskell 98 (uses MultiParamTypeClasses)
 --
 -- Core functionality.
 
@@ -33,15 +34,13 @@ module Network.MPD.Prim (
     -- * Running an action
     withMPDEx,
 
-    -- * Errors
-    throwMPD, catchMPD,
-
     -- * Interacting
     getResponse, close, reconnect, kill,
     ) where
 
 import Control.Monad (liftM, unless)
 import Control.Exception (finally)
+import Control.Monad.Error (MonadError(..))
 import Control.Monad.Trans
 import Prelude hiding (repeat)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
@@ -116,14 +115,10 @@ instance Monad MPD where
 instance MonadIO MPD where
     liftIO m = MPD $ \_ -> liftM Right m
 
--- | Throw an exception.
-throwMPD :: MPDError -> MPD ()
-throwMPD e = MPD $ \_ -> return (Left e)
-
--- | Catch an exception from an action.
-catchMPD :: MPD a -> (MPDError -> MPD a) -> MPD a
-catchMPD m h = MPD $ \conn ->
-    runMPD m conn >>= either (flip runMPD conn . h) (return . Right)
+instance MonadError MPDError MPD where
+    throwError e   = MPD $ \_ -> return (Left e)
+    catchError m h = MPD $ \conn ->
+        runMPD m conn >>= either (flip runMPD conn . h) (return . Right)
 
 --
 -- Basic connection functions
@@ -176,12 +171,12 @@ reconnect = MPD $ \(Conn host port hRef _) -> do
 
 -- | Kill the server. Obviously, the connection is then invalid.
 kill :: MPD ()
-kill = getResponse "kill" `catchMPD` cleanup >> return ()
+kill = getResponse "kill" `catchError` cleanup >> return ()
     where cleanup TimedOut = MPD $ \conn -> do
               readIORef (connHandle conn) >>= maybe (return ()) hClose
               writeIORef (connHandle conn) Nothing
               return (Right [])
-          cleanup x = throwMPD x >> return []
+          cleanup x = throwError x >> return []
 
 -- | Close an MPD connection.
 close :: MPD ()
