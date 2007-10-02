@@ -231,7 +231,7 @@ respRead sup rdr onErr = start []
           readAll x acc =
               rdr x >>= either (onErr (start acc))
                                (maybe result (\y -> readAll x (y:acc)))
-              where result = return $ Right (reverse acc)
+              where result = return . Right $ reverse acc
 
 -- Consume response and return a Response.
 parseResponse :: String -> Response (Maybe String)
