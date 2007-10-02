@@ -97,10 +97,7 @@ data ACKType = InvalidArgument  -- ^ Invalid argument passed (ACK 2)
 type Response a = Either MPDError a
 
 -- Export the type name but not the constructor or the field.
---
--- This is basically a state and an error monad combined. It's just
--- nice if we can have a few custom functions that fiddle with the
--- internals.
+-- | The MPD monad is basically a state and an error monad combined.
 newtype MPD a = MPD { runMPD :: Connection -> IO (Response a) }
 
 instance Functor MPD where
