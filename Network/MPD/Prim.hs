@@ -40,7 +40,7 @@ module Network.MPD.Prim (
 
 import Control.Monad (liftM, unless)
 import Control.Exception (finally)
-import Control.Monad.Error (MonadError(..))
+import Control.Monad.Error (Error(..), MonadError(..))
 import Control.Monad.Trans
 import Prelude hiding (repeat)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
@@ -119,6 +119,10 @@ instance MonadError MPDError MPD where
     throwError e   = MPD $ \_ -> return (Left e)
     catchError m h = MPD $ \conn ->
         runMPD m conn >>= either (flip runMPD conn . h) (return . Right)
+
+instance Error MPDError where
+    noMsg  = Custom "An error occurred"
+    strMsg = Custom
 
 --
 -- Basic connection functions
