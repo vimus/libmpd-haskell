@@ -107,7 +107,7 @@ instance Functor MPD where
     fmap f m = MPD $ \conn -> either Left (Right . f) `liftM` runMPD m conn
 
 instance Monad MPD where
-    return a = MPD $ \_ -> return (Right a)
+    return a = MPD $ \_ -> return $ Right a
     m >>= f  = MPD $ \conn -> runMPD m conn >>=
                               either (return . Left) (flip runMPD conn . f)
     fail err = MPD $ \_ -> return . Left $ Custom err
