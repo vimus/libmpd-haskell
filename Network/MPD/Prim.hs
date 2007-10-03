@@ -158,7 +158,7 @@ connect host port hRef =
 
 safeConnectTo :: String -> Integer -> IO (Maybe Handle)
 safeConnectTo host port =
-    catch (liftM Just $ connectTo host (PortNumber $ fromInteger port))
+    catch (liftM Just . connectTo host . PortNumber $ fromInteger port)
           (const $ return Nothing)
 
 -- Check that an MPD daemon is at the other end of a connection.
