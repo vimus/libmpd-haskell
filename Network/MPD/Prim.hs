@@ -192,6 +192,10 @@ kill = getResponse "kill" `catchError` cleanup >> return ()
 close :: MPD ()
 close = MPD $ \conn -> closeIO (connHandle conn) >> return (Right ())
 
+--
+-- Sending messages and handling responses.
+--
+
 -- | Send a command to the MPD and return the result.
 getResponse :: String -> MPD [String]
 getResponse cmd = MPD $ \conn -> respRead (sendCmd conn) reader (givePW conn)
