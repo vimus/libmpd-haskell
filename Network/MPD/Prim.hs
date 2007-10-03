@@ -239,9 +239,9 @@ respRead sup rdr onErr = start []
 
 -- Consume response and return a Response.
 parseResponse :: String -> Response (Maybe String)
-parseResponse s | isPrefixOf "ACK" s = Left  $ parseAck s
-                | isPrefixOf "OK" s  = Right Nothing
-                | otherwise          = Right $ Just s
+parseResponse s | isPrefixOf "ACK" s = Left  $ parseAck s -- an error occurred
+                | isPrefixOf "OK" s  = Right Nothing      -- done parsing
+                | otherwise          = Right $ Just s     -- continue
 
 parseAck :: String -> MPDError
 parseAck s = ACK ack msg
