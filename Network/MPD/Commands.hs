@@ -695,24 +695,9 @@ getResponses :: [String] -> MPD [String]
 getResponses cmds = getResponse (concat . intersperse "\n" $ cmds')
     where cmds' = "command_list_begin" : cmds ++ ["command_list_end"]
 
--- Break up a list of strings into an assoc. list, separating at
--- the first ':'.
-toAssoc :: [String] -> [(String, String)]
-toAssoc = map f
-    where f x = let (k,v) = break (== ':') x in
-                (k,dropWhile (== ' ') $ drop 1 v)
-
--- Takes an assoc. list with recurring keys, and groups each cycle of
--- keys with their values together. The first key of each cycle needs
--- to be present in every cycle for it to work, but the rest don't
--- affect anything.
 --
--- > splitGroups [(1,'a'),(2,'b'),(1,'c'),(2,'d')] ==
--- >     [[(1,'a'),(2,'b')],[(1,'c'),(2,'d')]]
-splitGroups :: Eq a => [(a, b)] -> [[(a, b)]]
-splitGroups [] = []
-splitGroups (x:xs) = ((x:us):splitGroups vs)
-    where (us,vs) = break (\y -> fst x == fst y) xs
+-- Parsing.
+--
 
 -- Run 'toAssoc' and return only the values.
 takeValues :: [String] -> [String]
@@ -777,3 +762,22 @@ showBool x = if x then "1" else "0"
 -- Parse a boolean response value.
 parseBool :: String -> Bool
 parseBool = (== "1") . take 1
+
+-- Break up a list of strings into an assoc. list, separating at
+-- the first ':'.
+toAssoc :: [String] -> [(String, String)]
+toAssoc = map f
+    where f x = let (k,v) = break (== ':') x in
+                (k,dropWhile (== ' ') $ drop 1 v)
+
+-- Takes an assoc. list with recurring keys, and groups each cycle of
+-- keys with their values together. The first key of each cycle needs
+-- to be present in every cycle for it to work, but the rest don't
+-- affect anything.
+--
+-- > splitGroups [(1,'a'),(2,'b'),(1,'c'),(2,'d')] ==
+-- >     [[(1,'a'),(2,'b')],[(1,'c'),(2,'d')]]
+splitGroups :: Eq a => [(a, b)] -> [[(a, b)]]
+splitGroups [] = []
+splitGroups (x:xs) = ((x:us):splitGroups vs)
+    where (us,vs) = break (\y -> fst x == fst y) xs
