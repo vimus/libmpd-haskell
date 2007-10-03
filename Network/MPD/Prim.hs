@@ -156,6 +156,7 @@ connect host port hRef =
         maybe (return ()) (\h -> checkConn h >>= flip unless (closeIO hRef))
               handle
 
+-- A wrapper around 'connectTo' that handles connection failures.
 safeConnectTo :: String -> Integer -> IO (Maybe Handle)
 safeConnectTo host port =
     catch (liftM Just . connectTo host . PortNumber $ fromInteger port)
