@@ -531,20 +531,19 @@ status :: MPD Status
 status = liftM (parseStatus . toAssoc) (getResponse "status")
     where parseStatus xs =
               Status { stState = maybe Stopped parseState $ lookup "state" xs,
-                     stVolume = takeNum "volume" xs,
-                     stRepeat = takeBool "repeat" xs,
-                     stRandom = takeBool "random" xs,
-                     stPlaylistVersion = takeNum "playlist" xs,
-                     stPlaylistLength = takeNum "playlistlength" xs,
-                     stXFadeWidth = takeNum "xfade" xs,
-                     stSongPos = takeIndex Pos "song" xs,
-                     stSongID = takeIndex ID "songid" xs,
-                     stTime = maybe (0,0) parseTime $ lookup "time" xs,
-                     stBitrate = takeNum "bitrate" xs,
-                     stAudio = maybe (0,0,0) parseAudio $ lookup "audio" xs,
-                     stUpdatingDb = takeNum "updating_db" xs,
-                     stError = takeString "error" xs
-                   }
+                       stVolume = takeNum "volume" xs,
+                       stRepeat = takeBool "repeat" xs,
+                       stRandom = takeBool "random" xs,
+                       stPlaylistVersion = takeNum "playlist" xs,
+                       stPlaylistLength = takeNum "playlistlength" xs,
+                       stXFadeWidth = takeNum "xfade" xs,
+                       stSongPos = takeIndex Pos "song" xs,
+                       stSongID = takeIndex ID "songid" xs,
+                       stTime = maybe (0,0) parseTime $ lookup "time" xs,
+                       stBitrate = takeNum "bitrate" xs,
+                       stAudio = maybe (0,0,0) parseAudio $ lookup "audio" xs,
+                       stUpdatingDb = takeNum "updating_db" xs,
+                       stError = takeString "error" xs }
           parseState x = case x of "play"  -> Playing
                                    "pause" -> Paused
                                    _       -> Stopped
@@ -736,21 +735,19 @@ takeSongs = map takeSongInfo . splitGroups . toAssoc
 -- Builds a song instance from an assoc. list.
 takeSongInfo :: [(String,String)] -> Song
 takeSongInfo xs =
-    Song {
-          sgArtist    = takeString "Artist" xs,
-          sgAlbum     = takeString "Album" xs,
-          sgTitle     = takeString "Title" xs,
-          sgGenre     = takeString "Genre" xs,
-          sgName      = takeString "Name" xs,
-          sgComposer  = takeString "Composer" xs,
-          sgPerformer = takeString "Performer" xs,
-          sgDate      = takeNum "Date" xs,
-          sgTrack     = maybe (0, 0) parseTrack $ lookup "Track" xs,
-          sgDisc      = maybe (0, 0) parseTrack $ lookup "Disc" xs,
-          sgFilePath  = takeString "file" xs,
-          sgLength    = takeNum "Time" xs,
-          sgIndex     = takeIndex ID "Id" xs
-         }
+    Song { sgArtist    = takeString "Artist" xs,
+           sgAlbum     = takeString "Album" xs,
+           sgTitle     = takeString "Title" xs,
+           sgGenre     = takeString "Genre" xs,
+           sgName      = takeString "Name" xs,
+           sgComposer  = takeString "Composer" xs,
+           sgPerformer = takeString "Performer" xs,
+           sgDate      = takeNum "Date" xs,
+           sgTrack     = maybe (0, 0) parseTrack $ lookup "Track" xs,
+           sgDisc      = maybe (0, 0) parseTrack $ lookup "Disc" xs,
+           sgFilePath  = takeString "file" xs,
+           sgLength    = takeNum "Time" xs,
+           sgIndex     = takeIndex ID "Id" xs }
     where parseTrack x = let (trck, tot) = break (== '/') x
                          in (read trck, parseNum (drop 1 tot))
 
