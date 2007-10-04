@@ -468,7 +468,7 @@ random = getResponse_ . ("random " ++) . showBool
 repeat :: Bool -> MPD ()
 repeat = getResponse_ . ("repeat " ++) . showBool
 
--- | Set the volume.
+-- | Set the volume (0-100 percent).
 setVolume :: Int -> MPD ()
 setVolume = getResponse_ . ("setvol " ++) . show
 
