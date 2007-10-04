@@ -476,7 +476,7 @@ setVolume = getResponse_ . ("setvol " ++) . show
 -- 'volume 10' will increase the volume by 10 percent, while
 -- 'volume (-10)' will decrease it by the same amount.
 -- Note that this command is only included for completeness sake ; it's
--- deprecated and may disappear at any time.
+-- deprecated and may disappear at any time, please use 'setVolume' instead.
 volume :: Int -> MPD ()
 volume = getResponse_ . ("volume " ++) . show
 
