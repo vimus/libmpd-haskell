@@ -32,8 +32,6 @@ module Network.MPD (
     module Network.MPD.Commands,
     -- * Connections
     withMPD, withMPDEx,
-    -- * Misc.
-    kill
     ) where
 
 import Network.MPD.Commands

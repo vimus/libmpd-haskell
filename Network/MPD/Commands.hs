@@ -35,7 +35,7 @@ module Network.MPD.Commands (
     Song(..), Count(..),
 
     -- * Admin commands
-    disableOutput, enableOutput, outputs, update,
+    disableOutput, enableOutput, kill, outputs, update,
 
     -- * Database commands
     find, list, listAll, listAllInfo, lsInfo, search, count,
