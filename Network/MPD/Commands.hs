@@ -363,8 +363,7 @@ shuffle :: MPD ()
 shuffle = getResponse_ "shuffle"
 
 -- | Retrieve metadata for songs in the current playlist.
-playlistInfo :: Maybe PLIndex   -- ^ Optional playlist index.
-             -> MPD [Song]
+playlistInfo :: Maybe PLIndex -> MPD [Song]
 playlistInfo x = liftM takeSongs (getResponse cmd)
     where cmd = case x of
                     Just (Pos x') -> "playlistinfo " ++ show x'
