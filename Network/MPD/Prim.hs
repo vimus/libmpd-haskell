@@ -93,7 +93,7 @@ data ACKType = InvalidArgument  -- ^ Invalid argument passed (ACK 2)
              | FileExists       -- ^ File already exists (ACK 56)
              | UnknownACK       -- ^ An unknown ACK (aka. bug)
 
--- | A response is either an ACK or some result.
+-- | A response is either an 'MPDError' or some result.
 type Response a = Either MPDError a
 
 -- Export the type name but not the constructor or the field.
