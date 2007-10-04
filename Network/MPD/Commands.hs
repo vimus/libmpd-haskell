@@ -31,8 +31,8 @@ module Network.MPD.Commands (
     State(..), Status(..), Stats(..),
     Device(..),
     Query(..), Meta(..),
-    Artist, Album, Title, Seconds, PLIndex(..),
-    Song(..), Count(..),
+    Artist, Album, Title, Seconds, PlaylistName,
+    PLIndex(..), Song(..), Count(..),
 
     -- * Admin commands
     disableOutput, enableOutput, kill, outputs, update,
@@ -72,10 +72,11 @@ import Data.Maybe
 -- Data types
 --
 
-type Artist  = String
-type Album   = String
-type Title   = String
-type Seconds = Integer
+type Artist       = String
+type Album        = String
+type Title        = String
+type Seconds      = Integer
+type PlaylistName = String
 
 -- | Available metadata types\/scope modifiers, used for searching the
 -- database for entries with certain metadata values.
@@ -287,30 +288,27 @@ addId x =
     liftM (read . snd . head . toAssoc) (getResponse ("addid " ++ show x))
 
 -- | Like 'add_' but returns a list of the files added.
-add :: Maybe String -> String -> MPD [String]
+add :: Maybe PlaylistName -> String -> MPD [String]
 add plname x = add_ plname x >> listAll (Just x)
 
 -- | Add a song (or a whole directory) to a playlist.
 -- Adds to current if no playlist is specified.
 -- Will create a new playlist if the one specified does not already exist.
-add_ :: Maybe String -- ^ Optionally specify a playlist to operate on
-     -> String -> MPD ()
+add_ :: Maybe PlaylistName -> String -> MPD ()
 add_ Nothing       = getResponse_ . ("add " ++) . show
 add_ (Just plname) = getResponse_ .
                      (("playlistadd " ++ show plname ++ " ") ++) . show
 
 -- | Clear a playlist. Clears current playlist if no playlist is specified.
 -- If the specified playlist does not exist, it will be created.
-clear :: Maybe String -- ^ Optional name of a playlist to clear.
-      -> MPD ()
+clear :: Maybe PlaylistName -> MPD ()
 clear = getResponse_ . maybe "clear" (("playlistclear " ++) . show)
 
 -- | Remove a song from a playlist.
 -- If no playlist is specified, current playlist is used.
 -- Note that a playlist position ('Pos') is required when operating on
 -- playlists other than the current.
-delete :: Maybe String -- ^ Optionally specify a playlist to operate on
-       -> PLIndex -> MPD ()
+delete :: Maybe PlaylistName -> PLIndex -> MPD ()
 delete Nothing (Pos x) = getResponse_ ("delete " ++ show x)
 delete Nothing (ID x) = getResponse_ ("deleteid " ++ show x)
 delete (Just plname) (Pos x) =
@@ -318,14 +316,13 @@ delete (Just plname) (Pos x) =
 delete _ _ = fail "'delete' within a playlist doesn't accept a playlist ID"
 
 -- | Load an existing playlist.
-load :: String -> MPD ()
+load :: PlaylistName -> MPD ()
 load = getResponse_ . ("load " ++) . show
 
 -- | Move a song to a given position.
 -- Note that a playlist position ('Pos') is required when operating on
 -- playlists other than the current.
-move :: Maybe String -- ^ Optionally specify a playlist to operate on
-     -> PLIndex -> Integer -> MPD ()
+move :: Maybe PlaylistName -> PLIndex -> Integer -> MPD ()
 move Nothing (Pos from) to =
     getResponse_ ("move " ++ show from ++ " " ++ show to)
 move Nothing (ID from) to =
@@ -336,18 +333,18 @@ move (Just plname) (Pos from) to =
 move _ _ _ = fail "'move' within a playlist doesn't accept a playlist ID"
 
 -- | Delete existing playlist.
-rm :: String -> MPD ()
+rm :: PlaylistName -> MPD ()
 rm = getResponse_ . ("rm " ++) . show
 
 -- | Rename an existing playlist.
-rename :: String -- ^ Name of playlist to be renamed
-       -> String -- ^ New playlist name
+rename :: PlaylistName -- ^ Original playlist
+       -> PlaylistName -- ^ New playlist name
        -> MPD ()
 rename plname new =
     getResponse_ ("rename " ++ show plname ++ " " ++ show new)
 
 -- | Save the current playlist.
-save :: String -> MPD ()
+save :: PlaylistName -> MPD ()
 save = getResponse_ . ("save " ++) . show
 
 -- | Swap the positions of two songs.
@@ -371,12 +368,12 @@ playlistInfo x = liftM takeSongs (getResponse cmd)
                     Nothing       -> "playlistinfo"
 
 -- | Retrieve metadata for files in a given playlist.
-listPlaylistInfo :: String -> MPD [Song]
+listPlaylistInfo :: PlaylistName -> MPD [Song]
 listPlaylistInfo = liftM takeSongs . getResponse .
     ("listplaylistinfo " ++) . show
 
 -- | Retrieve a list of files in a given playlist.
-listPlaylist :: String -> MPD [String]
+listPlaylist :: PlaylistName -> MPD [String]
 listPlaylist = liftM takeValues . getResponse . ("listplaylist " ++) . show
 
 -- | Retrieve file paths and positions of songs in the current playlist.
@@ -571,7 +568,7 @@ toggle = status >>= \st -> case stState st of Playing -> pause True
 
 -- | Add a list of songs\/folders to a playlist.
 -- Should be more efficient than running 'add' many times.
-addMany :: Maybe String -> [String] -> MPD ()
+addMany :: Maybe PlaylistName -> [String] -> MPD ()
 addMany _ [] = return ()
 addMany plname [x] = add_ plname x
 addMany plname xs = getResponses (map (cmd ++) xs) >> return ()
@@ -580,7 +577,7 @@ addMany plname xs = getResponses (map (cmd ++) xs) >> return ()
 -- | Delete a list of songs from a playlist.
 -- If there is a duplicate then no further songs will be deleted, so
 -- take care to avoid them (see 'prune' for this).
-deleteMany :: Maybe String -> [PLIndex] -> MPD ()
+deleteMany :: Maybe PlaylistName -> [PLIndex] -> MPD ()
 deleteMany _ [] = return ()
 deleteMany plname [x] = delete plname x
 deleteMany (Just plname) xs = getResponses (map cmd xs) >> return ()
@@ -635,7 +632,7 @@ lsFiles path = liftM (map sgFilePath . (\(_,_,x) -> x) . takeEntries)
                      (getResponse ("lsinfo " ++ maybe "" show path))
 
 -- | List all playlists.
-lsPlaylists :: MPD [String]
+lsPlaylists :: MPD [PlaylistName]
 lsPlaylists = liftM ((\(_,x,_) -> x) . takeEntries) (getResponse "lsinfo")
 
 -- | Search the database for songs relating to an artist.
