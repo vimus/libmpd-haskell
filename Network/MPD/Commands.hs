@@ -381,7 +381,8 @@ listPlaylist = liftM takeValues . getResponse . ("listplaylist " ++) . show
 
 -- | Retrieve file paths and positions of songs in the current playlist.
 -- Note that this command is only included for completeness sake; it's
--- deprecated and likely to disappear at any time.
+-- deprecated and likely to disappear at any time, please use 'playlistInfo'
+-- instead.
 playlist :: MPD [(PLIndex, String)]
 playlist = liftM (map f) (getResponse "playlist")
     where f s = let (pos, name) = break (== ':') s
