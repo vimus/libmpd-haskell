@@ -103,7 +103,7 @@ type Response a = Either MPDError a
 --
 -- > import Control.Monad.Error
 --
--- To run IO actions within MPD:
+-- To run IO actions within the 'MPD' monad:
 --
 -- > import Control.Monad.Trans
 newtype MPD a = MPD { runMPD :: Connection -> IO (Response a) }
