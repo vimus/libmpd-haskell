@@ -52,7 +52,7 @@ module Network.MPD.Commands (
     volume, stop,
 
     -- * Miscellaneous commands
-    clearerror, close, commands, notCommands, tagTypes, urlHandlers, password,
+    clearError, close, commands, notCommands, tagTypes, urlHandlers, password,
     ping, reconnect, stats, status,
 
     -- * Extensions\/shortcuts
@@ -485,8 +485,8 @@ volume = getResponse_ . ("volume " ++) . show
 --
 
 -- | Clear the current error message in status.
-clearerror :: MPD ()
-clearerror = getResponse_ "clearerror"
+clearError :: MPD ()
+clearError = getResponse_ "clearerror"
 
 -- | Retrieve a list of available commands.
 commands :: MPD [String]
