@@ -31,7 +31,7 @@ module Network.MPD.Commands (
     State(..), Status(..), Stats(..),
     Device(..),
     Query(..), Meta(..),
-    Artist, Album, Title, Seconds, PlaylistName,
+    Artist, Album, Title, Seconds, PlaylistName, Path,
     PLIndex(..), Song(..), Count(..),
 
     -- * Admin commands
@@ -77,6 +77,7 @@ type Album        = String
 type Title        = String
 type Seconds      = Integer
 type PlaylistName = String
+type Path         = String
 
 -- | Available metadata types\/scope modifiers, used for searching the
 -- database for entries with certain metadata values.
@@ -223,7 +224,7 @@ outputs = liftM (map takeDevInfo . splitGroups . toAssoc)
             }
 
 -- | Update the server's database.
-update :: [String] -- ^ Optionally specify a list of paths
+update :: [Path] -- ^ Optionally specify a list of paths
        -> MPD ()
 update  [] = getResponse_ "update"
 update [x] = getResponse_ ("update " ++ show x)
@@ -240,21 +241,19 @@ list mtype query = liftM takeValues (getResponse cmd)
     where cmd = "list " ++ show mtype ++ maybe "" ((" "++) . show) query
 
 -- | Non-recursively list the contents of a database directory.
-lsInfo :: Maybe String -- ^ Optionally specify a path.
-       -> MPD [Either String Song]
+lsInfo :: Maybe Path -> MPD [Either Path Song]
 lsInfo path = do
     (dirs,_,songs) <- liftM takeEntries
                       (getResponse ("lsinfo " ++ maybe "" show path))
     return (map Left dirs ++ map Right songs)
 
 -- | List the songs (without metadata) in a database directory recursively.
-listAll :: Maybe String -> MPD [String]
+listAll :: Maybe Path -> MPD [Path]
 listAll path = liftM (map snd . filter ((== "file") . fst) . toAssoc)
                      (getResponse ("listall " ++ maybe "" show path))
 
 -- | Recursive 'lsInfo'.
-listAllInfo :: Maybe String -- ^ Optionally specify a path
-            -> MPD [Either String Song]
+listAllInfo :: Maybe Path -> MPD [Either Path Song]
 listAllInfo path = do
     (dirs,_,songs) <- liftM takeEntries
                       (getResponse ("listallinfo " ++ maybe "" show path))
@@ -283,18 +282,18 @@ count query = liftM (takeCountInfo . toAssoc)
 -- playlist.
 
 -- | Like 'add', but returns a playlist id.
-addId :: String -> MPD Integer
+addId :: Path -> MPD Integer
 addId x =
     liftM (read . snd . head . toAssoc) (getResponse ("addid " ++ show x))
 
 -- | Like 'add_' but returns a list of the files added.
-add :: Maybe PlaylistName -> String -> MPD [String]
+add :: Maybe PlaylistName -> Path -> MPD [Path]
 add plname x = add_ plname x >> listAll (Just x)
 
 -- | Add a song (or a whole directory) to a playlist.
 -- Adds to current if no playlist is specified.
 -- Will create a new playlist if the one specified does not already exist.
-add_ :: Maybe PlaylistName -> String -> MPD ()
+add_ :: Maybe PlaylistName -> Path -> MPD ()
 add_ Nothing       = getResponse_ . ("add " ++) . show
 add_ (Just plname) = getResponse_ .
                      (("playlistadd " ++ show plname ++ " ") ++) . show
@@ -373,14 +372,14 @@ listPlaylistInfo = liftM takeSongs . getResponse .
     ("listplaylistinfo " ++) . show
 
 -- | Retrieve a list of files in a given playlist.
-listPlaylist :: PlaylistName -> MPD [String]
+listPlaylist :: PlaylistName -> MPD [Path]
 listPlaylist = liftM takeValues . getResponse . ("listplaylist " ++) . show
 
 -- | Retrieve file paths and positions of songs in the current playlist.
 -- Note that this command is only included for completeness sake; it's
 -- deprecated and likely to disappear at any time, please use 'playlistInfo'
 -- instead.
-playlist :: MPD [(PLIndex, String)]
+playlist :: MPD [(PLIndex, Path)]
 playlist = liftM (map f) (getResponse "playlist")
     where f s = let (pos, name) = break (== ':') s
                 in (Pos $ read pos, drop 1 name)
@@ -554,7 +553,7 @@ status = liftM (parseStatus . toAssoc) (getResponse "status")
 --
 
 -- | Like 'update', but returns the update job id.
-updateId :: [String] -> MPD Integer
+updateId :: [Path] -> MPD Integer
 updateId paths = liftM (read . head . takeValues) cmd
   where cmd = case paths of
                 []  -> getResponse "update"
@@ -568,7 +567,7 @@ toggle = status >>= \st -> case stState st of Playing -> pause True
 
 -- | Add a list of songs\/folders to a playlist.
 -- Should be more efficient than running 'add' many times.
-addMany :: Maybe PlaylistName -> [String] -> MPD ()
+addMany :: Maybe PlaylistName -> [Path] -> MPD ()
 addMany _ [] = return ()
 addMany plname [x] = add_ plname x
 addMany plname xs = getResponses (map (cmd ++) xs) >> return ()
@@ -620,14 +619,12 @@ findDuplicates =
             | otherwise                     = dups xs (x:ys, dup)
 
 -- | List directories non-recursively.
-lsDirs :: Maybe String -- ^ optional path.
-       -> MPD [String]
+lsDirs :: Maybe Path -> MPD [Path]
 lsDirs path = liftM ((\(x,_,_) -> x) . takeEntries)
                     (getResponse ("lsinfo " ++ maybe "" show path))
 
 -- | List files non-recursively.
-lsFiles :: Maybe String -- ^ optional path.
-        -> MPD [String]
+lsFiles :: Maybe Path -> MPD [Path]
 lsFiles path = liftM (map sgFilePath . (\(_,_,x) -> x) . takeEntries)
                      (getResponse ("lsinfo " ++ maybe "" show path))
 
