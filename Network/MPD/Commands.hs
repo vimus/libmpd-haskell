@@ -224,8 +224,8 @@ outputs = liftM (map takeDevInfo . splitGroups . toAssoc)
             }
 
 -- | Update the server's database.
-update :: [Path] -- ^ Optionally specify a list of paths
-       -> MPD ()
+-- If no paths are given, all paths will be scanned.
+update :: [Path] -> MPD ()
 update  [] = getResponse_ "update"
 update [x] = getResponse_ ("update " ++ show x)
 update  xs = getResponses (map (("update " ++) . show) xs) >> return ()
