@@ -28,14 +28,15 @@
 
 module Network.MPD (
     -- * Basic data types
-    MPD, MPDError(..), ACKType(..), Response,
-    module Network.MPD.Commands,
+    AbstractMPD, MPD, Conn(..), SocketConn, MPDError(..), ACKType(..), Response,
     -- * Connections
     withMPD, withMPDEx,
+    module Network.MPD.Commands,
     ) where
 
 import Network.MPD.Commands
 import Network.MPD.Prim
+import Network.MPD.SocketConn
 
 import Control.Monad (liftM)
 import Data.Maybe (listToMaybe)

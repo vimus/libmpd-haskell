@@ -28,42 +28,34 @@
 -- Core functionality.
 
 module Network.MPD.Prim (
+    -- * Type classes
+    Conn(..),
     -- * Data types
-    MPD, MPDError(..), ACKType(..), Response,
-
-    -- * Running an action
-    withMPDEx,
-
+    AbstractMPD(..), MPDError(..), ACKType(..), Response,
     -- * Interacting
     getResponse, close, reconnect, kill,
     ) where
 
-import Control.Monad (liftM, unless)
-import Control.Exception (finally)
+import Control.Monad (liftM)
 import Control.Monad.Error (Error(..), MonadError(..))
 import Control.Monad.Trans
 import Prelude hiding (repeat)
-import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.List (isPrefixOf)
 import Data.Maybe
-import Network
 import System.IO
-import System.IO.Error (isEOFError)
 
 --
 -- Data types.
 --
 
--- The field names should not be exported.
--- The accessors 'connPortNum' and 'connHandle' are not used, though
--- the fields are used (see 'reconnect').
--- | A connection to an MPD server.
-data Connection = Conn { connHostName :: String
-                       , connPortNum  :: Integer
-                       , connHandle   :: IORef (Maybe Handle)
-                       , connGetPass  :: IO (Maybe String)
-                       }
-
+-- | A class of transports with which to connect to MPD servers.
+class Conn a where
+    connOpen  :: a -> IO ()
+    connClose :: a -> IO ()
+    connRead  :: a -> IO (Response String)
+    connWrite :: a -> String -> IO (Response ())
+    connGetPW :: a -> IO (Maybe String)
+    
 -- | The MPDError type is used to signal errors, both from the MPD and
 -- otherwise.
 data MPDError = NoMPD              -- ^ MPD not responding
@@ -97,33 +89,35 @@ data ACKType = InvalidArgument  -- ^ Invalid argument passed (ACK 2)
 type Response a = Either MPDError a
 
 -- Export the type name but not the constructor or the field.
--- | The MPD monad is basically a state and an error monad combined.
+-- | The AbstractMPD monad is basically a state and an error monad
+-- combined.
 --
 -- To use the error throwing\/catching capabilities:
 --
 -- > import Control.Monad.Error
 --
--- To run IO actions within the 'MPD' monad:
+-- To run IO actions within the AbstractMPD monad:
 --
 -- > import Control.Monad.Trans
-newtype MPD a = MPD { runMPD :: Connection -> IO (Response a) }
+data AbstractMPD c a =
+    (Conn c) => AbsMPD { runAbsMPD :: c -> IO (Response a) }
 
-instance Functor MPD where
-    fmap f m = MPD $ \conn -> either Left (Right . f) `liftM` runMPD m conn
+instance (Conn c) => Functor (AbstractMPD c) where
+    fmap f m = AbsMPD $ \conn -> either Left (Right . f) `liftM` runAbsMPD m conn
 
-instance Monad MPD where
-    return a = MPD $ \_ -> return $ Right a
-    m >>= f  = MPD $ \conn -> runMPD m conn >>=
-                              either (return . Left) (flip runMPD conn . f)
-    fail err = MPD $ \_ -> return . Left $ Custom err
+instance (Conn c) => Monad (AbstractMPD c) where
+    return a = AbsMPD $ \_ -> return $ Right a
+    m >>= f  = AbsMPD $ \conn -> runAbsMPD m conn >>=
+                              either (return . Left) (flip runAbsMPD conn . f)
+    fail err = AbsMPD $ \_ -> return . Left $ Custom err
 
-instance MonadIO MPD where
-    liftIO m = MPD $ \_ -> liftM Right m
+instance (Conn c) => MonadIO (AbstractMPD c) where
+    liftIO m = AbsMPD $ \_ -> liftM Right m
 
-instance MonadError MPDError MPD where
-    throwError e   = MPD $ \_ -> return (Left e)
-    catchError m h = MPD $ \conn ->
-        runMPD m conn >>= either (flip runMPD conn . h) (return . Right)
+instance (Conn c) => MonadError MPDError (AbstractMPD c) where
+    throwError e   = AbsMPD $ \_ -> return (Left e)
+    catchError m h = AbsMPD $ \conn ->
+        runAbsMPD m conn >>= either (flip runAbsMPD conn . h) (return . Right)
 
 instance Error MPDError where
     noMsg  = Custom "An error occurred"
@@ -133,97 +127,43 @@ instance Error MPDError where
 -- Basic connection functions
 --
 
--- | Run an MPD action against a server.
-withMPDEx :: String            -- ^ Host name.
-          -> Integer           -- ^ Port number.
-          -> IO (Maybe String) -- ^ An action that supplies passwords.
-          -> MPD a             -- ^ The action to run.
-          -> IO (Response a)
-withMPDEx host port getpw m = do
-    hRef <- newIORef Nothing
-    connect host port hRef
-    readIORef hRef >>= maybe (return $ Left NoMPD)
-        (\_ -> finally (runMPD m $ Conn host port hRef getpw) (closeIO hRef))
-
--- Connect to an MPD server.
-connect :: String -> Integer -- host and port
-        -> IORef (Maybe Handle) -> IO ()
-connect host port hRef =
-    withSocketsDo $ do
-        closeIO hRef
-        handle <- safeConnectTo host port
-        writeIORef hRef handle
-        maybe (return ()) (\h -> checkConn h >>= flip unless (closeIO hRef))
-              handle
-
--- A wrapper around 'connectTo' that handles connection failures.
-safeConnectTo :: String -> Integer -> IO (Maybe Handle)
-safeConnectTo host port =
-    catch (liftM Just . connectTo host . PortNumber $ fromInteger port)
-          (const $ return Nothing)
-
--- Check that an MPD daemon is at the other end of a connection.
-checkConn :: Handle -> IO Bool
-checkConn h = isPrefixOf "OK MPD" `liftM` hGetLine h
-
--- Close a connection.
-closeIO :: IORef (Maybe Handle) -> IO ()
-closeIO hRef = do
-    readIORef hRef >>= maybe (return ())
-                             (\h -> hPutStrLn h "close" >> hClose h)
-    writeIORef hRef Nothing
-
 -- | Refresh a connection.
-reconnect :: MPD ()
-reconnect = MPD $ \(Conn host port hRef _) -> do
-    connect host port hRef
-    liftM (maybe (Left NoMPD) (const $ Right ())) (readIORef hRef)
+reconnect :: (Conn c) => AbstractMPD c ()
+reconnect = AbsMPD $ \conn -> connOpen conn >>= return . Right
 
 -- | Kill the server. Obviously, the connection is then invalid.
-kill :: MPD ()
+kill :: (Conn c) => AbstractMPD c ()
 kill = getResponse "kill" `catchError` cleanup >> return ()
-    where cleanup TimedOut = MPD $ \conn -> do
-              readIORef (connHandle conn) >>= maybe (return ()) hClose
-              writeIORef (connHandle conn) Nothing
-              return (Right [])
-          cleanup x = throwError x >> return []
+    where
+      cleanup TimedOut = AbsMPD $ \conn -> connClose conn >> return (Right [])
+      cleanup x = throwError x >> return []
 
 -- | Close an MPD connection.
-close :: MPD ()
-close = MPD $ \conn -> closeIO (connHandle conn) >> return (Right ())
+close :: (Conn c) => AbstractMPD c ()
+close = AbsMPD $ \conn -> connClose conn >> return (Right ())
 
 --
 -- Sending messages and handling responses.
 --
 
 -- | Send a command to the MPD and return the result.
-getResponse :: String -> MPD [String]
-getResponse cmd = MPD $ \conn -> respRead (sendCmd conn) reader (givePW conn)
-    where sendCmd conn =
-              readIORef (connHandle conn) >>=
-              maybe (return $ Left NoMPD)
-                    (\h -> hPutStrLn h cmd >> hFlush h >> return (Right h))
-          reader h = getLineTO h >>= return . (either Left parseResponse)
-          givePW conn cont (ACK Auth _) = tryPassword conn cont
+getResponse :: (Conn c) => String -> AbstractMPD c [String]
+getResponse cmd = AbsMPD $ \conn -> respRead (sendCmd conn) reader (givePW conn)
+    where sendCmd c = connWrite c cmd >>= return . either Left (const $ Right c)
+          reader c = connRead c >>= return . (either Left parseResponse)
+          givePW c cont (ACK Auth _) = tryPassword c cont
           givePW _ _ ack = return (Left ack)
 
--- Get a line of text, handling a timed-out connection.
-getLineTO :: Handle -> IO (Response String)
-getLineTO h = catch (liftM Right $ hGetLine h)
-                    (\err -> if isEOFError err then return $ Left TimedOut
-                                               else ioError err)
-
 -- Send a password to MPD and run an action on success.
-tryPassword :: Connection -> IO (Response a) -> IO (Response a)
-tryPassword conn cont =
-    readIORef (connHandle conn) >>= maybe (return $ Left NoMPD) get
+tryPassword :: (Conn c) => c -> IO (Response a) -> IO (Response a)
+tryPassword conn cont = connGetPW conn >>= maybe failAuth send
     where
-        get h = connGetPass conn >>=
-                maybe (return . Left $ ACK Auth "Password required") (send h)
-        send h pw = do hPutStrLn h ("password " ++ pw) >> hFlush h
-                       result <- hGetLine h
-                       case result of "OK" -> cont
-                                      _    -> tryPassword conn cont
+        send pw = connWrite conn ("password " ++ pw) >>=
+                  either (return . Left)
+                         (const $ connRead conn >>= either (return . Left) parse)
+        parse "OK" = cont
+        parse _    = tryPassword conn cont
+        failAuth = return . Left $ ACK Auth "Password required"
 
 -- XXX suggestions for names welcome.
 --
