@@ -31,7 +31,7 @@ module Network.MPD.Prim (
     -- * Type classes
     Conn(..),
     -- * Data types
-    AbstractMPD(..), MPDError(..), ACKType(..), Response,
+    MPD(..), MPDError(..), ACKType(..), Response,
     -- * Interacting
     getResponse, close, reconnect, kill,
     ) where
@@ -89,35 +89,35 @@ data ACKType = InvalidArgument  -- ^ Invalid argument passed (ACK 2)
 type Response a = Either MPDError a
 
 -- Export the type name but not the constructor or the field.
--- | The AbstractMPD monad is basically a state and an error monad
+-- | The MPD monad is basically a state and an error monad
 -- combined.
 --
 -- To use the error throwing\/catching capabilities:
 --
 -- > import Control.Monad.Error
 --
--- To run IO actions within the AbstractMPD monad:
+-- To run IO actions within the MPD monad:
 --
 -- > import Control.Monad.Trans
-data AbstractMPD c a =
-    (Conn c) => AbsMPD { runAbsMPD :: c -> IO (Response a) }
+data MPD c a =
+    (Conn c) => MPD { runMPD :: c -> IO (Response a) }
 
-instance (Conn c) => Functor (AbstractMPD c) where
-    fmap f m = AbsMPD $ \conn -> either Left (Right . f) `liftM` runAbsMPD m conn
+instance (Conn c) => Functor (MPD c) where
+    fmap f m = MPD $ \conn -> either Left (Right . f) `liftM` runMPD m conn
 
-instance (Conn c) => Monad (AbstractMPD c) where
-    return a = AbsMPD $ \_ -> return $ Right a
-    m >>= f  = AbsMPD $ \conn -> runAbsMPD m conn >>=
-                              either (return . Left) (flip runAbsMPD conn . f)
-    fail err = AbsMPD $ \_ -> return . Left $ Custom err
+instance (Conn c) => Monad (MPD c) where
+    return a = MPD $ \_ -> return $ Right a
+    m >>= f  = MPD $ \conn -> runMPD m conn >>=
+                              either (return . Left) (flip runMPD conn . f)
+    fail err = MPD $ \_ -> return . Left $ Custom err
 
-instance (Conn c) => MonadIO (AbstractMPD c) where
-    liftIO m = AbsMPD $ \_ -> liftM Right m
+instance (Conn c) => MonadIO (MPD c) where
+    liftIO m = MPD $ \_ -> liftM Right m
 
-instance (Conn c) => MonadError MPDError (AbstractMPD c) where
-    throwError e   = AbsMPD $ \_ -> return (Left e)
-    catchError m h = AbsMPD $ \conn ->
-        runAbsMPD m conn >>= either (flip runAbsMPD conn . h) (return . Right)
+instance (Conn c) => MonadError MPDError (MPD c) where
+    throwError e   = MPD $ \_ -> return (Left e)
+    catchError m h = MPD $ \conn ->
+        runMPD m conn >>= either (flip runMPD conn . h) (return . Right)
 
 instance Error MPDError where
     noMsg  = Custom "An error occurred"
@@ -128,27 +128,27 @@ instance Error MPDError where
 --
 
 -- | Refresh a connection.
-reconnect :: (Conn c) => AbstractMPD c ()
-reconnect = AbsMPD $ \conn -> connOpen conn >>= return . Right
+reconnect :: (Conn c) => MPD c ()
+reconnect = MPD $ \conn -> connOpen conn >>= return . Right
 
 -- | Kill the server. Obviously, the connection is then invalid.
-kill :: (Conn c) => AbstractMPD c ()
+kill :: (Conn c) => MPD c ()
 kill = getResponse "kill" `catchError` cleanup >> return ()
     where
-      cleanup TimedOut = AbsMPD $ \conn -> connClose conn >> return (Right [])
+      cleanup TimedOut = MPD $ \conn -> connClose conn >> return (Right [])
       cleanup x = throwError x >> return []
 
 -- | Close an MPD connection.
-close :: (Conn c) => AbstractMPD c ()
-close = AbsMPD $ \conn -> connClose conn >> return (Right ())
+close :: (Conn c) => MPD c ()
+close = MPD $ \conn -> connClose conn >> return (Right ())
 
 --
 -- Sending messages and handling responses.
 --
 
 -- | Send a command to the MPD and return the result.
-getResponse :: (Conn c) => String -> AbstractMPD c [String]
-getResponse cmd = AbsMPD $ \conn -> respRead (sendCmd conn) reader (givePW conn)
+getResponse :: (Conn c) => String -> MPD c [String]
+getResponse cmd = MPD $ \conn -> respRead (sendCmd conn) reader (givePW conn)
     where sendCmd c = connWrite c cmd >>= return . either Left (const $ Right c)
           reader c = connRead c >>= return . (either Left parseResponse)
           givePW c cont (ACK Auth _) = tryPassword c cont

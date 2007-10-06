@@ -55,16 +55,16 @@ instance Conn SocketConn where
     connGetPW (SC _ _ _ pw) = pw
 
 -- | Run an MPD action against a server.
-withMPDEx :: String                   -- ^ Host name.
-          -> Integer                  -- ^ Port number.
-          -> IO (Maybe String)        -- ^ An action that supplies passwords.
-          -> AbstractMPD SocketConn a -- ^ The action to run.
+withMPDEx :: String            -- ^ Host name.
+          -> Integer           -- ^ Port number.
+          -> IO (Maybe String) -- ^ An action that supplies passwords.
+          -> MPD SocketConn a  -- ^ The action to run.
           -> IO (Response a)
 withMPDEx host port getpw m = do
     hRef <- newIORef Nothing
     let conn = SC host port hRef getpw
     connOpen conn 
-    finally (runAbsMPD m conn) (connClose conn)
+    finally (runMPD m conn) (connClose conn)
 
 scOpen :: SocketConn -> IO ()
 scOpen conn@(SC host port hRef _) =
