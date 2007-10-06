@@ -28,7 +28,7 @@
 
 module Network.MPD (
     -- * Basic data types
-    AbstractMPD, MPD, Conn(..), SocketConn, MPDError(..), ACKType(..), Response,
+    AbstractMPD, Conn(..), SocketConn, MPDError(..), ACKType(..), Response,
     -- * Connections
     withMPD, withMPDEx,
     module Network.MPD.Commands,
@@ -49,7 +49,7 @@ import System.IO.Error (isDoesNotExistError, ioError)
 -- or whatever is found in the environment variables MPD_HOST and
 -- MPD_PORT. If MPD_HOST is of the form \"password\@host\" then the
 -- password will be supplied as well.
-withMPD :: MPD a -> IO (Response a)
+withMPD :: AbstractMPD SocketConn a -> IO (Response a)
 withMPD m = do
     port <- liftM read (getEnvDefault "MPD_PORT" "6600")
     (pw,host) <- liftM (break (== '@')) (getEnvDefault "MPD_HOST" "localhost")

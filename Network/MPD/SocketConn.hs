@@ -27,7 +27,7 @@
 --
 -- Connection over a network socket.
 
-module Network.MPD.SocketConn (MPD, SocketConn, withMPDEx) where
+module Network.MPD.SocketConn (SocketConn, withMPDEx) where
 
 import Network.MPD.Prim
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
@@ -36,13 +36,7 @@ import System.IO
 import Control.Monad (liftM, unless)
 import Data.List (isPrefixOf)
 import System.IO.Error (isEOFError)
-import Control.Monad.Error (MonadError(..))
-import Control.Monad.Trans
 import Control.Exception (finally)
-
--- | The AbstractMPD monad specialised to network connections. Almost
--- everybody will want this.
-type MPD a = AbstractMPD SocketConn a
 
 -- The field names should not be exported.
 -- The accessors 'connPortNum' and 'connHandle' are not used, though
@@ -61,10 +55,10 @@ instance Conn SocketConn where
     connGetPW (SC _ _ _ pw) = pw
 
 -- | Run an MPD action against a server.
-withMPDEx :: String            -- ^ Host name.
-          -> Integer           -- ^ Port number.
-          -> IO (Maybe String) -- ^ An action that supplies passwords.
-          -> MPD a             -- ^ The action to run.
+withMPDEx :: String                   -- ^ Host name.
+          -> Integer                  -- ^ Port number.
+          -> IO (Maybe String)        -- ^ An action that supplies passwords.
+          -> AbstractMPD SocketConn a -- ^ The action to run.
           -> IO (Response a)
 withMPDEx host port getpw m = do
     hRef <- newIORef Nothing
