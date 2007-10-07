@@ -1,4 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, MultiParamTypeClasses #-}
 {-
     libmpd for Haskell, an MPD client library.
     Copyright (C) 2005-2007  Ben Sinclair <bsinclai@turing.une.edu.au>
