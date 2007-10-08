@@ -235,9 +235,8 @@ update  xs = getResponses (map (("update " ++) . show) xs) >> return ()
 --
 
 -- | List all metadata of metadata (sic).
-list :: (Conn c)
-     => Meta -- ^ Metadata to list
-     -> Maybe Query -> MPD c [String]
+list :: Meta -- ^ Metadata to list
+     -> Maybe Query -> MPD [String]
 list mtype query = liftM takeValues (getResponse cmd)
     where cmd = "list " ++ show mtype ++ maybe "" ((" "++) . show) query
 
@@ -337,10 +336,9 @@ rm :: PlaylistName -> MPD ()
 rm = getResponse_ . ("rm " ++) . show
 
 -- | Rename an existing playlist.
-rename :: (Conn c)
-       => PlaylistName -- ^ Original playlist
+rename :: PlaylistName -- ^ Original playlist
        -> PlaylistName -- ^ New playlist name
-       -> MPD c ()
+       -> MPD ()
 rename plname new =
     getResponse_ ("rename " ++ show plname ++ " " ++ show new)
 
