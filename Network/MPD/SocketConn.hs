@@ -26,7 +26,7 @@
 --
 -- Connection over a network socket.
 
-module Network.MPD.SocketConn (SocketConn, withMPDEx) where
+module Network.MPD.SocketConn (withMPDEx) where
 
 import Network.MPD.Prim
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
@@ -37,33 +37,24 @@ import Data.List (isPrefixOf)
 import System.IO.Error (isEOFError)
 import Control.Exception (finally)
 
--- The field names should not be exported.
--- The accessors 'connPortNum' and 'connHandle' are not used, though
--- the fields are used (see 'reconnect').
 -- | A network connection to an MPD server.
-data SocketConn = SC String                 -- host name       
-                     Integer                -- port number     
-                     (IORef (Maybe Handle)) -- socket handle   
-                     (IO (Maybe String))    -- password getter 
-
-instance Conn SocketConn where
-    connOpen  = scOpen
-    connClose = scClose
-    connRead  = scRead
-    connWrite = scWrite
-    connGetPW (SC _ _ _ pw) = pw
+data SocketConn = SC String                 -- host name
+                     Integer                -- port number
+                     (IORef (Maybe Handle)) -- socket handle
+                     (IO (Maybe String))    -- password getter
 
 -- | Run an MPD action against a server.
 withMPDEx :: String            -- ^ Host name.
           -> Integer           -- ^ Port number.
           -> IO (Maybe String) -- ^ An action that supplies passwords.
-          -> MPD SocketConn a  -- ^ The action to run.
+          -> MPD a             -- ^ The action to run.
           -> IO (Response a)
 withMPDEx host port getpw m = do
     hRef <- newIORef Nothing
-    let conn = SC host port hRef getpw
-    connOpen conn 
-    finally (runMPD m conn) (connClose conn)
+    let sConn = SC host port hRef getpw
+    let conn = Conn sConn scOpen scClose scRead scWrite (const getpw)
+    scOpen sConn
+    finally (runMPD m conn) (scClose sConn)
 
 scOpen :: SocketConn -> IO ()
 scOpen conn@(SC host port hRef _) =
@@ -105,5 +96,5 @@ safeConnectTo host port =
           (const $ return Nothing)
 
 -- Check that an MPD daemon is at the other end of a connection.
-checkConn :: (Conn a) => a -> IO Bool
-checkConn c = connRead c >>= return . either (const False) (isPrefixOf "OK MPD")
+checkConn :: SocketConn -> IO Bool
+checkConn conn = scRead conn >>= return . either (const False) (isPrefixOf "OK MPD")

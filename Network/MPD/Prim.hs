@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE MultiParamTypeClasses, ExistentialQuantification #-}
 {-
     libmpd for Haskell, an MPD client library.
     Copyright (C) 2005-2007  Ben Sinclair <bsinclai@turing.une.edu.au>
@@ -23,7 +23,8 @@
 -- License     : LGPL
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
--- Portability : not Haskell 98 (uses MultiParamTypeClasses)
+-- Portability : not Haskell 98 (uses MultiParamTypeClasses and
+--               ExistentialQuantification)
 --
 -- Core functionality.
 
@@ -49,13 +50,14 @@ import System.IO
 --
 
 -- | A class of transports with which to connect to MPD servers.
-class Conn a where
-    connOpen  :: a -> IO ()
-    connClose :: a -> IO ()
-    connRead  :: a -> IO (Response String)
-    connWrite :: a -> String -> IO (Response ())
-    connGetPW :: a -> IO (Maybe String)
-    
+data Conn = forall a. Conn { connObj   :: a
+                           , connOpen  :: a -> IO ()
+                           , connClose :: a -> IO ()
+                           , connRead  :: a -> IO (Response String)
+                           , connWrite :: a -> String -> IO (Response ())
+                           , connGetPW :: a -> IO (Maybe String)
+                           }
+
 -- | The MPDError type is used to signal errors, both from the MPD and
 -- otherwise.
 data MPDError = NoMPD              -- ^ MPD not responding
@@ -99,22 +101,21 @@ type Response a = Either MPDError a
 -- To run IO actions within the MPD monad:
 --
 -- > import Control.Monad.Trans
-data MPD c a =
-    (Conn c) => MPD { runMPD :: c -> IO (Response a) }
+data MPD a = MPD { runMPD :: Conn -> IO (Response a) }
 
-instance (Conn c) => Functor (MPD c) where
+instance Functor MPD where
     fmap f m = MPD $ \conn -> either Left (Right . f) `liftM` runMPD m conn
 
-instance (Conn c) => Monad (MPD c) where
+instance Monad MPD where
     return a = MPD $ \_ -> return $ Right a
     m >>= f  = MPD $ \conn -> runMPD m conn >>=
                               either (return . Left) (flip runMPD conn . f)
     fail err = MPD $ \_ -> return . Left $ Custom err
 
-instance (Conn c) => MonadIO (MPD c) where
+instance MonadIO MPD where
     liftIO m = MPD $ \_ -> liftM Right m
 
-instance (Conn c) => MonadError MPDError (MPD c) where
+instance MonadError MPDError MPD where
     throwError e   = MPD $ \_ -> return (Left e)
     catchError m h = MPD $ \conn ->
         runMPD m conn >>= either (flip runMPD conn . h) (return . Right)
@@ -128,39 +129,39 @@ instance Error MPDError where
 --
 
 -- | Refresh a connection.
-reconnect :: (Conn c) => MPD c ()
-reconnect = MPD $ \conn -> connOpen conn >>= return . Right
+reconnect :: MPD ()
+reconnect = MPD $ \(Conn c open _ _ _ _) -> open c >>= return . Right
 
 -- | Kill the server. Obviously, the connection is then invalid.
-kill :: (Conn c) => MPD c ()
+kill :: MPD ()
 kill = getResponse "kill" `catchError` cleanup >> return ()
     where
-      cleanup TimedOut = MPD $ \conn -> connClose conn >> return (Right [])
+      cleanup TimedOut = MPD $ \(Conn c _ close _ _ _) -> close c >> return (Right [])
       cleanup x = throwError x >> return []
 
 -- | Close an MPD connection.
-close :: (Conn c) => MPD c ()
-close = MPD $ \conn -> connClose conn >> return (Right ())
+close :: MPD ()
+close = MPD $ \(Conn c _ close _ _ _) -> close c >> return (Right ())
 
 --
 -- Sending messages and handling responses.
 --
 
 -- | Send a command to the MPD and return the result.
-getResponse :: (Conn c) => String -> MPD c [String]
+getResponse :: String -> MPD [String]
 getResponse cmd = MPD $ \conn -> respRead (sendCmd conn) reader (givePW conn)
-    where sendCmd c = connWrite c cmd >>= return . either Left (const $ Right c)
-          reader c = connRead c >>= return . (either Left parseResponse)
+    where sendCmd conn@(Conn c _ _ _ put _) = put c cmd >>= return . either Left (const $ Right conn)
+          reader (Conn c _ _ get _ _) = get c >>= return . (either Left parseResponse)
           givePW c cont (ACK Auth _) = tryPassword c cont
           givePW _ _ ack = return (Left ack)
 
 -- Send a password to MPD and run an action on success.
-tryPassword :: (Conn c) => c -> IO (Response a) -> IO (Response a)
-tryPassword conn cont = connGetPW conn >>= maybe failAuth send
+tryPassword :: Conn -> IO (Response a) -> IO (Response a)
+tryPassword conn@(Conn c _ _ get put getpw) cont = getpw c >>= maybe failAuth send
     where
-        send pw = connWrite conn ("password " ++ pw) >>=
+        send pw = put c ("password " ++ pw) >>=
                   either (return . Left)
-                         (const $ connRead conn >>= either (return . Left) parse)
+                         (const $ get c >>= either (return . Left) parse)
         parse "OK" = cont
         parse _    = tryPassword conn cont
         failAuth = return . Left $ ACK Auth "Password required"
