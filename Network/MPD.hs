@@ -45,10 +45,15 @@ import System.Environment (getEnv)
 import System.IO
 import System.IO.Error (isDoesNotExistError, ioError)
 
--- | Run an MPD action using localhost:6600 as the default host:port,
--- or whatever is found in the environment variables MPD_HOST and
--- MPD_PORT. If MPD_HOST is of the form \"password\@host\" then the
--- password will be supplied as well.
+-- | A wrapper for 'withMPDEx' that uses localhost:6600 as the default
+-- host:port, or whatever is found in the environment variables MPD_HOST and
+-- MPD_PORT. If MPD_HOST is of the form \"password\@host\" the password
+-- will be supplied as well.
+--
+-- Examples:
+--
+-- > withMPD $ play Nothing
+-- > withMPD $ add_ Nothing "tool" >> play Nothing >> currentSong
 withMPD :: MPD a -> IO (Response a)
 withMPD m = do
     port <- liftM read (getEnvDefault "MPD_PORT" "6600")
