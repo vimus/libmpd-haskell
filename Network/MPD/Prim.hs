@@ -136,12 +136,12 @@ reconnect = MPD $ \(Conn c open _ _ _ _) -> open c >>= return . Right
 kill :: MPD ()
 kill = getResponse "kill" `catchError` cleanup >> return ()
     where
-      cleanup TimedOut = MPD $ \(Conn c _ close _ _ _) -> close c >> return (Right [])
+      cleanup TimedOut = MPD $ \(Conn c _ close' _ _ _) -> close' c >> return (Right [])
       cleanup x = throwError x >> return []
 
 -- | Close an MPD connection.
 close :: MPD ()
-close = MPD $ \(Conn c _ close _ _ _) -> close c >> return (Right ())
+close = MPD $ \(Conn c _ close' _ _ _) -> close' c >> return (Right ())
 
 --
 -- Sending messages and handling responses.
