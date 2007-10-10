@@ -62,6 +62,7 @@ module Network.MPD.Commands (
     ) where
 
 import Network.MPD.Prim
+import Network.MPD.Utils
 
 import Control.Monad (liftM, unless)
 import Prelude hiding (repeat)
@@ -730,6 +731,12 @@ takeSongInfo xs =
     where parseTrack x = let (trck, tot) = break (== '/') x
                          in (read trck, parseNum (drop 1 tot))
 
+takeNum :: (Read a, Num a) => String -> [(String, String)] -> a
+takeNum v = maybe 0 parseNum . lookup v
+
+takeBool :: String -> [(String, String)] -> Bool
+takeBool v = maybe False parseBool . lookup v
+
 -- Helpers for retrieving values from an assoc. list.
 takeString :: String -> [(String, String)] -> String
 takeString v = fromMaybe "" . lookup v
@@ -737,41 +744,3 @@ takeString v = fromMaybe "" . lookup v
 takeIndex :: (Integer -> PLIndex) -> String -> [(String, String)]
           -> Maybe PLIndex
 takeIndex c v = maybe Nothing (Just . c . parseNum) . lookup v
-
-takeNum :: (Read a, Num a) => String -> [(String, String)] -> a
-takeNum v = maybe 0 parseNum . lookup v
-
-takeBool :: String -> [(String, String)] -> Bool
-takeBool v = maybe False parseBool . lookup v
-
--- Parse a numeric value, returning 0 on failure.
-parseNum :: (Read a, Num a) => String -> a
-parseNum = fromMaybe 0 . maybeReads
-    where maybeReads s = do ; [(x, "")] <- return (reads s) ; return x
-
--- Inverts 'parseBool'.
-showBool :: Bool -> String
-showBool x = if x then "1" else "0"
-
--- Parse a boolean response value.
-parseBool :: String -> Bool
-parseBool = (== "1") . take 1
-
--- Break up a list of strings into an assoc. list, separating at
--- the first ':'.
-toAssoc :: [String] -> [(String, String)]
-toAssoc = map f
-    where f x = let (k,v) = break (== ':') x in
-                (k,dropWhile (== ' ') $ drop 1 v)
-
--- Takes an assoc. list with recurring keys, and groups each cycle of
--- keys with their values together. The first key of each cycle needs
--- to be present in every cycle for it to work, but the rest don't
--- affect anything.
---
--- > splitGroups [(1,'a'),(2,'b'),(1,'c'),(2,'d')] ==
--- >     [[(1,'a'),(2,'b')],[(1,'c'),(2,'d')]]
-splitGroups :: Eq a => [(a, b)] -> [[(a, b)]]
-splitGroups [] = []
-splitGroups (x:xs) = ((x:us):splitGroups vs)
-    where (us,vs) = break (\y -> fst x == fst y) xs
