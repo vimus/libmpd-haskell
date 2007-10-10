@@ -47,13 +47,13 @@ import System.IO
 -- Data types.
 --
 
--- | A class of transports with which to connect to MPD servers.
-data Conn = forall a. Conn a                                 -- ^ Connection object
-                           (a -> IO ())                      -- ^ Open connection
-                           (a -> IO ())                      -- ^ Close connection
-                           (a -> IO (Response String))       -- ^ Read from connection
-                           (a -> String -> IO (Response ())) -- ^ Write to connection
-                           (a -> IO (Maybe String))          -- ^ Password function
+-- A class of transports with which to connect to MPD servers.
+data Conn = forall a. Conn a                                 -- Connection object
+                           (a -> IO ())                      -- Open connection
+                           (a -> IO ())                      -- Close connection
+                           (a -> IO (Response String))       -- Read from connection
+                           (a -> String -> IO (Response ())) -- Write to connection
+                           (a -> IO (Maybe String))          -- Password function
 
 -- | The MPDError type is used to signal errors, both from the MPD and
 -- otherwise.
