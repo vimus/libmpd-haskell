@@ -29,10 +29,8 @@
 -- Core functionality.
 
 module Network.MPD.Prim (
-    -- * Type classes
-    Conn(..),
     -- * Data types
-    MPD(..), MPDError(..), ACKType(..), Response,
+    MPD(..), Conn(..), MPDError(..), ACKType(..), Response,
     -- * Interacting
     getResponse, close, reconnect, kill,
     ) where
