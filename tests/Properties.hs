@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Main (main) where
 import Network.MPD.Utils
 
