@@ -22,7 +22,8 @@ main = do
                   ,("toAssoc / reversible",
                         mytest prop_toAssoc_rev)
                   ,("toAssoc / integrity",
-                        mytest prop_toAssoc_integrity)]
+                        mytest prop_toAssoc_integrity)
+                  ,("parseNum", mytest prop_parseNum)]
 
 mytest :: Testable a => a -> Int -> IO ()
 mytest a n = check defaultConfig { configMaxTest = n } a
@@ -40,6 +41,17 @@ instance Arbitrary AssocString where
         key <- arbitrary
         val <- arbitrary
         return . AS $ key ++ ": " ++ val
+    coarbitrary = undefined
+
+newtype IntegralString = IS String
+    deriving Show
+
+instance Arbitrary IntegralString where
+    arbitrary = do
+        xs <- sized $ \n -> replicateM (n `min` 15) $
+                            oneof (map return ['0'..'9'])
+        neg <- oneof [return True, return False]
+        return $ IS (if neg then '-':xs else xs)
     coarbitrary = undefined
 
 prop_toAssoc_rev :: [AssocString] -> Bool
@@ -62,3 +74,9 @@ prop_splitGroups_rev xs =
 
 prop_splitGroups_integrity :: [(String, String)] -> Bool
 prop_splitGroups_integrity xs = sort (concat $ splitGroups xs) == sort xs
+
+prop_parseNum :: IntegralString -> Bool
+prop_parseNum (IS xs) | null xs        = result == 0
+                      | head xs == '-' = result <= 0
+                      | otherwise      = result >= 0
+    where result = parseNum xs
