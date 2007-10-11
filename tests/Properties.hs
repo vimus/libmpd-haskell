@@ -17,7 +17,8 @@ main = do
     where tests = [("splitGroups / idempotent",
                         mytest prop_splitGroups_idem)
                   ,("splitGroups / integrity",
-                        mytest prop_splitGroups_integrity)]
+                        mytest prop_splitGroups_integrity)
+                  ,("parseBool", mytest prop_parseBool)]
 
 mytest :: Testable a => a -> Int -> IO ()
 mytest a n = check defaultConfig { configMaxTest = n } a
@@ -25,6 +26,9 @@ mytest a n = check defaultConfig { configMaxTest = n } a
 instance Arbitrary Char where
     arbitrary     = choose ('\0', '\128')
     coarbitrary c = variant (ord c `rem` 4)
+
+prop_parseBool :: Bool -> Bool
+prop_parseBool x = parseBool (showBool x) == x
 
 prop_splitGroups_idem :: [(String, String)] -> Bool
 prop_splitGroups_idem xs =
