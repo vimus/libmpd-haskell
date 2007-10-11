@@ -32,8 +32,8 @@ module Network.MPD.Utils (
     ) where
 import Data.Maybe
 
--- Parse a numeric value, returning 0 on failure.
-parseNum :: (Read a, Num a) => String -> a
+-- Parse a positive or negative integer value, returning 0 on failure.
+parseNum :: (Read a, Integral a) => String -> a
 parseNum = fromMaybe 0 . maybeReads
     where maybeReads s = do ; [(x, "")] <- return (reads s) ; return x
 
