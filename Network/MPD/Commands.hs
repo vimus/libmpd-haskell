@@ -731,7 +731,7 @@ takeSongInfo xs =
     where parseTrack x = let (trck, tot) = break (== '/') x
                          in (read trck, parseNum (drop 1 tot))
 
-takeNum :: (Read a, Num a) => String -> [(String, String)] -> a
+takeNum :: (Read a, Integral a) => String -> [(String, String)] -> a
 takeNum v = maybe 0 parseNum . lookup v
 
 takeBool :: String -> [(String, String)] -> Bool
