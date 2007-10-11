@@ -44,12 +44,14 @@ instance Arbitrary AssocString where
 
 prop_toAssoc_idem :: [AssocString] -> Bool
 prop_toAssoc_idem x = toAssoc (fromAssoc r) == r
-    where r = toAssoc s
+    where r = toAssoc (fromAS x)
           fromAssoc = map (\(a, b) -> a ++ ": " ++ b)
-          s = [y | AS y <- x]
 
 prop_toAssoc_integrity :: [AssocString] -> Bool
-prop_toAssoc_integrity x = let s = [y | AS y <- x] in length (toAssoc s) == length s
+prop_toAssoc_integrity x = length (toAssoc $ fromAS x) == length x
+
+fromAS :: [AssocString] -> [String]
+fromAS s = [x | AS x <- s]
 
 prop_parseBool :: Bool -> Bool
 prop_parseBool x = parseBool (showBool x) == x
