@@ -18,7 +18,9 @@ main = do
                         mytest prop_splitGroups_idem)
                   ,("splitGroups / integrity",
                         mytest prop_splitGroups_integrity)
-                  ,("parseBool", mytest prop_parseBool)]
+                  ,("parseBool", mytest prop_parseBool)
+                  ,("toAssoc / integrity",
+                        mytest prop_toAssoc_integrity)]
 
 mytest :: Testable a => a -> Int -> IO ()
 mytest a n = check defaultConfig { configMaxTest = n } a
@@ -26,6 +28,20 @@ mytest a n = check defaultConfig { configMaxTest = n } a
 instance Arbitrary Char where
     arbitrary     = choose ('\0', '\128')
     coarbitrary c = variant (ord c `rem` 4)
+
+-- an assoc. string is a string of the form "key: value".
+newtype AssocString = AS String
+    deriving Show
+
+instance Arbitrary AssocString where
+    arbitrary = do
+        key <- arbitrary
+        val <- arbitrary
+        return . AS $ key ++ ": " ++ val
+    coarbitrary = undefined
+
+prop_toAssoc_integrity :: [AssocString] -> Bool
+prop_toAssoc_integrity x = let s = [y | AS y <- x] in length (toAssoc s) == length s
 
 prop_parseBool :: Bool -> Bool
 prop_parseBool x = parseBool (showBool x) == x
