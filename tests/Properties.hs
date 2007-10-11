@@ -76,7 +76,6 @@ prop_splitGroups_integrity :: [(String, String)] -> Bool
 prop_splitGroups_integrity xs = sort (concat $ splitGroups xs) == sort xs
 
 prop_parseNum :: IntegralString -> Bool
-prop_parseNum (IS xs) | null xs        = result == 0
-                      | head xs == '-' = result <= 0
-                      | otherwise      = result >= 0
-    where result = parseNum xs
+prop_parseNum (IS xs@"")      = parseNum xs == 0
+prop_parseNum (IS xs@('-':_)) = parseNum xs <= 0
+prop_parseNum (IS xs)         = parseNum xs >= 0
