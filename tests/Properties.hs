@@ -19,6 +19,8 @@ main = do
                   ,("splitGroups / integrity",
                         mytest prop_splitGroups_integrity)
                   ,("parseBool", mytest prop_parseBool)
+                  ,("toAssoc / idempotent",
+                        mytest prop_toAssoc_idem)
                   ,("toAssoc / integrity",
                         mytest prop_toAssoc_integrity)]
 
@@ -39,6 +41,12 @@ instance Arbitrary AssocString where
         val <- arbitrary
         return . AS $ key ++ ": " ++ val
     coarbitrary = undefined
+
+prop_toAssoc_idem :: [AssocString] -> Bool
+prop_toAssoc_idem x = toAssoc (fromAssoc r) == r
+    where r = toAssoc s
+          fromAssoc = map (\(a, b) -> a ++ ": " ++ b)
+          s = [y | AS y <- x]
 
 prop_toAssoc_integrity :: [AssocString] -> Bool
 prop_toAssoc_integrity x = let s = [y | AS y <- x] in length (toAssoc s) == length s
