@@ -68,17 +68,16 @@ scOpen conn@(SC host port hRef _) =
 scClose :: SocketConn -> IO ()
 scClose (SC _ _ hRef _) =
     readIORef hRef >>= maybe (return ()) sendClose >> writeIORef hRef Nothing
-    where
-      sendClose h = catch (hPutStrLn h "close" >> hClose h)
-                          (\err -> if isEOFError err then return ()
-                                                     else ioError err)
+    where sendClose h = catch (hPutStrLn h "close" >> hClose h)
+                              (\err -> if isEOFError err then return ()
+                                       else ioError err)
 
 scRead :: SocketConn -> IO (Response String)
 scRead (SC _ _ hRef _) =
     readIORef hRef >>= maybe (return $ Left NoMPD) getTO
     where
-      getTO  h = catch (liftM Right $ hGetLine h) markTO
-      markTO e = if isEOFError e then (return $ Left TimedOut) else ioError e
+        getTO  h = catch (liftM Right $ hGetLine h) markTO
+        markTO e = if isEOFError e then (return $ Left TimedOut) else ioError e
 
 scWrite :: SocketConn -> String -> IO (Response ())
 scWrite (SC _ _ hRef _) str =
