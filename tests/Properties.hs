@@ -19,6 +19,9 @@ main = do
                   ,("splitGroups / integrity",
                         mytest prop_splitGroups_integrity)
                   ,("parseBool", mytest prop_parseBool)
+                  ,("parseBool / reversible",
+                        mytest prop_parseBool_rev)
+                  ,("showBool", mytest prop_showBool)
                   ,("toAssoc / reversible",
                         mytest prop_toAssoc_rev)
                   ,("toAssoc / integrity",
@@ -73,6 +76,9 @@ prop_toAssoc_integrity x = length (toAssoc $ fromAS x) == length x
 
 fromAS :: [AssocString] -> [String]
 fromAS s = [x | AS x <- s]
+
+prop_parseBool_rev :: BoolString -> Bool
+prop_parseBool_rev (BS x) = showBool (parseBool x) == x
 
 prop_parseBool :: BoolString -> Bool
 prop_parseBool (BS "1") = parseBool "1"
