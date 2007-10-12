@@ -54,6 +54,15 @@ instance Arbitrary IntegralString where
         return $ IS (if neg then '-':xs else xs)
     coarbitrary = undefined
 
+newtype BoolString = BS String
+    deriving Show
+
+instance Arbitrary BoolString where
+    arbitrary = do
+        v <- oneof [return True, return False]
+        return . BS $ if v then "1" else "0"
+    coarbitrary = undefined
+
 prop_toAssoc_rev :: [AssocString] -> Bool
 prop_toAssoc_rev x = toAssoc (fromAssoc r) == r
     where r = toAssoc (fromAS x)
