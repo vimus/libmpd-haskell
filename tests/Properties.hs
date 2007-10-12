@@ -74,8 +74,9 @@ prop_toAssoc_integrity x = length (toAssoc $ fromAS x) == length x
 fromAS :: [AssocString] -> [String]
 fromAS s = [x | AS x <- s]
 
-prop_parseBool :: Bool -> Bool
-prop_parseBool x = parseBool (showBool x) == x
+prop_parseBool :: BoolString -> Bool
+prop_parseBool (BS "1") = parseBool "1"
+prop_parseBool (BS x)   = not (parseBool x)
 
 prop_splitGroups_rev :: [(String, String)] -> Bool
 prop_splitGroups_rev xs =
