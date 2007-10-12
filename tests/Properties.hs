@@ -78,6 +78,10 @@ prop_parseBool :: BoolString -> Bool
 prop_parseBool (BS "1") = parseBool "1"
 prop_parseBool (BS x)   = not (parseBool x)
 
+prop_showBool :: Bool -> Bool
+prop_showBool True = showBool True == "1"
+prop_showBool x    = showBool x == "0"
+
 prop_splitGroups_rev :: [(String, String)] -> Bool
 prop_splitGroups_rev xs =
     let r = splitGroups xs in r == splitGroups (concat r)
