@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-orphans -fno-warn-missing-methods #-}
 module Main (main) where
 import Network.MPD.Utils
 
@@ -33,7 +33,6 @@ mytest a n = check defaultConfig { configMaxTest = n } a
 
 instance Arbitrary Char where
     arbitrary     = choose ('\0', '\128')
-    coarbitrary c = variant (ord c `rem` 4)
 
 -- an assoc. string is a string of the form "key: value".
 newtype AssocString = AS String
@@ -44,7 +43,6 @@ instance Arbitrary AssocString where
         key <- arbitrary
         val <- arbitrary
         return . AS $ key ++ ": " ++ val
-    coarbitrary = undefined
 
 newtype IntegralString = IS String
     deriving Show
@@ -55,7 +53,6 @@ instance Arbitrary IntegralString where
                             oneof (map return ['0'..'9'])
         neg <- oneof [return True, return False]
         return $ IS (if neg then '-':xs else xs)
-    coarbitrary = undefined
 
 newtype BoolString = BS String
     deriving Show
@@ -64,7 +61,6 @@ instance Arbitrary BoolString where
     arbitrary = do
         v <- oneof [return True, return False]
         return . BS $ if v then "1" else "0"
-    coarbitrary = undefined
 
 prop_toAssoc_rev :: [AssocString] -> Bool
 prop_toAssoc_rev x = toAssoc (fromAssoc r) == r
