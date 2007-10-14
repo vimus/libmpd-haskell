@@ -61,7 +61,7 @@ data MPDError = NoMPD              -- ^ MPD not responding
               | TimedOut           -- ^ The connection timed out
               | Custom String      -- ^ Used for misc. errors
               | ACK ACKType String -- ^ ACK type and a message from the
-                                   --   server.
+                deriving (Eq)      --   server.
 
 instance Show MPDError where
     show NoMPD      = "Could not connect to MPD"
@@ -83,6 +83,7 @@ data ACKType = InvalidArgument  -- ^ Invalid argument passed (ACK 2)
                                 --   got interrupted (ACK 55)
              | FileExists       -- ^ File already exists (ACK 56)
              | UnknownACK       -- ^ An unknown ACK (aka. bug)
+               deriving (Eq)
 
 -- | A response is either an 'MPDError' or some result.
 type Response a = Either MPDError a
