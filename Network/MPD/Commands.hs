@@ -56,9 +56,9 @@ module Network.MPD.Commands (
     status, tagTypes, urlHandlers,
 
     -- * Extensions\/shortcuts
-    addMany, deleteMany, crop, prune, lsDirs, lsFiles, lsPlaylists, findArtist,
-    findAlbum, findTitle, listArtists, listAlbums, listAlbum, searchArtist,
-    searchAlbum, searchTitle, getPlaylist, toggle, updateId
+    addMany, deleteMany, complete, crop, prune, lsDirs, lsFiles, lsPlaylists,
+    findArtist, findAlbum, findTitle, listArtists, listAlbums, listAlbum,
+    searchArtist, searchAlbum, searchTitle, getPlaylist, toggle, updateId
     ) where
 
 import Network.MPD.Prim
@@ -66,8 +66,9 @@ import Network.MPD.Utils
 
 import Control.Monad (liftM, unless)
 import Prelude hiding (repeat)
-import Data.List (findIndex, intersperse)
+import Data.List (findIndex, intersperse, isPrefixOf)
 import Data.Maybe
+import System.FilePath (dropFileName)
 
 --
 -- Data types
@@ -586,6 +587,18 @@ deleteMany (Just plname) xs = getResponses (map cmd xs) >> return ()
 deleteMany Nothing xs = getResponses (map cmd xs) >> return ()
     where cmd (Pos x) = "delete " ++ show x
           cmd (ID x)  = "deleteid " ++ show x
+
+-- | Returns all songs and directories that match the given partial
+-- path name.
+complete :: String -> MPD [Either Path Song]
+complete path = do
+    xs <- liftM matches $ lsInfo (Just $ dropFileName path)
+    case xs of
+        [Left dir] -> complete $ dir ++ "/"
+        _          -> return xs
+    where
+        matches = filter (isPrefixOf path . takePath)
+        takePath = either id sgFilePath
 
 -- | Crop playlist.
 -- The bounds are inclusive.

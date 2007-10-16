@@ -11,7 +11,7 @@ Synopsis:           An MPD client library.
 Description:        A client library for MPD, the Music Player Daemon.
 Category:           Network, Sound
 Tested-With:        GHC == 6.5, GHC == 6.6.1, Hugs == 2006.9
-Build-Depends:      base, network, mtl
+Build-Depends:      base, network, mtl, filepath
 Extra-Source-Files: TODO README ChangeLog tests/Properties.hs
 Exposed-Modules:    Network.MPD
 Other-Modules:      Network.MPD.Prim, Network.MPD.Commands, Network.MPD.SocketConn,
