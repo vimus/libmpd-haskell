@@ -30,7 +30,6 @@ module Network.MPD.Utils (
     parseNum, parseBool, showBool,
     toAssoc, splitGroups
     ) where
-import Data.Maybe
 
 -- Parse a positive or negative integer value, returning 0 on failure.
 parseNum :: (Read a, Integral a) => String -> a
