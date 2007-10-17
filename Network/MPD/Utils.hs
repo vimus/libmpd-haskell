@@ -34,8 +34,7 @@ import Data.Maybe
 
 -- Parse a positive or negative integer value, returning 0 on failure.
 parseNum :: (Read a, Integral a) => String -> a
-parseNum = fromMaybe 0 . maybeReads
-    where maybeReads s = do ; [(x, "")] <- return (reads s) ; return x
+parseNum s = case reads s of [(x, "")] -> x; _ -> 0
 
 -- Inverts 'parseBool'.
 showBool :: Bool -> String
