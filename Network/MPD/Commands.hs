@@ -745,13 +745,14 @@ takeSongInfo xs =
     where parseTrack x = let (trck, tot) = break (== '/') x
                          in (read trck, parseNum (drop 1 tot))
 
+-- Helpers for retrieving values from an assoc. list.
+
 takeNum :: (Read a, Integral a) => String -> [(String, String)] -> a
 takeNum v = maybe 0 parseNum . lookup v
 
 takeBool :: String -> [(String, String)] -> Bool
 takeBool v = maybe False parseBool . lookup v
 
--- Helpers for retrieving values from an assoc. list.
 takeString :: String -> [(String, String)] -> String
 takeString v = fromMaybe "" . lookup v
 
