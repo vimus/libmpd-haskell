@@ -701,7 +701,7 @@ getResponse_ x = getResponse x >> return ()
 
 -- Get the lines of the daemon's response to a list of commands.
 getResponses :: [String] -> MPD [String]
-getResponses cmds = getResponse (concat . intersperse "\n" $ cmds')
+getResponses cmds = getResponse . concat $ intersperse "\n" cmds'
     where cmds' = "command_list_begin" : cmds ++ ["command_list_end"]
 
 --
