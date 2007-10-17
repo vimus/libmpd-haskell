@@ -593,7 +593,7 @@ deleteMany Nothing xs = getResponses (map cmd xs) >> return ()
 -- path name.
 complete :: String -> MPD [Either Path Song]
 complete path = do
-    xs <- liftM matches $ lsInfo (Just $ dropFileName path)
+    xs <- liftM matches . lsInfo . Just $ dropFileName path
     case xs of
         [Left dir] -> complete $ dir ++ "/"
         _          -> return xs
