@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, ExistentialQuantification #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-
     libmpd for Haskell, an MPD client library.
     Copyright (C) 2005-2007  Ben Sinclair <bsinclai@turing.une.edu.au>
@@ -23,8 +23,7 @@
 -- License     : LGPL
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
--- Portability : not Haskell 98 (uses MultiParamTypeClasses and
---               ExistentialQuantification)
+-- Portability : not Haskell 98 (uses MultiParamTypeClasses)
 --
 -- Core functionality.
 
@@ -48,12 +47,11 @@ import System.IO
 --
 
 -- A class of transports with which to connect to MPD servers.
-data Conn = forall a. Conn a                                 -- Connection object
-                           (a -> IO ())                      -- Open connection
-                           (a -> IO ())                      -- Close connection
-                           (a -> IO (Response String))       -- Read from connection
-                           (a -> String -> IO (Response ())) -- Write to connection
-                           (a -> IO (Maybe String))          -- Password function
+data Conn = Conn { cOpen  :: IO ()                      -- Open connection
+                 , cClose :: IO ()                      -- Close connection
+                 , cPut   :: String -> IO (Response ()) -- Write to connection
+                 , cGet   :: IO (Response String)       -- Read from connection
+                 , cGetPW :: IO (Maybe String) }        -- Password function
 
 -- | The MPDError type is used to signal errors, both from the MPD and
 -- otherwise.
@@ -128,18 +126,18 @@ instance Error MPDError where
 
 -- | Refresh a connection.
 reconnect :: MPD ()
-reconnect = MPD $ \(Conn c open _ _ _ _) -> open c >>= return . Right
+reconnect = MPD $ \conn -> Right `liftM` cOpen conn
 
 -- | Kill the server. Obviously, the connection is then invalid.
 kill :: MPD ()
 kill = getResponse "kill" `catchError` cleanup >> return ()
     where
-      cleanup TimedOut = MPD $ \(Conn c _ close' _ _ _) -> close' c >> return (Right [])
+      cleanup TimedOut = MPD $ \conn -> cClose conn >> return (Right [])
       cleanup x = throwError x >> return []
 
 -- | Close an MPD connection.
 close :: MPD ()
-close = MPD $ \(Conn c _ close' _ _ _) -> close' c >> return (Right ())
+close = MPD $ \conn -> cClose conn >> return (Right ())
 
 --
 -- Sending messages and handling responses.
@@ -148,18 +146,18 @@ close = MPD $ \(Conn c _ close' _ _ _) -> close' c >> return (Right ())
 -- | Send a command to the MPD and return the result.
 getResponse :: String -> MPD [String]
 getResponse cmd = MPD $ \conn -> respRead (sendCmd conn) reader (givePW conn)
-    where sendCmd conn@(Conn c _ _ _ put _) = put c cmd >>= return . either Left (const $ Right conn)
-          reader (Conn c _ _ get _ _) = get c >>= return . (either Left parseResponse)
+    where sendCmd conn = either Left (const $ Right conn) `liftM` cPut conn cmd
+          reader conn = either Left parseResponse `liftM` cGet conn
           givePW c cont (ACK Auth _) = tryPassword c cont
           givePW _ _ ack = return (Left ack)
 
 -- Send a password to MPD and run an action on success.
 tryPassword :: Conn -> IO (Response a) -> IO (Response a)
-tryPassword conn@(Conn c _ _ get put getpw) cont = getpw c >>= maybe failAuth send
+tryPassword conn cont = cGetPW conn >>= maybe failAuth send
     where
-        send pw = put c ("password " ++ pw) >>=
+        send pw = cPut conn ("password " ++ pw) >>=
                   either (return . Left)
-                         (const $ get c >>= either (return . Left) parse)
+                         (const $ cGet conn >>= either (return . Left) parse)
         parse "OK" = cont
         parse _    = tryPassword conn cont
         failAuth = return . Left $ ACK Auth "Password required"

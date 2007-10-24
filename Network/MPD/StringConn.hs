@@ -47,37 +47,37 @@ testMPD :: (Eq a)
 testMPD pairs expt getpw m = do
     mismatchesRef <- newIORef ([] :: [(String, String)])
     expectsRef    <- newIORef $ concatMap (\(x,y) -> [Left x,Right y]) pairs
-    req  <- mkReq  expectsRef mismatchesRef
-    resp <- mkResp expectsRef
-    result <- runMPD m $ Conn () nullIO nullIO (const resp) (const req) (const getpw)
+    let open'  = return ()
+        close' = return ()
+        put'   = put expectsRef mismatchesRef
+        get'   = get expectsRef
+    result <- runMPD m $ Conn open' close' put' get' getpw
     mismatches <- liftM reverse $ readIORef mismatchesRef
     return $ if null mismatches && result == expt
              then Nothing else Just (result, mismatches)
 
-nullIO :: () -> IO ()
-nullIO _ = return ()
+put :: IORef [Either String a]  -- An alternating list of expected
+                                -- requests and responses to give.
+    -> IORef [(String, String)] -- An initially empty list of
+                                -- mismatches between expected and
+                                -- actual requests.
+    -> String
+    -> IO (Response ())
+put expsR mmsR x =
+    let addMismatch x' = modifyIORef mmsR ((x',x):) >> return (Left NoMPD)
+    in do
+        ys <- readIORef expsR
+        case ys of
+            (Left y:_) | y == x ->
+                           modifyIORef expsR (drop 1) >> return (Right ())
+                       | otherwise -> addMismatch y
+            _ -> addMismatch ""
 
-mkReq :: IORef [Either String a]
-      -> IORef [(String, String)]
-      -> IO (String -> IO (Response ()))
-mkReq expectsRef mismatchesRef =
-    return $ \x ->
-        let addMismatch x' = modifyIORef mismatchesRef ((x',x):) >>
-                             return (Left NoMPD)
-        in do
-            ys <- readIORef expectsRef
-            case ys of
-                (Left y:_) -> if y == x
-                              then do modifyIORef expectsRef (drop 1)
-                                      return (Right ())
-                              else addMismatch y
-                _ -> addMismatch ""
-
-mkResp :: IORef [Either a (Response String)]
-       -> IO (IO (Response String))
-mkResp expectsRef = return $ do
-    xs <- readIORef expectsRef
+get :: IORef [Either a (Response String)]
+    -> IO (Response String)
+get expsR = do
+    xs <- readIORef expsR
     case xs of
-        (Right x:_) -> modifyIORef expectsRef (drop 1) >> return x
+        (Right x:_) -> modifyIORef expsR (drop 1) >> return x
         _           -> return $ Left NoMPD
 

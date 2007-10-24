@@ -28,7 +28,7 @@
 
 module Network.MPD.SocketConn (withMPDEx) where
 
-import Network.MPD.Prim
+import Network.MPD.Prim hiding (close)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Network
 import System.IO
@@ -37,12 +37,6 @@ import Data.List (isPrefixOf)
 import System.IO.Error (isEOFError)
 import Control.Exception (finally)
 
--- | A network connection to an MPD server.
-data SocketConn = SC String                 -- host name
-                     Integer                -- port number
-                     (IORef (Maybe Handle)) -- socket handle
-                     (IO (Maybe String))    -- password getter
-
 -- | Run an MPD action against a server.
 withMPDEx :: String            -- ^ Host name.
           -> Integer           -- ^ Port number.
@@ -50,40 +44,38 @@ withMPDEx :: String            -- ^ Host name.
           -> MPD a             -- ^ The action to run.
           -> IO (Response a)
 withMPDEx host port getpw m = do
-    hRef <- newIORef Nothing
-    let sConn = SC host port hRef getpw
-    let conn = Conn sConn scOpen scClose scRead scWrite (const getpw)
-    scOpen sConn
-    finally (runMPD m conn) (scClose sConn)
+    hR <- newIORef Nothing
+    let open'  = open host port hR
+        close' = close hR
+        put'   = put hR
+        get'   = get hR
+    open'
+    runMPD m (Conn open' close' put' get' getpw) `finally` close'
 
-scOpen :: SocketConn -> IO ()
-scOpen conn@(SC host port hRef _) =
-    withSocketsDo $ do
-    scClose conn
-    handle <- safeConnectTo host port
-    writeIORef hRef handle
-    maybe (return ()) (\_ -> checkConn conn >>= flip unless (scClose conn))
-          handle
+open :: String -> Integer -> IORef (Maybe Handle) -> IO ()
+open host port hR = withSocketsDo $ do
+    close hR
+    h <- safeConnectTo host port
+    writeIORef hR h
+    maybe (return ()) (\_ -> checkConn hR >>= flip unless (close hR)) h
 
-scClose :: SocketConn -> IO ()
-scClose (SC _ _ hRef _) =
-    readIORef hRef >>= maybe (return ()) sendClose >> writeIORef hRef Nothing
+close :: IORef (Maybe Handle) -> IO ()
+close hR = readIORef hR >>= maybe (return ()) sendClose >> writeIORef hR Nothing
     where sendClose h = catch (hPutStrLn h "close" >> hClose h)
                               (\err -> if isEOFError err then return ()
                                        else ioError err)
 
-scRead :: SocketConn -> IO (Response String)
-scRead (SC _ _ hRef _) =
-    readIORef hRef >>= maybe (return $ Left NoMPD) getTO
+put :: IORef (Maybe Handle) -> String -> IO (Response ())
+put hR str =
+    readIORef hR >>=
+    maybe (return $ Left NoMPD)
+          (\h -> hPutStrLn h str >> hFlush h >> return (Right ()))
+
+get :: IORef (Maybe Handle) -> IO (Response String)
+get hR = readIORef hR >>= maybe (return $ Left NoMPD) getTO
     where
         getTO  h = catch (liftM Right $ hGetLine h) markTO
         markTO e = if isEOFError e then (return $ Left TimedOut) else ioError e
-
-scWrite :: SocketConn -> String -> IO (Response ())
-scWrite (SC _ _ hRef _) str =
-    readIORef hRef >>=
-    maybe (return $ Left NoMPD)
-          (\h -> hPutStrLn h str >> hFlush h >> return (Right ()))
 
 --
 -- Helpers
@@ -95,5 +87,5 @@ safeConnectTo host port =
           (const $ return Nothing)
 
 -- Check that an MPD daemon is at the other end of a connection.
-checkConn :: SocketConn -> IO Bool
-checkConn conn = scRead conn >>= return . either (const False) (isPrefixOf "OK MPD")
+checkConn :: IORef (Maybe Handle) -> IO Bool
+checkConn = liftM (either (const False) (isPrefixOf "OK MPD")) . get
