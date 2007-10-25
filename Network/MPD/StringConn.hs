@@ -26,11 +26,14 @@
 --
 -- Connection over a network socket.
 
-module Network.MPD.StringConn (testMPD) where
+module Network.MPD.StringConn (Expect, testMPD) where
 
 import Control.Monad (liftM)
 import Network.MPD.Prim
 import Data.IORef
+
+-- | An expected request.
+type Expect = String
 
 -- | Run an action against a set of expected requests and responses,
 -- and an expected result. The result is Nothing if everything matched
@@ -38,46 +41,36 @@ import Data.IORef
 -- computation is returned along with pairs of expected and received
 -- requests.
 testMPD :: (Eq a)
-        => [(String, Response String)] -- ^ The expected requests and their
+        => [(Expect, Response String)] -- ^ The expected requests and their
                                        -- ^ corresponding responses.
         -> Response a                  -- ^ The expected result.
         -> IO (Maybe String)           -- ^ An action that supplies passwords.
         -> MPD a                       -- ^ The MPD action to run.
-        -> IO (Maybe (Response a, [(String,String)]))
-testMPD pairs expt getpw m = do
-    mismatchesRef <- newIORef ([] :: [(String, String)])
-    expectsRef    <- newIORef $ concatMap (\(x,y) -> [Left x,Right y]) pairs
+        -> IO (Maybe (Response a, [(Expect,String)]))
+testMPD pairs expected getpw m = do
+    expectsRef    <- newIORef pairs
+    mismatchesRef <- newIORef ([] :: [(Expect, String)])
     let open'  = return ()
         close' = return ()
-        put'   = put expectsRef mismatchesRef
-        get'   = get expectsRef
-    result <- runMPD m $ Conn open' close' put' get' getpw
+        send'  = send expectsRef mismatchesRef
+    result <- runMPD m $ Conn open' close' send' getpw
     mismatches <- liftM reverse $ readIORef mismatchesRef
-    return $ if null mismatches && result == expt
-             then Nothing else Just (result, mismatches)
+    return $ if null mismatches && result == expected
+             then Nothing
+             else Just (result, mismatches)
 
-put :: IORef [Either String a]  -- An alternating list of expected
-                                -- requests and responses to give.
-    -> IORef [(String, String)] -- An initially empty list of
-                                -- mismatches between expected and
-                                -- actual requests.
-    -> String
-    -> IO (Response ())
-put expsR mmsR x =
-    let addMismatch x' = modifyIORef mmsR ((x',x):) >> return (Left NoMPD)
-    in do
-        ys <- readIORef expsR
-        case ys of
-            (Left y:_) | y == x ->
-                           modifyIORef expsR (drop 1) >> return (Right ())
-                       | otherwise -> addMismatch y
-            _ -> addMismatch ""
-
-get :: IORef [Either a (Response String)]
-    -> IO (Response String)
-get expsR = do
+send :: IORef [(Expect, Response String)] -- Expected requests and their
+                                          -- responses.
+     -> IORef [(Expect, String)]          -- An initially empty list of
+                                          -- mismatches between expected and
+                                          -- actual requests.
+     -> String
+     -> IO (Response String)
+send expsR mmsR str = do
     xs <- readIORef expsR
     case xs of
-        (Right x:_) -> modifyIORef expsR (drop 1) >> return x
-        _           -> return $ Left NoMPD
-
+        ((exp,resp):_) | exp == str -> modifyIORef expsR (drop 1) >> return resp
+                       | otherwise  -> addMismatch exp
+        [] -> addMismatch ""
+    where
+        addMismatch exp = modifyIORef mmsR ((exp,str):) >> return (Left NoMPD)

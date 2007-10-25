@@ -47,10 +47,9 @@ withMPDEx host port getpw m = do
     hR <- newIORef Nothing
     let open'  = open host port hR
         close' = close hR
-        put'   = put hR
-        get'   = get hR
+        send'  = send hR
     open'
-    runMPD m (Conn open' close' put' get' getpw) `finally` close'
+    runMPD m (Conn open' close' send' getpw) `finally` close'
 
 open :: String -> Integer -> IORef (Maybe Handle) -> IO ()
 open host port hR = withSocketsDo $ do
@@ -65,17 +64,22 @@ close hR = readIORef hR >>= maybe (return ()) sendClose >> writeIORef hR Nothing
                               (\err -> if isEOFError err then return ()
                                        else ioError err)
 
-put :: IORef (Maybe Handle) -> String -> IO (Response ())
-put hR str =
-    readIORef hR >>=
-    maybe (return $ Left NoMPD)
-          (\h -> hPutStrLn h str >> hFlush h >> return (Right ()))
-
-get :: IORef (Maybe Handle) -> IO (Response String)
-get hR = readIORef hR >>= maybe (return $ Left NoMPD) getTO
+send :: IORef (Maybe Handle) -> String -> IO (Response String)
+send hR str = do
+    hM <- readIORef hR
+    case hM of
+        Nothing -> return $ Left NoMPD
+        Just h -> do
+                if not (null str)
+                    then hPutStrLn h str >> hFlush h else return ()
+                ((Right . unlines) `liftM` getLines h []) `catch` markTimedOut
     where
-        getTO  h = catch (liftM Right $ hGetLine h) markTO
-        markTO e = if isEOFError e then (return $ Left TimedOut) else ioError e
+        markTimedOut e =
+            if isEOFError e then (return $ Left TimedOut) else ioError e
+        getLines handle acc = do
+            l <- hGetLine handle
+            if "OK" `isPrefixOf` l
+                then return (reverse (l:acc)) else getLines handle (l:acc)
 
 --
 -- Helpers
@@ -88,4 +92,4 @@ safeConnectTo host port =
 
 -- Check that an MPD daemon is at the other end of a connection.
 checkConn :: IORef (Maybe Handle) -> IO Bool
-checkConn = liftM (either (const False) (isPrefixOf "OK MPD")) . get
+checkConn c = liftM (either (const False) (isPrefixOf "OK MPD")) $ send c ""

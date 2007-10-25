@@ -47,11 +47,10 @@ import System.IO
 --
 
 -- A class of transports with which to connect to MPD servers.
-data Conn = Conn { cOpen  :: IO ()                      -- Open connection
-                 , cClose :: IO ()                      -- Close connection
-                 , cPut   :: String -> IO (Response ()) -- Write to connection
-                 , cGet   :: IO (Response String)       -- Read from connection
-                 , cGetPW :: IO (Maybe String) }        -- Password function
+data Conn = Conn { cOpen  :: IO ()                          -- Open connection
+                 , cClose :: IO ()                          -- Close connection
+                 , cSend  :: String -> IO (Response String) -- Write to connection
+                 , cGetPW :: IO (Maybe String) }            -- Password function
 
 -- | The MPDError type is used to signal errors, both from the MPD and
 -- otherwise.
@@ -145,45 +144,28 @@ close = MPD $ \conn -> cClose conn >> return (Right ())
 
 -- | Send a command to the MPD and return the result.
 getResponse :: String -> MPD [String]
-getResponse cmd = MPD $ \conn -> respRead (sendCmd conn) reader (givePW conn)
-    where sendCmd conn = either Left (const $ Right conn) `liftM` cPut conn cmd
-          reader conn = either Left parseResponse `liftM` cGet conn
-          givePW c cont (ACK Auth _) = tryPassword c cont
-          givePW _ _ ack = return (Left ack)
+getResponse cmd = MPD f
+    where
+        f conn = catchAuth . either Left parseResponse =<< cSend conn cmd
+            where
+                catchAuth (Left (ACK Auth _)) = tryPassword conn (f conn)
+                catchAuth x = return x
 
 -- Send a password to MPD and run an action on success.
 tryPassword :: Conn -> IO (Response a) -> IO (Response a)
-tryPassword conn cont = cGetPW conn >>= maybe failAuth send
-    where
-        send pw = cPut conn ("password " ++ pw) >>=
-                  either (return . Left)
-                         (const $ cGet conn >>= either (return . Left) parse)
-        parse "OK" = cont
-        parse _    = tryPassword conn cont
-        failAuth = return . Left $ ACK Auth "Password required"
-
--- XXX suggestions for names welcome.
---
--- Run a setup action before a recurrent reader. If the reader returns
--- Nothing it has finished reading. If an error is returned a handler
--- is called with an action that, when invoked, will run the setup
--- action again and continue.
-respRead :: IO (Either e a)                               -- setup
-         -> (a -> IO (Either e (Maybe b)))                -- reader
-         -> (IO (Either e [b]) -> e -> IO (Either e [b])) -- handler
-         -> IO (Either e [b])
-respRead sup rdr onErr = start []
-    where start acc = sup >>= either (return . Left) (\x -> readAll x acc)
-          readAll x acc =
-              rdr x >>= either (onErr (start acc))
-                               (maybe result (\y -> readAll x (y:acc)))
-              where result = return . Right $ reverse acc
+tryPassword conn cont = do
+    resp <- cGetPW conn >>= maybe failAuth (cSend conn . ("password " ++))
+    case resp of
+        Left  e -> return $ Left e
+        Right x -> either (return . Left) (const cont) $ parseResponse x
+    where failAuth = return . Left $ ACK Auth "Password required"
 
 -- Consume response and return a Response.
-parseResponse :: String -> Response (Maybe String)
-parseResponse s | isPrefixOf "ACK" s = Left  $ parseAck s -- an error occurred
-                | isPrefixOf "OK" s  = Right Nothing      -- done parsing
-                | otherwise          = Right $ Just s     -- continue
+parseResponse :: String -> Response [String]
+parseResponse s | null xs                    = Left  $ NoMPD
+                | isPrefixOf "ACK" (head xs) = Left  $ parseAck s
+                | otherwise                  = Right $ takeWhile ("OK" /=) xs
+    where xs = lines s
 
 parseAck :: String -> MPDError
 parseAck s = ACK ack msg
