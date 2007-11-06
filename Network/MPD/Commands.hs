@@ -78,7 +78,13 @@ type Artist       = String
 type Album        = String
 type Title        = String
 type Seconds      = Integer
+
+-- | Used for commands which require a playlist name.
+-- If empty, the current playlist is used.
 type PlaylistName = String
+
+-- | Used for commands which require a path within the database.
+-- If empty, the root path is used.
 type Path         = String
 
 -- | Available metadata types\/scope modifiers, used for searching the
