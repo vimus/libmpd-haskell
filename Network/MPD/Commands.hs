@@ -645,12 +645,12 @@ findDuplicates =
 -- | List directories non-recursively.
 lsDirs :: Path -> MPD [Path]
 lsDirs path = liftM ((\(x,_,_) -> x) . takeEntries)
-                    (getResponse ("lsinfo " ++ path))
+                    (getResponse ("lsinfo " ++ show path))
 
 -- | List files non-recursively.
 lsFiles :: Path -> MPD [Path]
 lsFiles path = liftM (map sgFilePath . (\(_,_,x) -> x) . takeEntries)
-                     (getResponse ("lsinfo " ++ path))
+                     (getResponse ("lsinfo " ++ show path))
 
 -- | List all playlists.
 lsPlaylists :: MPD [PlaylistName]
