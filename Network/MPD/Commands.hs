@@ -290,30 +290,32 @@ addId x =
     liftM (read . snd . head . toAssoc) (getResponse ("addid " ++ show x))
 
 -- | Like 'add_' but returns a list of the files added.
-add :: Maybe PlaylistName -> Path -> MPD [Path]
+add :: PlaylistName -> Path -> MPD [Path]
 add plname x = add_ plname x >> listAll (Just x)
 
 -- | Add a song (or a whole directory) to a playlist.
 -- Adds to current if no playlist is specified.
 -- Will create a new playlist if the one specified does not already exist.
-add_ :: Maybe PlaylistName -> Path -> MPD ()
-add_ Nothing       = getResponse_ . ("add " ++) . show
-add_ (Just plname) = getResponse_ .
-                     (("playlistadd " ++ show plname ++ " ") ++) . show
+add_ :: PlaylistName -> Path -> MPD ()
+add_ ""     = getResponse_ . ("add " ++) . show
+add_ plname = getResponse_ .
+    (("playlistadd " ++ show plname ++ " ") ++) . show
 
 -- | Clear a playlist. Clears current playlist if no playlist is specified.
 -- If the specified playlist does not exist, it will be created.
-clear :: Maybe PlaylistName -> MPD ()
-clear = getResponse_ . maybe "clear" (("playlistclear " ++) . show)
+clear :: PlaylistName -> MPD ()
+clear = getResponse_ . cmd
+    where cmd x = case x of "" -> "clear"
+                            pl -> "playlistclear " ++ show pl
 
 -- | Remove a song from a playlist.
 -- If no playlist is specified, current playlist is used.
 -- Note that a playlist position ('Pos') is required when operating on
 -- playlists other than the current.
-delete :: Maybe PlaylistName -> PLIndex -> MPD ()
-delete Nothing (Pos x) = getResponse_ ("delete " ++ show x)
-delete Nothing (ID x) = getResponse_ ("deleteid " ++ show x)
-delete (Just plname) (Pos x) =
+delete :: PlaylistName -> PLIndex -> MPD ()
+delete "" (Pos x) = getResponse_ ("delete " ++ show x)
+delete "" (ID x)  = getResponse_ ("deleteid " ++ show x)
+delete plname (Pos x) =
     getResponse_ ("playlistdelete " ++ show plname ++ " " ++ show x)
 delete _ _ = fail "'delete' within a playlist doesn't accept a playlist ID"
 
@@ -324,12 +326,12 @@ load = getResponse_ . ("load " ++) . show
 -- | Move a song to a given position.
 -- Note that a playlist position ('Pos') is required when operating on
 -- playlists other than the current.
-move :: Maybe PlaylistName -> PLIndex -> Integer -> MPD ()
-move Nothing (Pos from) to =
+move :: PlaylistName -> PLIndex -> Integer -> MPD ()
+move "" (Pos from) to =
     getResponse_ ("move " ++ show from ++ " " ++ show to)
-move Nothing (ID from) to =
+move "" (ID from) to =
     getResponse_ ("moveid " ++ show from ++ " " ++ show to)
-move (Just plname) (Pos from) to =
+move plname (Pos from) to =
     getResponse_ ("playlistmove " ++ show plname ++ " " ++ show from ++
                        " " ++ show to)
 move _ _ _ = fail "'move' within a playlist doesn't accept a playlist ID"
@@ -570,24 +572,25 @@ toggle = status >>= \st -> case stState st of Playing -> pause True
 
 -- | Add a list of songs\/folders to a playlist.
 -- Should be more efficient than running 'add' many times.
-addMany :: Maybe PlaylistName -> [Path] -> MPD ()
+addMany :: PlaylistName -> [Path] -> MPD ()
 addMany _ [] = return ()
 addMany plname [x] = add_ plname x
 addMany plname xs = getResponses (map (cmd ++) xs) >> return ()
-    where cmd = maybe ("add ") (\pl -> "playlistadd " ++ show pl ++ " ") plname
+    where cmd = case plname of "" -> "add "
+                               pl -> "playlistadd " ++ show pl ++ " "
 
 -- | Delete a list of songs from a playlist.
 -- If there is a duplicate then no further songs will be deleted, so
 -- take care to avoid them (see 'prune' for this).
-deleteMany :: Maybe PlaylistName -> [PLIndex] -> MPD ()
+deleteMany :: PlaylistName -> [PLIndex] -> MPD ()
 deleteMany _ [] = return ()
 deleteMany plname [x] = delete plname x
-deleteMany (Just plname) xs = getResponses (map cmd xs) >> return ()
-    where cmd (Pos x) = "playlistdelete " ++ show plname ++ " " ++ show x
-          cmd _       = ""
-deleteMany Nothing xs = getResponses (map cmd xs) >> return ()
+deleteMany "" xs = getResponses (map cmd xs) >> return ()
     where cmd (Pos x) = "delete " ++ show x
           cmd (ID x)  = "deleteid " ++ show x
+deleteMany plname xs = getResponses (map cmd xs) >> return ()
+    where cmd (Pos x) = "playlistdelete " ++ show plname ++ " " ++ show x
+          cmd _       = ""
 
 -- | Returns all songs and directories that match the given partial
 -- path name.
@@ -616,12 +619,12 @@ crop x y = do
                        Just (ID i)  -> maybe [] (flip drop pl . max x' . (+1))
                                       (findByID i pl)
                        Nothing      -> []
-    deleteMany Nothing . mapMaybe sgIndex $ take x' pl ++ ys
+    deleteMany "" . mapMaybe sgIndex $ take x' pl ++ ys
     where findByID i = findIndex ((==) i . (\(ID j) -> j) . fromJust . sgIndex)
 
 -- | Remove duplicate playlist entries.
 prune :: MPD ()
-prune = findDuplicates >>= deleteMany Nothing
+prune = findDuplicates >>= deleteMany ""
 
 -- Find duplicate playlist entries.
 findDuplicates :: MPD [PLIndex]
