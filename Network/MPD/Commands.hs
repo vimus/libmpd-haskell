@@ -244,22 +244,22 @@ list mtype query = liftM takeValues (getResponse cmd)
     where cmd = "list " ++ show mtype ++ maybe "" ((" "++) . show) query
 
 -- | Non-recursively list the contents of a database directory.
-lsInfo :: Maybe Path -> MPD [Either Path Song]
+lsInfo :: Path -> MPD [Either Path Song]
 lsInfo path = do
     (dirs,_,songs) <- liftM takeEntries
-                      (getResponse ("lsinfo " ++ maybe "" show path))
+                      (getResponse ("lsinfo " ++ show path))
     return (map Left dirs ++ map Right songs)
 
 -- | List the songs (without metadata) in a database directory recursively.
-listAll :: Maybe Path -> MPD [Path]
+listAll :: Path -> MPD [Path]
 listAll path = liftM (map snd . filter ((== "file") . fst) . toAssoc)
-                     (getResponse ("listall " ++ maybe "" show path))
+                     (getResponse ("listall " ++ show path))
 
 -- | Recursive 'lsInfo'.
-listAllInfo :: Maybe Path -> MPD [Either Path Song]
+listAllInfo :: Path -> MPD [Either Path Song]
 listAllInfo path = do
     (dirs,_,songs) <- liftM takeEntries
-                      (getResponse ("listallinfo " ++ maybe "" show path))
+                      (getResponse ("listallinfo " ++ path))
     return (map Left dirs ++ map Right songs)
 
 -- | Search the database for entries exactly matching a query.
@@ -291,7 +291,7 @@ addId x =
 
 -- | Like 'add_' but returns a list of the files added.
 add :: PlaylistName -> Path -> MPD [Path]
-add plname x = add_ plname x >> listAll (Just x)
+add plname x = add_ plname x >> listAll x
 
 -- | Add a song (or a whole directory) to a playlist.
 -- Adds to current if no playlist is specified.
@@ -596,7 +596,7 @@ deleteMany plname xs = getResponses (map cmd xs) >> return ()
 -- path name.
 complete :: String -> MPD [Either Path Song]
 complete path = do
-    xs <- liftM matches . lsInfo . Just $ dropFileName path
+    xs <- liftM matches . lsInfo $ dropFileName path
     case xs of
         [Left dir] -> complete $ dir ++ "/"
         _          -> return xs
@@ -637,14 +637,14 @@ findDuplicates =
             | otherwise                     = dups xs (x:ys, dup)
 
 -- | List directories non-recursively.
-lsDirs :: Maybe Path -> MPD [Path]
+lsDirs :: Path -> MPD [Path]
 lsDirs path = liftM ((\(x,_,_) -> x) . takeEntries)
-                    (getResponse ("lsinfo " ++ maybe "" show path))
+                    (getResponse ("lsinfo " ++ path))
 
 -- | List files non-recursively.
-lsFiles :: Maybe Path -> MPD [Path]
+lsFiles :: Path -> MPD [Path]
 lsFiles path = liftM (map sgFilePath . (\(_,_,x) -> x) . takeEntries)
-                     (getResponse ("lsinfo " ++ maybe "" show path))
+                     (getResponse ("lsinfo " ++ path))
 
 -- | List all playlists.
 lsPlaylists :: MPD [PlaylistName]
