@@ -265,7 +265,7 @@ listAll path = liftM (map snd . filter ((== "file") . fst) . toAssoc)
 listAllInfo :: Path -> MPD [Either Path Song]
 listAllInfo path = do
     (dirs,_,songs) <- liftM takeEntries
-                      (getResponse ("listallinfo " ++ path))
+                      (getResponse ("listallinfo " ++ show path))
     return (map Left dirs ++ map Right songs)
 
 -- | Search the database for entries exactly matching a query.
