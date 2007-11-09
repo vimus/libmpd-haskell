@@ -29,6 +29,7 @@
 module Network.MPD.StringConn (Expect, testMPD) where
 
 import Control.Monad (liftM)
+import Prelude hiding (exp)
 import Network.MPD.Prim
 import Data.IORef
 
