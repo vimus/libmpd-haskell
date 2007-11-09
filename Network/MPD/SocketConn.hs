@@ -70,8 +70,7 @@ send hR str = do
     case hM of
         Nothing -> return $ Left NoMPD
         Just h -> do
-                if not (null str)
-                    then hPutStrLn h str >> hFlush h else return ()
+                unless (null str) (hPutStrLn h str >> hFlush h)
                 ((Right . unlines) `liftM` getLines h []) `catch` markTimedOut
     where
         markTimedOut e =
