@@ -640,8 +640,8 @@ findDuplicates =
         playlistInfo Nothing
     where dups [] (_, dup) = dup
           dups (x:xs) (ys, dup)
-            | x `elem` xs && x `notElem` ys = dups xs (ys, x:dup)
-            | otherwise                     = dups xs (x:ys, dup)
+              | x `elem` xs && x `notElem` ys = dups xs (ys, x:dup)
+              | otherwise                     = dups xs (x:ys, dup)
 
 -- | List directories non-recursively.
 lsDirs :: Path -> MPD [Path]
