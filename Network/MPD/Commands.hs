@@ -251,10 +251,7 @@ list mtype query = liftM takeValues (getResponse cmd)
 
 -- | Non-recursively list the contents of a database directory.
 lsInfo :: Path -> MPD [Either Path Song]
-lsInfo path = do
-    (dirs,_,songs) <- liftM takeEntries
-                      (getResponse ("lsinfo " ++ show path))
-    return (map Left dirs ++ map Right songs)
+lsInfo = lsInfo' "lsinfo"
 
 -- | List the songs (without metadata) in a database directory recursively.
 listAll :: Path -> MPD [Path]
@@ -263,9 +260,13 @@ listAll path = liftM (map snd . filter ((== "file") . fst) . toAssoc)
 
 -- | Recursive 'lsInfo'.
 listAllInfo :: Path -> MPD [Either Path Song]
-listAllInfo path = do
+listAllInfo = lsInfo' "listallinfo"
+
+-- Helper for lsInfo and listAllInfo.
+lsInfo' :: String -> Path -> MPD [Either Path Song]
+lsInfo' cmd path = do
     (dirs,_,songs) <- liftM takeEntries
-                      (getResponse ("listallinfo " ++ show path))
+                            (getResponse (cmd ++ " " ++ show path))
     return (map Left dirs ++ map Right songs)
 
 -- | Search the database for entries exactly matching a query.
