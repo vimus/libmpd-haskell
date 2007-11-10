@@ -60,9 +60,7 @@ open host port hR = withSocketsDo $ do
 
 close :: IORef (Maybe Handle) -> IO ()
 close hR = readIORef hR >>= maybe (return ()) sendClose >> writeIORef hR Nothing
-    where sendClose h = catch (hPutStrLn h "close" >> hClose h)
-                              (\err -> if isEOFError err then return ()
-                                       else ioError err)
+    where sendClose h = hPutStrLn h "close" >> hClose h `catch` whenEOF ()
 
 send :: IORef (Maybe Handle) -> String -> IO (Response String)
 send hR str = do
@@ -71,18 +69,21 @@ send hR str = do
         Nothing -> return $ Left NoMPD
         Just h -> do
                 unless (null str) (hPutStrLn h str >> hFlush h)
-                ((Right . unlines) `liftM` getLines h []) `catch` markTimedOut
+                getLines h [] `catch` whenEOF (Left TimedOut)
     where
-        markTimedOut e =
-            if isEOFError e then (return $ Left TimedOut) else ioError e
         getLines handle acc = do
             l <- hGetLine handle
             if "OK" `isPrefixOf` l
-                then return (reverse (l:acc)) else getLines handle (l:acc)
+                then return . Right . unlines . reverse $ l:acc
+                else getLines handle (l:acc)
 
 --
 -- Helpers
 --
+
+-- Return a value if the error is an EOFError, otherwise throw the error again.
+whenEOF :: a -> IOError -> IO a
+whenEOF result err = if isEOFError err then return result else ioError err
 
 safeConnectTo :: String -> Integer -> IO (Maybe Handle)
 safeConnectTo host port =
