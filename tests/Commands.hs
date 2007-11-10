@@ -11,8 +11,7 @@ main = mapM_ (\(n, f) -> putStr (n ++ ": ") >> f) tests
                   ,("stop", testStop)
                   ]
 
-test a b c d = testMPD a b c d >>= putStrLn . h
-    where h = maybe "Ok" (\e -> "Failure: " ++ show e)
+test a b c d = testMPD a b c d >>= print
 
 testPlay = test [("play", Right "OK")] (Right ()) (return Nothing)
                (play Nothing)

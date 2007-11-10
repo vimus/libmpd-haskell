@@ -26,7 +26,7 @@
 --
 -- Connection over a network socket.
 
-module Network.MPD.StringConn (Expect, testMPD) where
+module Network.MPD.StringConn (Expect, Result(..), testMPD) where
 
 import Control.Monad (liftM)
 import Prelude hiding (exp)
@@ -35,6 +35,9 @@ import Data.IORef
 
 -- | An expected request.
 type Expect = String
+
+data Result a = Ok | Failure (Response a) [(Expect,String)]
+                deriving Show
 
 -- | Run an action against a set of expected requests and responses,
 -- and an expected result. The result is Nothing if everything matched
@@ -47,7 +50,7 @@ testMPD :: (Eq a)
         -> Response a                  -- ^ The expected result.
         -> IO (Maybe String)           -- ^ An action that supplies passwords.
         -> MPD a                       -- ^ The MPD action to run.
-        -> IO (Maybe (Response a, [(Expect,String)]))
+        -> IO (Result a)
 testMPD pairs expected getpw m = do
     expectsRef    <- newIORef pairs
     mismatchesRef <- newIORef ([] :: [(Expect, String)])
@@ -57,8 +60,8 @@ testMPD pairs expected getpw m = do
     result <- runMPD m $ Conn open' close' send' getpw
     mismatches <- liftM reverse $ readIORef mismatchesRef
     return $ if null mismatches && result == expected
-             then Nothing
-             else Just (result, mismatches)
+             then Ok
+             else Failure result mismatches
 
 send :: IORef [(Expect, Response String)] -- Expected requests and their
                                           -- responses.
