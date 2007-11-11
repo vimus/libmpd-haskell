@@ -9,44 +9,33 @@ import Data.Maybe
 import Control.Monad
 
 main = mapM_ (\(n, f) -> f >>= \x -> putStrLn (n ++ ": " ++ x)) tests
-    where tests = [("play", testPlay)
-                  ,("stop", testStop)
-                  ,("lsInfo", testLsInfo)
-                  ,("add_", testAdd_)
-                  ,("add", testAdd)
-                  ,("clear", testClear)
-                  ,("outputs", testOutputs)
+    where tests = [("enableOutput", testEnableOutput)
                   ,("disableOutput", testDisableOutput)
-                  ,("enableOutput", testEnableOutput)
+                  ,("outputs", testOutputs)
                   ,("update0", testUpdate0)
                   ,("update1", testUpdate1)
                   ,("updateMany", testUpdateMany)
-                  ,("ping", testPing)
+                  ,("lsInfo", testLsInfo)
+                  ,("add", testAdd)
+                  ,("add_", testAdd_)
+                  ,("clear", testClear)
+                  ,("play", testPlay)
+                  ,("stop", testStop)
                   ,("urlHandlers", testUrlHandlers)
+                  ,("ping", testPing)
                   ]
 
 test a b c = liftM show $ testMPD a b (return Nothing) c
 
 test_ a b = test a (Right ()) b
 
-testPlay = test_ [("play", Right "OK")] (play Nothing)
+--
+-- Admin commands
+--
 
-testStop = test_ [("stop", Right "OK")] stop
+testEnableOutput = test_ [("enableoutput 1", Right "OK")] (enableOutput 1)
 
-testLsInfo =
-    test [("lsinfo \"\"", Right "directory: Foo\ndirectory: Bar\nOK")]
-         (Right [Left "Bar", Left "Foo"])
-         (lsInfo "")
-
-testAdd_ = test_ [("add \"foo\"", Right "OK")] (add_ "" "foo")
-
-testAdd =
-    test [("add \"foo\"", Right "OK"),
-          ("listall \"foo\"", Right "file: Foo\nfile: Bar\nOK")]
-         (Right ["Foo", "Bar"])
-         (add "" "foo")
-
-testClear = test_ [("playlistclear \"foo\"", Right "OK")] (clear "foo")
+testDisableOutput = test_ [("disableoutput 1", Right "OK")] (disableOutput 1)
 
 testOutputs =
     test [("outputs", Right $ unlines ["outputid: 0"
@@ -64,10 +53,6 @@ testOutputs =
                         , dOutputEnabled = False }])
          outputs
 
-testDisableOutput = test_ [("disableoutput 1", Right "OK")] (disableOutput 1)
-
-testEnableOutput = test_ [("enableoutput 1", Right "OK")] (enableOutput 1)
-
 testUpdate0 = test_ [("update", Right "updating_db: 1\nOK")] (update [])
 
 testUpdate1 =
@@ -76,12 +61,52 @@ testUpdate1 =
 
 testUpdateMany =
     test_ [("command_list_begin\nupdate \"foo\"\nupdate \"bar\"\n\
-           \command_list_end", Right "updating_db: 1\nOK")]
-         (update ["foo","bar"])
+            \command_list_end", Right "updating_db: 1\nOK")]
+          (update ["foo","bar"])
 
-testPing = test_ [("ping", Right "OK")] ping
+--
+-- Database commands
+--
+
+testLsInfo =
+    test [("lsinfo \"\"", Right "directory: Foo\ndirectory: Bar\nOK")]
+         (Right [Left "Bar", Left "Foo"])
+         (lsInfo "")
+
+--
+-- Playlist commands
+--
+
+testAdd =
+    test [("add \"foo\"", Right "OK"),
+          ("listall \"foo\"", Right "file: Foo\nfile: Bar\nOK")]
+         (Right ["Foo", "Bar"])
+         (add "" "foo")
+
+testAdd_ = test_ [("add \"foo\"", Right "OK")] (add_ "" "foo")
+
+testClear = test_ [("playlistclear \"foo\"", Right "OK")] (clear "foo")
+
+--
+-- Playback commands
+--
+
+testPlay = test_ [("play", Right "OK")] (play Nothing)
+
+testStop = test_ [("stop", Right "OK")] stop
+
+--
+-- Miscellaneous commands
+--
 
 testUrlHandlers =
     test [("urlhandlers", Right "urlhandler: foo\nurlhandler: bar")]
          (Right ["foo", "bar"])
          (urlHandlers)
+
+testPing = test_ [("ping", Right "OK")] ping
+
+--
+-- Extensions\/shortcuts
+--
+
