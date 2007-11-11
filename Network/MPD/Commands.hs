@@ -206,7 +206,7 @@ data Device =
            , dOutputName    :: String -- ^ Output's name as defined in the MPD
                                       --   configuration file
            , dOutputEnabled :: Bool }
-    deriving Show
+    deriving (Eq, Show)
 
 --
 -- Admin commands
