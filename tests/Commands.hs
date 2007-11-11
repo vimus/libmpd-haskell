@@ -4,6 +4,7 @@ module Main (main) where
 
 import Network.MPD.StringConn
 import Network.MPD.Commands
+import Network.MPD.Prim (Response)
 
 import Data.Maybe
 import Control.Monad
@@ -25,9 +26,18 @@ main = mapM_ (\(n, f) -> f >>= \x -> putStrLn (n ++ ": " ++ x)) tests
                   ,("ping", testPing)
                   ]
 
-test a b c = liftM show $ testMPD a b (return Nothing) c
+test a b c = liftM (showResult b) $ testMPD a b (return Nothing) c
 
 test_ a b = test a (Right ()) b
+
+showResult :: (Show a) => Response a -> Result a -> String
+showResult _ Ok = "passed"
+showResult expectedResult (Failure result mms) =
+    "*** FAILURE ***" ++
+    concatMap (\(x,y) -> "\n  expected request: " ++ show x ++
+                         "\n  actual request: " ++ show y) mms ++
+    "\n    expected result: " ++ show expectedResult ++
+    "\n    actual result: " ++ show result
 
 --
 -- Admin commands
