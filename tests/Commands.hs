@@ -4,7 +4,6 @@ module Main (main) where
 
 import Network.MPD.StringConn
 import Network.MPD.Commands
-import Network.MPD.Prim (MPDError(..))
 
 import Data.Maybe
 import Control.Monad
