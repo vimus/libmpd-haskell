@@ -73,7 +73,7 @@ send hR str = do
     where
         getLines handle acc = do
             l <- hGetLine handle
-            if "OK" `isPrefixOf` l
+            if "OK" `isPrefixOf` l || "ACK" `isPrefixOf` l
                 then return . Right . unlines . reverse $ l:acc
                 else getLines handle (l:acc)
 
