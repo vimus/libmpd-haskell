@@ -582,7 +582,7 @@ toggle = status >>= \st -> case stState st of Playing -> pause True
 addMany :: PlaylistName -> [Path] -> MPD ()
 addMany _ [] = return ()
 addMany plname [x] = add_ plname x
-addMany plname xs = getResponses (map (cmd ++) xs) >> return ()
+addMany plname xs = getResponses (map ((cmd ++) . show) xs) >> return ()
     where cmd = case plname of "" -> "add "
                                pl -> "playlistadd " ++ show pl ++ " "
 
