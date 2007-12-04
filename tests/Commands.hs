@@ -2,12 +2,12 @@
 
 module Main (main) where
 
-import Network.MPD.StringConn
 import Network.MPD.Commands
 import Network.MPD.Prim (Response)
+import Network.MPD.StringConn
 
-import Data.Maybe
 import Control.Monad
+import Data.Maybe
 
 main = mapM_ (\(n, f) -> f >>= \x -> putStrLn (n ++ ": " ++ x)) tests
     where tests = [("enableOutput", testEnableOutput)
