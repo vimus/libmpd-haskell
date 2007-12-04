@@ -86,7 +86,7 @@ data ACKType = InvalidArgument  -- ^ Invalid argument passed (ACK 2)
 type Response a = Either MPDError a
 
 -- Export the type name but not the constructor or the field.
--- | The MPD monad is basically a state and an error monad
+-- | The MPD monad is basically a reader and error monad
 -- combined.
 --
 -- To use the error throwing\/catching capabilities:
