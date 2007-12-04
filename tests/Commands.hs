@@ -119,4 +119,3 @@ testPing = test_ [("ping", Right "OK")] ping
 --
 -- Extensions\/shortcuts
 --
-
