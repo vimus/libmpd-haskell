@@ -698,7 +698,7 @@ searchTitle :: Title -> MPD [Song]
 searchTitle = search . Query Title
 
 -- | Retrieve the current playlist.
--- Equivalent to 'playlistInfo Nothing'.
+-- Equivalent to @playlistinfo Nothing@.
 getPlaylist :: MPD [Song]
 getPlaylist = playlistInfo Nothing
 
