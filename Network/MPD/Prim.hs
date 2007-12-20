@@ -58,7 +58,8 @@ data MPDError = NoMPD              -- ^ MPD not responding
               | TimedOut           -- ^ The connection timed out
               | Custom String      -- ^ Used for misc. errors
               | ACK ACKType String -- ^ ACK type and a message from the
-                deriving (Eq)      --   server.
+                                   --   server
+                deriving (Eq)
 
 instance Show MPDError where
     show NoMPD      = "Could not connect to MPD"
