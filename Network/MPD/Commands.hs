@@ -145,6 +145,7 @@ data Status =
              -- | A value that is incremented by the server every time the
              --   playlist changes.
            , stPlaylistVersion :: Integer
+             -- | The number of items in the current playlist.
            , stPlaylistLength  :: Integer
              -- | Current song's position in the playlist.
            , stSongPos         :: Maybe PLIndex
