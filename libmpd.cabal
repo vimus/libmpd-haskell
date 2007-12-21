@@ -13,6 +13,7 @@ Category:           Network, Sound
 Tested-With:        GHC == 6.5, GHC == 6.6.1, Hugs == 2006.9
 Build-Depends:      base, network, mtl, filepath
 Extra-Source-Files: TODO README ChangeLog tests/Properties.hs tests/Commands.hs
+                    tests/run-tests
 Exposed-Modules:    Network.MPD
 Other-Modules:      Network.MPD.Prim, Network.MPD.Commands, Network.MPD.SocketConn,
                     Network.MPD.Utils
