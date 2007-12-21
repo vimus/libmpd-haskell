@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Run tests and signal error on failure.
+# Saves output in 'test.log', unless no failures are detected.
+
+runhaskell -iNetwork tests/Properties.hs \
+    | tee test.log && if grep Falsifiable test.log >/dev/null ; then exit 1 ;
+else rm -f test.log ; fi
+
+runhaskell -iNetwork tests/Commands.hs \
+    | tee test.log && \
+    if grep "\*\*\* FAILURE \*\*\*" test.log >/dev/null ; then \
+        exit 1 ; else rm -f test.log ; fi
