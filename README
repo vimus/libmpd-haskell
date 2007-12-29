@@ -9,10 +9,9 @@ Dependencies:
     mtl                                       http://hackage.haskell.org/cgi-bin/hackage-scripts/package/mtl
 
 Building:
-    $ chmod +x configure Setup.lhs
-    $ ./Setup.lhs configure --prefix=${HOME}
-    $ ./Setup.lhs build
-    $ ./Setup.lhs install --user
+    $ runhaskell Setup configure --prefix=$HOME
+    $ runhaskell Setup build
+    $ runhaskell Setup install --user
 
     This assumes you have Cabal installed. Cabal is installed by
     default with newer GHCs.
