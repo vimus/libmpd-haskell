@@ -18,7 +18,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 -}
 
--- | Module    : Network.MPD.Prim
+-- | Module    : Network.MPD.Core
 -- Copyright   : (c) Ben Sinclair 2005-2007
 -- License     : LGPL
 -- Maintainer  : bsinclai@turing.une.edu.au
@@ -27,7 +27,7 @@
 --
 -- Core functionality.
 
-module Network.MPD.Prim (
+module Network.MPD.Core (
     -- * Data types
     MPD(..), Conn(..), MPDError(..), ACKType(..), Response,
     -- * Interacting

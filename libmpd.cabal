@@ -15,7 +15,7 @@ Build-Depends:      base, network, mtl, filepath
 Extra-Source-Files: TODO README ChangeLog tests/Properties.hs tests/Commands.hs
                     tests/run-tests
 Exposed-Modules:    Network.MPD
-Other-Modules:      Network.MPD.Prim, Network.MPD.Commands, Network.MPD.SocketConn,
+Other-Modules:      Network.MPD.Core, Network.MPD.Commands, Network.MPD.SocketConn,
                     Network.MPD.StringConn Network.MPD.Utils
 ghc-options:        -Wall -O2
 ghc-prof-options:   -auto-all -prof

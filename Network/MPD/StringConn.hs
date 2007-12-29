@@ -30,7 +30,7 @@ module Network.MPD.StringConn (Expect, Result(..), testMPD) where
 
 import Control.Monad (liftM)
 import Prelude hiding (exp)
-import Network.MPD.Prim
+import Network.MPD.Core
 import Data.IORef
 
 -- | An expected request.

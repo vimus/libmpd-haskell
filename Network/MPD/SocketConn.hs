@@ -28,7 +28,7 @@
 
 module Network.MPD.SocketConn (withMPDEx) where
 
-import Network.MPD.Prim hiding (close)
+import Network.MPD.Core hiding (close)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Network
 import System.IO

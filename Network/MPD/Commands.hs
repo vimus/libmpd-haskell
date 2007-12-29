@@ -61,7 +61,7 @@ module Network.MPD.Commands (
     searchArtist, searchAlbum, searchTitle, getPlaylist, toggle, updateId
     ) where
 
-import Network.MPD.Prim
+import Network.MPD.Core
 import Network.MPD.Utils
 
 import Control.Monad (liftM, unless)

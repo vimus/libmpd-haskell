@@ -3,7 +3,7 @@
 module Main (main) where
 
 import Network.MPD.Commands
-import Network.MPD.Prim (Response)
+import Network.MPD.Core (Response)
 import Network.MPD.StringConn
 
 import Control.Monad

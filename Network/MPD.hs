@@ -35,7 +35,7 @@ module Network.MPD (
     ) where
 
 import Network.MPD.Commands
-import Network.MPD.Prim
+import Network.MPD.Core
 import Network.MPD.SocketConn
 
 import Control.Monad (liftM)
