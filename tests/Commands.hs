@@ -23,6 +23,9 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("clear", testClear)
                   ,("play", testPlay)
                   ,("stop", testStop)
+                  ,("commands", testCommands)
+                  ,("notCommands", testNotCommands)
+                  ,("tagTypes", testTagTypes)
                   ,("urlHandlers", testUrlHandlers)
                   ,("ping", testPing)
                   ]
@@ -109,6 +112,21 @@ testStop = test_ [("stop", Right "OK")] stop
 --
 -- Miscellaneous commands
 --
+
+testCommands =
+    test [("commands", Right "command: foo\ncommand: bar")]
+         (Right ["foo", "bar"])
+         commands
+
+testNotCommands =
+    test [("notcommands", Right "command: foo\ncommand: bar")]
+         (Right ["foo", "bar"])
+         notCommands
+
+testTagTypes =
+    test [("tagtypes", Right "tagtype: foo\ntagtype: bar")]
+         (Right ["foo", "bar"])
+         tagTypes
 
 testUrlHandlers =
     test [("urlhandlers", Right "urlhandler: foo\nurlhandler: bar")]
