@@ -5,10 +5,10 @@ module Main (main) where
 import Network.MPD.Commands
 import Network.MPD.Prim (Response)
 import Network.MPD.StringConn
-import Text.Printf
 
 import Control.Monad
 import Data.Maybe
+import Text.Printf
 
 main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
     where tests = [("enableOutput", testEnableOutput)
