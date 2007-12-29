@@ -113,7 +113,7 @@ testStop = test_ [("stop", Right "OK")] stop
 testUrlHandlers =
     test [("urlhandlers", Right "urlhandler: foo\nurlhandler: bar")]
          (Right ["foo", "bar"])
-         (urlHandlers)
+         urlHandlers
 
 testPing = test_ [("ping", Right "OK")] ping
 
