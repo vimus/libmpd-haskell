@@ -1,6 +1,6 @@
 {-
     libmpd for Haskell, an MPD client library.
-    Copyright (C) 2005-2007  Ben Sinclair <bsinclai@turing.une.edu.au>
+    Copyright (C) 2005-2008  Ben Sinclair <bsinclai@turing.une.edu.au>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,7 @@
 -}
 
 -- | Module    : Network.MPD.SocketConn
--- Copyright   : (c) Ben Sinclair 2005-2007
+-- Copyright   : (c) Ben Sinclair 2005-2008
 -- License     : LGPL
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
