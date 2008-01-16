@@ -11,14 +11,18 @@ Synopsis:           An MPD client library.
 Description:        A client library for MPD, the Music Player Daemon.
 Category:           Network, Sound
 Tested-With:        GHC == 6.5, GHC == 6.6.1, Hugs == 2006.9
-Build-Depends:      base, network, mtl, filepath
 Build-Type:         Simple
+Cabal-Version:      >= 1.2
 Extra-Source-Files: TODO README ChangeLog tests/Properties.hs tests/Commands.hs
                     tests/run-tests
 
-Exposed-Modules:    Network.MPD
-Other-Modules:      Network.MPD.Core, Network.MPD.Commands, Network.MPD.SocketConn,
-                    Network.MPD.StringConn Network.MPD.Utils
+flag splitBase
+    Description: Choose the new smaller, split-up base package.
 
-ghc-options:        -Wall -O2
-ghc-prof-options:   -auto-all -prof
+Library
+    Build-Depends:      base, network, mtl, filepath
+    Exposed-Modules:    Network.MPD
+    Other-Modules:      Network.MPD.Core, Network.MPD.Commands, Network.MPD.SocketConn,
+                        Network.MPD.StringConn Network.MPD.Utils
+    ghc-options:        -Wall -O2
+    ghc-prof-options:   -auto-all -prof
