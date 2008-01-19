@@ -8,7 +8,8 @@ Maintainer:         bsinclai@turing.une.edu.au
 Stability:          alpha
 Homepage:           http://turing.une.edu.au/~bsinclai/code/libmpd-haskell.html
 Synopsis:           An MPD client library.
-Description:        A client library for MPD, the Music Player Daemon.
+Description:        A client library for MPD, the Music Player Daemon
+                    (<http://www.musicpd.org/>).
 Category:           Network, Sound
 Tested-With:        GHC == 6.5, GHC == 6.6.1, Hugs == 2006.9
 Build-Type:         Simple

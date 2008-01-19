@@ -2,6 +2,10 @@
               libmpd : An MPD client library for Haskell
              --------------------------------------------
 
+About MPD:
+    MPD is a daemon for playing music that is controlled over network
+    sockets. Its website is at http://www.musicpd.org/.
+
 Dependencies:
     The Glasgow Haskell Compiler >= 6.4       http://haskell.org/ghc
     Cabal > 1.0                               http://haskell.org/cabal

@@ -24,7 +24,8 @@
 -- Stability   : alpha
 -- Portability : Haskell 98
 --
--- MPD client library.
+-- An MPD client library. MPD is a daemon for playing music that is
+-- controlled over a network socket. Its site is at <http://www.musicpd.org/>.
 
 module Network.MPD (
     -- * Basic data types
