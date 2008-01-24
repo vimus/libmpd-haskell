@@ -501,7 +501,7 @@ clearError = getResponse_ "clearerror"
 commands :: MPD [String]
 commands = liftM takeValues (getResponse "commands")
 
--- | Retrieve a list of unavailable commands.
+-- | Retrieve a list of unavailable (due to access restrictions) commands.
 notCommands :: MPD [String]
 notCommands = liftM takeValues (getResponse "notcommands")
 
