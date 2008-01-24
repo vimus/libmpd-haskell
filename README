@@ -20,6 +20,9 @@ Building:
     This assumes you have Cabal installed. Cabal is installed by
     default with newer GHCs.
 
+API compatibility:
+    This library covers all the functionality provided by MPD version 0.13.0.
+
 Use:
     Import the Network.MPD module and specify the libmpd package
     (-package libmpd) when compiling, or add it to the `Build-Depends'
