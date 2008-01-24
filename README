@@ -26,14 +26,14 @@ Use:
     list in your `_.cabal' file.
 
 Limitations:
-    Most of the API is complete, but some parts, most notably parsing, are
-    not yet as good as they could be.
+    Some parts, most notably parsing, are not yet as good as they could be.
+    The library is thus ill-suited for applications where speed is a major
+    concern.
 
 Platforms:
     libmpd has been confirmed to work on:
         Linux/x86
-    Seems to work on Windows XP as well, but there is no MPD support for
-    that platform.
+    Seems to work (as in compile) on Windows XP as well.
 
 Latest Sources:
     darcs get http://turing.une.edu.au/~bsinclai/code/libmpd-haskell
