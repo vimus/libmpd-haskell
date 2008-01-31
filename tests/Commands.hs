@@ -18,6 +18,7 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("update1", testUpdate1)
                   ,("updateMany", testUpdateMany)
                   ,("lsInfo", testLsInfo)
+                  ,("listAllInfo", testListAllInfo)
                   ,("add", testAdd)
                   ,("add_", testAdd_)
                   ,("clear", testClear)
@@ -86,6 +87,11 @@ testLsInfo =
     test [("lsinfo \"\"", Right "directory: Foo\ndirectory: Bar\nOK")]
          (Right [Left "Bar", Left "Foo"])
          (lsInfo "")
+
+testListAllInfo =
+    test [("listallinfo \"\"", Right "directory: Foo\ndirectory: Bar\nOK")]
+         (Right [Left "Bar", Left "Foo"])
+         (listAllInfo "")
 
 --
 -- Playlist commands
