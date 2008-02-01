@@ -8,6 +8,7 @@ import Network.MPD.StringConn
 
 import Control.Monad
 import Data.Maybe
+import Prelude hiding (repeat)
 import Text.Printf
 
 main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
@@ -22,8 +23,16 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("add", testAdd)
                   ,("add_", testAdd_)
                   ,("clear", testClear)
+                  ,("crossfade", testCrossfade)
                   ,("play", testPlay)
+                  ,("pause", testPause)
                   ,("stop", testStop)
+                  ,("next", testNext)
+                  ,("previous", testPrevious)
+                  ,("random", testRandom)
+                  ,("repeat", testRepeat)
+                  ,("setVolume", testSetVolume)
+                  ,("volume", testVolume)
                   ,("commands", testCommands)
                   ,("notCommands", testNotCommands)
                   ,("tagTypes", testTagTypes)
@@ -111,9 +120,25 @@ testClear = test_ [("playlistclear \"foo\"", Right "OK")] (clear "foo")
 -- Playback commands
 --
 
+testCrossfade = test_ [("crossfade 0", Right "OK")] (crossfade 0)
+
 testPlay = test_ [("play", Right "OK")] (play Nothing)
 
+testPause = test_ [("pause 0", Right "OK")] (pause False)
+
 testStop = test_ [("stop", Right "OK")] stop
+
+testNext = test_ [("next", Right "OK")] next
+
+testPrevious = test_ [("previous", Right "OK")] previous
+
+testRandom = test_ [("random 0", Right "OK")] (random False)
+
+testRepeat = test_ [("repeat 0", Right "OK")] (repeat False)
+
+testSetVolume = test_ [("setvol 10", Right "OK")] (setVolume 10)
+
+testVolume = test_ [("volume 10", Right "OK")] (volume 10)
 
 --
 -- Miscellaneous commands
