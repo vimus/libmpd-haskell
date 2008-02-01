@@ -7,7 +7,6 @@ import Network.MPD.Core (Response)
 import Network.MPD.StringConn
 
 import Control.Monad
-import Data.Maybe
 import Prelude hiding (repeat)
 import Text.Printf
 
