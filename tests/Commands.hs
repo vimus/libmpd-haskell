@@ -32,6 +32,7 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("repeat", testRepeat)
                   ,("setVolume", testSetVolume)
                   ,("volume", testVolume)
+                  ,("clearError", testClearError)
                   ,("commands", testCommands)
                   ,("notCommands", testNotCommands)
                   ,("tagTypes", testTagTypes)
@@ -142,6 +143,8 @@ testVolume = test_ [("volume 10", Right "OK")] (volume 10)
 --
 -- Miscellaneous commands
 --
+
+testClearError = test_ [("clearerror", Right "OK")] clearError
 
 testCommands =
     test [("commands", Right "command: foo\ncommand: bar")]
