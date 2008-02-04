@@ -22,6 +22,19 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("add", testAdd)
                   ,("add_", testAdd_)
                   ,("clear", testClear)
+                  ,("delete0", testDelete0)
+                  ,("delete1", testDelete1)
+                  ,("delete2", testDelete2)
+                  ,("load", testLoad)
+                  ,("move0", testMove0)
+                  ,("move1", testMove1)
+                  ,("move2", testMove2)
+                  ,("rm", testRm)
+                  ,("rename", testRename)
+                  ,("save", testSave)
+                  ,("swap0", testSwap0)
+                  ,("swap1", testSwap1)
+                  ,("shuffle", testShuffle)
                   ,("crossfade", testCrossfade)
                   ,("play", testPlay)
                   ,("pause", testPause)
@@ -115,6 +128,32 @@ testAdd =
 testAdd_ = test_ [("add \"foo\"", Right "OK")] (add_ "" "foo")
 
 testClear = test_ [("playlistclear \"foo\"", Right "OK")] (clear "foo")
+
+testDelete0 = test_ [("delete 1", Right "OK")] (delete "" (Pos 1))
+
+testDelete1 = test_ [("deleteid 1", Right "OK")] (delete "" (ID 1))
+
+testDelete2 = test_ [("playlistdelete \"foo\" 1", Right "OK")] (delete "foo" (Pos 1))
+
+testLoad = test_ [("load \"foo\"", Right "OK")] (load "foo")
+
+testMove0 = test_ [("move 1 2", Right "OK")] (move "" (Pos 1) 2)
+
+testMove1 = test_ [("moveid 1 2", Right "OK")] (move "" (ID 1) 2)
+
+testMove2 = test_ [("playlistmove \"foo\" 1 2", Right "OK")] (move "foo" (Pos 1) 2)
+
+testRm = test_ [("rm \"foo\"", Right "OK")] (rm "foo")
+
+testRename = test_ [("rename \"foo\" \"bar\"", Right "OK")] (rename "foo" "bar")
+
+testSave = test_ [("save \"foo\"", Right "OK")] (save "foo")
+
+testSwap0 = test_ [("swap 1 2", Right "OK")] (swap (Pos 1) (Pos 2))
+
+testSwap1 = test_ [("swapid 1 2", Right "OK")] (swap (ID 1) (ID 2))
+
+testShuffle = test_ [("shuffle", Right "OK")] shuffle
 
 --
 -- Playback commands
