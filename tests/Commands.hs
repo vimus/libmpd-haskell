@@ -1,5 +1,14 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
+-- |
+-- This module provides a way of verifying that the interface to the MPD
+-- commands is correct. It does so by capturing the data flow between the
+-- command and a dummy socket, checking the captured data against a set of
+-- predefined values that are known to be correct. Of course, this does not
+-- verify that the external behaviour is correct, it's simply a way of
+-- catching silly mistakes and subtle bugs in the interface itself, without
+-- having to actually send any requests to a real server.
+
 module Main (main) where
 
 import Network.MPD.Commands
