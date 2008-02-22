@@ -199,7 +199,7 @@ data Count =
     Count { cSongs    :: Integer -- ^ Number of songs matching the query
           , cPlaytime :: Seconds -- ^ Total play time of matching songs
           }
-    deriving Show
+    deriving (Eq, Show)
 
 -- | Represents an output device.
 data Device =
