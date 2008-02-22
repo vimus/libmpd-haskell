@@ -26,11 +26,20 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("update0", testUpdate0)
                   ,("update1", testUpdate1)
                   ,("updateMany", testUpdateMany)
+                  ,("find", testFind)
+                  ,("list(Nothing)", testListNothing)
+                  ,("list(Just)", testListJust)
+                  ,("listAll", testListAll)
                   ,("lsInfo", testLsInfo)
                   ,("listAllInfo", testListAllInfo)
+                  ,("search", testSearch)
+                  ,("count", testCount)
                   ,("add", testAdd)
                   ,("add_", testAdd_)
+                  ,("addId", testAddId)
                   ,("clear", testClear)
+                  ,("currentSong(_)", testCurrentSongStopped)
+                  ,("currentSong(>)", testCurrentSongPlaying)
                   ,("delete0", testDelete0)
                   ,("delete1", testDelete1)
                   ,("delete2", testDelete2)
@@ -114,6 +123,47 @@ testUpdateMany =
 -- Database commands
 --
 
+testFind =
+    test [("find Artist \"Foo\"", Right "file: dir/Foo-Bar.ogg\n\
+                                        \Time: 60\n\
+                                        \Artist: Foo\n\
+                                        \Title: Bar\n\
+                                        \OK")]
+         (Right [Song { sgArtist    = "Foo"
+                      , sgAlbum     = ""
+                      , sgTitle     = "Bar"
+                      , sgFilePath  = "dir/Foo-Bar.ogg"
+                      , sgGenre     = ""
+                      , sgName      = ""
+                      , sgComposer  = ""
+                      , sgPerformer = ""
+                      , sgLength    = 60
+                      , sgDate      = 0
+                      , sgTrack     = (0,0)
+                      , sgDisc      = (0,0)
+                      , sgIndex     = Nothing
+                      }])
+         (find (Query Artist "Foo"))
+
+testListNothing =
+    test [("list Title", Right "Title: Foo\nTitle: Bar\nOK")]
+         (Right ["Foo", "Bar"])
+         (list Title Nothing)
+
+testListJust =
+    test [("list Title Artist \"Muzz\"", Right "Title: Foo\nOK")]
+         (Right ["Foo"])
+         (list Title (Just $ Query Artist "Muzz"))
+
+testListAll =
+    test [("listall \"\"", Right "directory: FooBand\n\
+                                 \directory: FooBand/album1\n\
+                                 \file: FooBand/album1/01 - songA.ogg\n\
+                                 \file: FooBand/album1/02 - songB.ogg\nOK")]
+         (Right ["FooBand/album1/01 - songA.ogg"
+                ,"FooBand/album1/02 - songB.ogg"])
+         (listAll "")
+
 testLsInfo =
     test [("lsinfo \"\"", Right "directory: Foo\ndirectory: Bar\nOK")]
          (Right [Left "Bar", Left "Foo"])
@@ -123,6 +173,33 @@ testListAllInfo =
     test [("listallinfo \"\"", Right "directory: Foo\ndirectory: Bar\nOK")]
          (Right [Left "Bar", Left "Foo"])
          (listAllInfo "")
+
+testSearch =
+    test [("search Artist \"oo\"", Right "file: dir/Foo-Bar.ogg\n\
+                                         \Time: 60\n\
+                                         \Artist: Foo\n\
+                                         \Title: Bar\n\
+                                         \OK")]
+         (Right [Song { sgArtist    = "Foo"
+                      , sgAlbum     = ""
+                      , sgTitle     = "Bar"
+                      , sgFilePath  = "dir/Foo-Bar.ogg"
+                      , sgGenre     = ""
+                      , sgName      = ""
+                      , sgComposer  = ""
+                      , sgPerformer = ""
+                      , sgLength    = 60
+                      , sgDate      = 0
+                      , sgTrack     = (0,0)
+                      , sgDisc      = (0,0)
+                      , sgIndex     = Nothing
+                      }])
+         (search (Query Artist "oo"))
+
+testCount =
+    test [("count Title \"Foo\"", Right "songs: 1\nplaytime: 60\nOK")]
+         (Right (Count 1 60))
+         (count (Query Title "Foo"))
 
 --
 -- Playlist commands
@@ -136,7 +213,57 @@ testAdd =
 
 testAdd_ = test_ [("add \"foo\"", Right "OK")] (add_ "" "foo")
 
+testAddId =
+    test [("addid \"dir/Foo-Bar.ogg\"", Right "Id: 20\nOK")]
+         (Right 20)
+         (addId "dir/Foo-Bar.ogg")
+
 testClear = test_ [("playlistclear \"foo\"", Right "OK")] (clear "foo")
+
+testCurrentSongStopped =
+    test [("status", Right "repeat: 0\n\
+                           \random: 0\n\
+                           \playlist: 253\n\
+                           \playlistlength: 0\n\
+                           \xfade: 0\n\
+                           \state: stop\nOK")]
+         (Right Nothing)
+         (currentSong)
+
+testCurrentSongPlaying =
+    test [("status", Right "volume: 80\n\
+                           \repeat: 0\n\
+                           \random: 0\n\
+                           \playlist: 252\n\
+                           \playlistlength: 21\n\
+                           \xfade: 0\n\
+                           \state: play\n\
+                           \song: 20\n\
+                           \songid: 238\n\
+                           \time: 158:376\n\
+                           \bitrate: 192\n\
+                           \audio: 44100:16:2\n\
+                           \OK")
+         ,("currentsong", Right "file: dir/Foo-Bar.ogg\n\
+                                \Time: 60\n\
+                                \Artist: Foo\n\
+                                \Title: Bar\n\
+                                \OK")]
+         (Right . Just $ Song { sgArtist    = "Foo"
+                              , sgAlbum     = ""
+                              , sgTitle     = "Bar"
+                              , sgFilePath  = "dir/Foo-Bar.ogg"
+                              , sgGenre     = ""
+                              , sgName      = ""
+                              , sgComposer  = ""
+                              , sgPerformer = ""
+                              , sgLength    = 60
+                              , sgDate      = 0
+                              , sgTrack     = (0,0)
+                              , sgDisc      = (0,0)
+                              , sgIndex     = Nothing
+                              })
+         (currentSong)
 
 testDelete0 = test_ [("delete 1", Right "OK")] (delete "" (Pos 1))
 
