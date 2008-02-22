@@ -292,10 +292,10 @@ count query = liftM (takeCountInfo . toAssoc)
 -- Unless otherwise noted all playlist commands operate on the current
 -- playlist.
 
+-- This might do better to throw an exception than silently return 0.
 -- | Like 'add', but returns a playlist id.
 addId :: Path -> MPD Integer
-addId x =
-    liftM (read . snd . head . toAssoc) (getResponse ("addid " ++ show x))
+addId = liftM (takeNum "Id" . toAssoc) . getResponse . ("addid " ++) . show
 
 -- | Like 'add_' but returns a list of the files added.
 add :: PlaylistName -> Path -> MPD [Path]
