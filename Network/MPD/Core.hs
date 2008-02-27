@@ -56,16 +56,18 @@ data Conn = Conn { cOpen  :: IO ()                          -- Open connection
 -- otherwise.
 data MPDError = NoMPD              -- ^ MPD not responding
               | TimedOut           -- ^ The connection timed out
+              | Unexpected String  -- ^ MPD returned an unexpected response.
               | Custom String      -- ^ Used for misc. errors
               | ACK ACKType String -- ^ ACK type and a message from the
                                    --   server
                 deriving Eq
 
 instance Show MPDError where
-    show NoMPD      = "Could not connect to MPD"
-    show TimedOut   = "MPD connection timed out"
-    show (Custom s) = s
-    show (ACK _ s)  = s
+    show NoMPD          = "Could not connect to MPD"
+    show TimedOut       = "MPD connection timed out"
+    show (Unexpected _) = "MPD returned an unexpected response"
+    show (Custom s)     = s
+    show (ACK _ s)      = s
 
 -- | Represents various MPD errors (aka. ACKs).
 data ACKType = InvalidArgument  -- ^ Invalid argument passed (ACK 2)
