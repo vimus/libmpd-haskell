@@ -65,7 +65,7 @@ data MPDError = NoMPD              -- ^ MPD not responding
 instance Show MPDError where
     show NoMPD          = "Could not connect to MPD"
     show TimedOut       = "MPD connection timed out"
-    show (Unexpected _) = "MPD returned an unexpected response"
+    show (Unexpected s) = "MPD returned an unexpected response: " ++ s
     show (Custom s)     = s
     show (ACK _ s)      = s
 
