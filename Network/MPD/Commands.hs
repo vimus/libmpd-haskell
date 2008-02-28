@@ -769,4 +769,4 @@ takeString v = fromMaybe "" . lookup v
 
 takeIndex :: (Integer -> PLIndex) -> String -> [(String, String)]
           -> Maybe PLIndex
-takeIndex c v = maybe Nothing (Just . c . parseNum) . lookup v
+takeIndex c v = fmap (c . parseNum) . lookup v
