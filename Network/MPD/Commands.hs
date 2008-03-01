@@ -64,7 +64,7 @@ module Network.MPD.Commands (
 import Network.MPD.Core
 import Network.MPD.Utils
 
-import Control.Monad (liftM, unless)
+import Control.Monad (foldM, liftM, unless)
 import Control.Monad.Error (throwError)
 import Prelude hiding (repeat)
 import Data.List (findIndex, intersperse, isPrefixOf)
@@ -754,24 +754,40 @@ takeSongs :: [String] -> MPD [Song]
 takeSongs = mapM takeSongInfo . splitGroups . toAssoc
 
 -- Builds a song instance from an assoc. list.
-takeSongInfo :: [(String,String)] -> MPD Song
-takeSongInfo xs =
-    return $
-        Song { sgArtist    = takeString "Artist" xs,
-               sgAlbum     = takeString "Album" xs,
-               sgTitle     = takeString "Title" xs,
-               sgGenre     = takeString "Genre" xs,
-               sgName      = takeString "Name" xs,
-               sgComposer  = takeString "Composer" xs,
-               sgPerformer = takeString "Performer" xs,
-               sgDate      = takeNum "Date" xs,
-               sgTrack     = maybe (0, 0) parseTrack $ lookup "Track" xs,
-               sgDisc      = maybe (0, 0) parseTrack $ lookup "Disc" xs,
-               sgFilePath  = takeString "file" xs,
-               sgLength    = takeNum "Time" xs,
-               sgIndex     = takeIndex ID "Id" xs }
-    where parseTrack x = let (trck, tot) = break (== '/') x
-                         in (read trck, fromMaybe 0 . parseNum $ drop 1 tot)
+takeSongInfo :: [(String, String)] -> MPD Song
+takeSongInfo xs = foldM f song xs
+    where f a ("Artist", x)    = return a { sgArtist = x }
+          f a ("Album", x)     = return a { sgAlbum  = x }
+          f a ("Title", x)     = return a { sgTitle = x }
+          f a ("Genre", x)     = return a { sgGenre = x }
+          f a ("Name", x)      = return a { sgName = x }
+          f a ("Composer", x)  = return a { sgComposer = x }
+          f a ("Performer", x) = return a { sgPerformer = x }
+          f a ("Date", x)      = numH parseNum (\x' -> a { sgDate = x'}) x
+          f a ("Track", x)     = numH parseTuple (\x' -> a { sgTrack = x'}) x
+          f a ("Disc", x)      = numH parseTuple (\x' -> a { sgDisc = x'}) x
+          f a ("file", x)      = return a { sgFilePath = x }
+          f a ("Time", x)      = numH parseNum (\x' -> a { sgLength = x'}) x
+          f a ("Id", x)        = numH parseNum
+                                 (\x' -> a { sgIndex = Just (ID x') }) x
+          -- We prefer Id.
+          f a ("Pos", _)       = return a
+          -- Catch unrecognised keys
+          f _ x                = throwError (Unexpected (show x))
+
+          -- XXX: need a more general version of this?
+          numH p g x = maybe (throwError $ Unexpected x) (return . g) (p x)
+
+          parseTuple s = let (x, y)     = break (== '/') s in
+                         case (parseNum x, parseNum $ drop 1 y) of
+                             (Just x', Just y') -> Just (x', y')
+                             _                  -> Nothing
+
+          song = Song { sgArtist = "", sgAlbum = "", sgTitle = ""
+                      , sgGenre = "", sgName = "", sgComposer = ""
+                      , sgPerformer = "", sgDate = 0, sgTrack = (0,0)
+                      , sgDisc = (0,0), sgFilePath = "", sgLength = 0
+                      , sgIndex = Nothing }
 
 -- Helpers for retrieving values from an assoc. list.
 
