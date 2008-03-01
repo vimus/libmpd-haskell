@@ -57,6 +57,8 @@ data Conn = Conn { cOpen  :: IO ()                          -- Open connection
 data MPDError = NoMPD              -- ^ MPD not responding
               | TimedOut           -- ^ The connection timed out
               | Unexpected String  -- ^ MPD returned an unexpected response.
+                                   -- This is a bug, either in the library or
+                                   --  in MPD itself.
               | Custom String      -- ^ Used for misc. errors
               | ACK ACKType String -- ^ ACK type and a message from the
                                    --   server
