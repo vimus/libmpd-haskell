@@ -92,6 +92,6 @@ prop_splitGroups_integrity :: [(String, String)] -> Bool
 prop_splitGroups_integrity xs = sort (concat $ splitGroups xs) == sort xs
 
 prop_parseNum :: IntegralString -> Bool
-prop_parseNum (IS xs@"")      = parseNum xs == 0
-prop_parseNum (IS xs@('-':_)) = parseNum xs <= 0
-prop_parseNum (IS xs)         = parseNum xs >= 0
+prop_parseNum (IS xs@"")      = parseNum xs == Nothing
+prop_parseNum (IS xs@('-':_)) = fromMaybe 0 (parseNum xs) <= 0
+prop_parseNum (IS xs)         = fromMaybe 0 (parseNum xs) >= 0

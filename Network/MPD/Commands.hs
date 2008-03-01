@@ -771,12 +771,12 @@ takeSongInfo xs =
                sgLength    = takeNum "Time" xs,
                sgIndex     = takeIndex ID "Id" xs }
     where parseTrack x = let (trck, tot) = break (== '/') x
-                         in (read trck, parseNum (drop 1 tot))
+                         in (read trck, fromMaybe 0 . parseNum $ drop 1 tot)
 
 -- Helpers for retrieving values from an assoc. list.
 
 takeNum :: (Read a, Integral a) => String -> [(String, String)] -> a
-takeNum v = maybe 0 parseNum . lookup v
+takeNum v = maybe 0 (fromMaybe 0 . parseNum) . lookup v
 
 takeBool :: String -> [(String, String)] -> Bool
 takeBool v = maybe False parseBool . lookup v
@@ -786,4 +786,4 @@ takeString v = fromMaybe "" . lookup v
 
 takeIndex :: (Integer -> PLIndex) -> String -> [(String, String)]
           -> Maybe PLIndex
-takeIndex c v = fmap (c . parseNum) . lookup v
+takeIndex c v = fmap (c . fromMaybe 0 . parseNum) . lookup v

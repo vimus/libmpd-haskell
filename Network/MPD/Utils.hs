@@ -31,9 +31,11 @@ module Network.MPD.Utils (
     toAssoc, splitGroups
     ) where
 
--- Parse a positive or negative integer value, returning 0 on failure.
-parseNum :: (Read a, Integral a) => String -> a
-parseNum s = case reads s of [(x, "")] -> x; _ -> 0
+-- Parse a positive or negative integer value, returning 'Nothing' on failure.
+parseNum :: (Read a, Integral a) => String -> Maybe a
+parseNum s = do
+    [(x, "")] <- return (reads s)
+    return x
 
 -- Inverts 'parseBool'.
 showBool :: Bool -> String
