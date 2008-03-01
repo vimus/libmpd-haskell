@@ -65,6 +65,7 @@ import Network.MPD.Core
 import Network.MPD.Utils
 
 import Control.Monad (liftM, unless)
+import Control.Monad.Error (throwError)
 import Prelude hiding (repeat)
 import Data.List (findIndex, intersperse, isPrefixOf)
 import Data.Maybe
@@ -714,6 +715,19 @@ getResponse_ x = getResponse x >> return ()
 getResponses :: [String] -> MPD [String]
 getResponses cmds = getResponse . concat $ intersperse "\n" cmds'
     where cmds' = "command_list_begin" : cmds ++ ["command_list_end"]
+
+-- Helper that throws unexpected error if input is empty.
+failOnEmpty :: [String] -> MPD [String]
+failOnEmpty [] = throwError $ Unexpected "Non-empty response expected."
+failOnEmpty xs = return xs
+
+-- A wrapper for getResponse that fails on non-empty responses.
+getResponse1 :: String -> MPD [String]
+getResponse1 x = getResponse x >>= failOnEmpty
+
+-- getResponse1 for multiple commands.
+getResponses1 :: [String] -> MPD [String]
+getResponses1 cmds = getResponses cmds >>= failOnEmpty
 
 --
 -- Parsing.
