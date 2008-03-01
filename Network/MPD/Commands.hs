@@ -267,17 +267,16 @@ listAllInfo = lsInfo' "listallinfo"
 -- Helper for lsInfo and listAllInfo.
 lsInfo' :: String -> Path -> MPD [Either Path Song]
 lsInfo' cmd path = do
-    (dirs,_,songs) <- liftM takeEntries
-                            (getResponse (cmd ++ " " ++ show path))
+    (dirs,_,songs) <- takeEntries =<< getResponse (cmd ++ " " ++ show path)
     return (map Left dirs ++ map Right songs)
 
 -- | Search the database for entries exactly matching a query.
 find :: Query -> MPD [Song]
-find query = liftM takeSongs (getResponse ("find " ++ show query))
+find query = getResponse ("find " ++ show query) >>= takeSongs
 
 -- | Search the database using case insensitive matching.
 search :: Query -> MPD [Song]
-search query = liftM takeSongs (getResponse ("search " ++ show query))
+search query = getResponse ("search " ++ show query) >>= takeSongs
 
 -- | Count the number of entries matching a query.
 count :: Query -> MPD Count
@@ -314,8 +313,8 @@ add_ plname = getResponse_ .
 -- If the specified playlist does not exist, it will be created.
 clear :: PlaylistName -> MPD ()
 clear = getResponse_ . cmd
-    where cmd x = case x of "" -> "clear"
-                            pl -> "playlistclear " ++ show pl
+    where cmd "" = "clear"
+          cmd pl = "playlistclear " ++ show pl
 
 -- | Remove a song from a playlist.
 -- If no playlist is specified, current playlist is used.
@@ -374,7 +373,7 @@ shuffle = getResponse_ "shuffle"
 
 -- | Retrieve metadata for songs in the current playlist.
 playlistInfo :: Maybe PLIndex -> MPD [Song]
-playlistInfo x = liftM takeSongs (getResponse cmd)
+playlistInfo x = getResponse cmd >>= takeSongs
     where cmd = case x of
                     Just (Pos x') -> "playlistinfo " ++ show x'
                     Just (ID x')  -> "playlistid " ++ show x'
@@ -382,8 +381,8 @@ playlistInfo x = liftM takeSongs (getResponse cmd)
 
 -- | Retrieve metadata for files in a given playlist.
 listPlaylistInfo :: PlaylistName -> MPD [Song]
-listPlaylistInfo = liftM takeSongs . getResponse .
-    ("listplaylistinfo " ++) . show
+listPlaylistInfo plname =
+    takeSongs =<< (getResponse . ("listplaylistinfo " ++) $ show plname)
 
 -- | Retrieve a list of files in a given playlist.
 listPlaylist :: PlaylistName -> MPD [Path]
@@ -401,7 +400,8 @@ playlist = liftM (map f) (getResponse "playlist")
 -- | Retrieve a list of changed songs currently in the playlist since
 -- a given playlist version.
 plChanges :: Integer -> MPD [Song]
-plChanges = liftM takeSongs . getResponse . ("plchanges " ++) . show
+plChanges version =
+    takeSongs =<< (getResponse . ("plchanges " ++) $ show version)
 
 -- | Like 'plChanges' but only returns positions and ids.
 plChangesPosId :: Integer -> MPD [(PLIndex, PLIndex)]
@@ -412,12 +412,13 @@ plChangesPosId plver =
 
 -- | Search for songs in the current playlist with strict matching.
 playlistFind :: Query -> MPD [Song]
-playlistFind = liftM takeSongs . getResponse . ("playlistfind " ++) . show
+playlistFind q = takeSongs =<< (getResponse . ("playlistfind " ++) $ show q)
 
 -- | Search case-insensitively with partial matches for songs in the
 -- current playlist.
 playlistSearch :: Query -> MPD [Song]
-playlistSearch = liftM takeSongs . getResponse . ("playlistsearch " ++) . show
+playlistSearch q =
+    takeSongs =<< (getResponse . ("playlistsearch " ++) $ show q)
 
 -- | Get the currently playing song.
 currentSong :: MPD (Maybe Song)
@@ -426,8 +427,8 @@ currentSong = do
     if stState currStatus == Stopped
         then return Nothing
         else do ls <- liftM toAssoc (getResponse "currentsong")
-                return $ if null ls then Nothing
-                                    else Just (takeSongInfo ls)
+                if null ls then return Nothing
+                           else liftM Just (takeSongInfo ls)
 
 --
 -- Playback commands
@@ -647,17 +648,17 @@ findDuplicates =
 
 -- | List directories non-recursively.
 lsDirs :: Path -> MPD [Path]
-lsDirs path = liftM ((\(x,_,_) -> x) . takeEntries)
-                    (getResponse ("lsinfo " ++ show path))
+lsDirs path = liftM (\(x,_,_) -> x) $
+              takeEntries =<< getResponse ("lsinfo " ++ show path)
 
 -- | List files non-recursively.
 lsFiles :: Path -> MPD [Path]
-lsFiles path = liftM (map sgFilePath . (\(_,_,x) -> x) . takeEntries)
-                     (getResponse ("lsinfo " ++ show path))
+lsFiles path = liftM (map sgFilePath . (\(_,_,x) -> x)) $
+               takeEntries =<< getResponse ("lsinfo " ++ show path)
 
 -- | List all playlists.
 lsPlaylists :: MPD [PlaylistName]
-lsPlaylists = liftM ((\(_,x,_) -> x) . takeEntries) (getResponse "lsinfo")
+lsPlaylists = liftM (\(_,x,_) -> x) $ takeEntries =<< getResponse "lsinfo"
 
 -- | Search the database for songs relating to an artist.
 findArtist :: Artist -> MPD [Song]
@@ -739,34 +740,36 @@ takeValues = snd . unzip . toAssoc
 
 -- Separate the result of an lsinfo\/listallinfo call into directories,
 -- playlists, and songs.
-takeEntries :: [String] -> ([String], [String], [Song])
-takeEntries s =
-    (dirs, playlists, map takeSongInfo . splitGroups $ reverse filedata)
+takeEntries :: [String] -> MPD ([String], [String], [Song])
+takeEntries s = do
+    ss <- mapM takeSongInfo . splitGroups $ reverse filedata
+    return (dirs, playlists, ss)
     where (dirs, playlists, filedata) = foldl split ([], [], []) $ toAssoc s
           split (ds, pls, ss) x@(k, v) | k == "directory" = (v:ds, pls, ss)
                                        | k == "playlist"  = (ds, v:pls, ss)
                                        | otherwise        = (ds, pls, x:ss)
 
 -- Build a list of song instances from a response.
-takeSongs :: [String] -> [Song]
-takeSongs = map takeSongInfo . splitGroups . toAssoc
+takeSongs :: [String] -> MPD [Song]
+takeSongs = mapM takeSongInfo . splitGroups . toAssoc
 
 -- Builds a song instance from an assoc. list.
-takeSongInfo :: [(String,String)] -> Song
+takeSongInfo :: [(String,String)] -> MPD Song
 takeSongInfo xs =
-    Song { sgArtist    = takeString "Artist" xs,
-           sgAlbum     = takeString "Album" xs,
-           sgTitle     = takeString "Title" xs,
-           sgGenre     = takeString "Genre" xs,
-           sgName      = takeString "Name" xs,
-           sgComposer  = takeString "Composer" xs,
-           sgPerformer = takeString "Performer" xs,
-           sgDate      = takeNum "Date" xs,
-           sgTrack     = maybe (0, 0) parseTrack $ lookup "Track" xs,
-           sgDisc      = maybe (0, 0) parseTrack $ lookup "Disc" xs,
-           sgFilePath  = takeString "file" xs,
-           sgLength    = takeNum "Time" xs,
-           sgIndex     = takeIndex ID "Id" xs }
+    return $
+        Song { sgArtist    = takeString "Artist" xs,
+               sgAlbum     = takeString "Album" xs,
+               sgTitle     = takeString "Title" xs,
+               sgGenre     = takeString "Genre" xs,
+               sgName      = takeString "Name" xs,
+               sgComposer  = takeString "Composer" xs,
+               sgPerformer = takeString "Performer" xs,
+               sgDate      = takeNum "Date" xs,
+               sgTrack     = maybe (0, 0) parseTrack $ lookup "Track" xs,
+               sgDisc      = maybe (0, 0) parseTrack $ lookup "Disc" xs,
+               sgFilePath  = takeString "file" xs,
+               sgLength    = takeNum "Time" xs,
+               sgIndex     = takeIndex ID "Id" xs }
     where parseTrack x = let (trck, tot) = break (== '/') x
                          in (read trck, parseNum (drop 1 tot))
 
