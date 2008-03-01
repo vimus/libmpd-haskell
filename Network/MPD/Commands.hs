@@ -280,10 +280,14 @@ search query = getResponse ("search " ++ show query) >>= takeSongs
 
 -- | Count the number of entries matching a query.
 count :: Query -> MPD Count
-count query = liftM (takeCountInfo . toAssoc)
-                    (getResponse ("count " ++ show query))
-    where takeCountInfo xs = Count { cSongs    = takeNum "songs" xs,
-                                     cPlaytime = takeNum "playtime" xs }
+count query = getResponse ("count " ++ show query) >>=
+              foldM f empty . toAssoc
+    where f a ("songs", x)    = parse parseNum
+                                (\x' -> a { cSongs = x'}) x
+          f a ("playtime", x) = parse parseNum
+                                (\x' -> a { cPlaytime = x' }) x
+          f _ x               = throwError . Unexpected $ show x
+          empty = Count { cSongs = 0, cPlaytime = 0 }
 
 --
 -- Playlist commands
