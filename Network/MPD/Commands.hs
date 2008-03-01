@@ -763,20 +763,17 @@ takeSongInfo xs = foldM f song xs
           f a ("Name", x)      = return a { sgName = x }
           f a ("Composer", x)  = return a { sgComposer = x }
           f a ("Performer", x) = return a { sgPerformer = x }
-          f a ("Date", x)      = numH parseNum (\x' -> a { sgDate = x'}) x
-          f a ("Track", x)     = numH parseTuple (\x' -> a { sgTrack = x'}) x
-          f a ("Disc", x)      = numH parseTuple (\x' -> a { sgDisc = x'}) x
+          f a ("Date", x)      = parse parseNum (\x' -> a { sgDate = x'}) x
+          f a ("Track", x)     = parse parseTuple (\x' -> a { sgTrack = x'}) x
+          f a ("Disc", x)      = parse parseTuple (\x' -> a { sgDisc = x'}) x
           f a ("file", x)      = return a { sgFilePath = x }
-          f a ("Time", x)      = numH parseNum (\x' -> a { sgLength = x'}) x
-          f a ("Id", x)        = numH parseNum
+          f a ("Time", x)      = parse parseNum (\x' -> a { sgLength = x'}) x
+          f a ("Id", x)        = parse parseNum
                                  (\x' -> a { sgIndex = Just (ID x') }) x
           -- We prefer Id.
           f a ("Pos", _)       = return a
           -- Catch unrecognised keys
           f _ x                = throwError (Unexpected (show x))
-
-          -- XXX: need a more general version of this?
-          numH p g x = maybe (throwError $ Unexpected x) (return . g) (p x)
 
           parseTuple s = let (x, y)     = break (== '/') s in
                          case (parseNum x, parseNum $ drop 1 y) of
@@ -788,6 +785,12 @@ takeSongInfo xs = foldM f song xs
                       , sgPerformer = "", sgDate = 0, sgTrack = (0,0)
                       , sgDisc = (0,0), sgFilePath = "", sgLength = 0
                       , sgIndex = Nothing }
+
+-- A helper that runs a parser on a string and, depending, on the outcome,
+-- either returns the result of some command applied to the result, or throws
+-- an Unexpected error. Used when building structures.
+parse :: (String -> Maybe a) -> (a -> b) -> String -> MPD b
+parse p g x = maybe (throwError $ Unexpected x) (return . g) (p x)
 
 -- Helpers for retrieving values from an assoc. list.
 
