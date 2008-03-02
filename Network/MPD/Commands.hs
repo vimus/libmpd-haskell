@@ -300,7 +300,8 @@ count query = getResponse ("count " ++ show query) >>=
 -- This might do better to throw an exception than silently return 0.
 -- | Like 'add', but returns a playlist id.
 addId :: Path -> MPD Integer
-addId = liftM (takeNum "Id" . toAssoc) . getResponse . ("addid " ++) . show
+addId p = getResponse1 ("addid " ++ show p) >>=
+          parse parseNum id . snd . head . toAssoc
 
 -- | Like 'add_' but returns a list of the files added.
 add :: PlaylistName -> Path -> MPD [Path]
