@@ -649,7 +649,7 @@ crop :: Maybe PLIndex -> Maybe PLIndex -> MPD ()
 crop x y = do
     pl <- playlistInfo Nothing
     let x' = case x of Just (Pos p) -> fromInteger p
-                       Just (ID i)  -> maybe 0 id (findByID i pl)
+                       Just (ID i)  -> fromMaybe 0 (findByID i pl)
                        Nothing      -> 0
         -- ensure that no songs are deleted twice with 'max'.
         ys = case y of Just (Pos p) -> drop (max (fromInteger p) x') pl
