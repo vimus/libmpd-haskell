@@ -548,29 +548,47 @@ stats = getResponse "stats" >>= foldM f defaultStats . toAssoc
 
 -- | Get the server's status.
 status :: MPD Status
-status = liftM (parseStatus . toAssoc) (getResponse "status")
-    where parseStatus xs =
-              Status { stState = maybe Stopped parseState $ lookup "state" xs,
-                       stVolume = takeNum "volume" xs,
-                       stRepeat = takeBool "repeat" xs,
-                       stRandom = takeBool "random" xs,
-                       stPlaylistVersion = takeNum "playlist" xs,
-                       stPlaylistLength = takeNum "playlistlength" xs,
-                       stXFadeWidth = takeNum "xfade" xs,
-                       stSongPos = takeIndex Pos "song" xs,
-                       stSongID = takeIndex ID "songid" xs,
-                       stTime = maybe (0,0) parseTime $ lookup "time" xs,
-                       stBitrate = takeNum "bitrate" xs,
-                       stAudio = maybe (0,0,0) parseAudio $ lookup "audio" xs,
-                       stUpdatingDb = takeNum "updating_db" xs,
-                       stError = takeString "error" xs }
-          parseState x = case x of "play"  -> Playing
-                                   "pause" -> Paused
-                                   _       -> Stopped
-          parseTime  x = let (y,_:z) = break (== ':') x in (read y, read z)
-          parseAudio x =
-              let (u,_:u') = break (== ':') x; (v,_:w) = break (== ':') u' in
-                  (read u, read v, read w)
+status = getResponse "status" >>= foldM f empty . toAssoc
+    where f a ("state", x)          = parse state (\x' -> a { stState = x'}) x
+          f a ("volume", x)         = parse parseNum (\x' -> a { stVolume = x'}) x
+          f a ("repeat", x)         = parse parseBool
+                                      (\x' -> a { stRepeat = x' }) x
+          f a ("random", x)         = parse parseBool
+                                      (\x' -> a { stRandom = x' }) x
+          f a ("playlist", x)       = parse parseNum
+                                      (\x' -> a { stPlaylistVersion = x'}) x
+          f a ("playlistlength", x) = parse parseNum
+                                      (\x' -> a { stPlaylistLength = x'}) x
+          f a ("xfade", x)          = parse parseNum
+                                      (\x' -> a { stXFadeWidth = x'}) x
+          f a ("song", x)           = parse parseNum
+                                      (\x' -> a { stSongPos = Just (Pos x') }) x
+          f a ("songid", x)         = parse parseNum
+                                      (\x' -> a { stSongID = Just (ID x') }) x
+          f a ("time", x)           = parse time (\x' -> a { stTime = x' }) x
+          f a ("bitrate", x)        = parse parseNum
+                                      (\x' -> a { stBitrate = x'}) x
+          f a ("audio", x)          = parse audio (\x' -> a { stAudio = x' }) x
+          f a ("updating_db", x)    = parse parseNum
+                                      (\x' -> a { stUpdatingDb = x' }) x
+          f a ("error", x)          = return a { stError = x }
+          f _ x                     = throwError . Unexpected $ show x
+
+          state "play"  = Just Playing
+          state "pause" = Just Paused
+          state "stop"  = Just Stopped
+          state _       = Nothing
+
+          time s = let (y,_:z) = break (== ':') s in pair parseNum (y, z)
+
+          audio s = let (u,_:u') = break (== ':') s
+                        (v,_:w)  = break (== ':') u' in
+                    case (parseNum u, parseNum v, parseNum w) of
+                        (Just a, Just b, Just c) -> Just (a, b, c)
+                        _                        -> Nothing
+
+          empty = Status Stopped 0 False False 0 0 Nothing Nothing (0,0) 0 0
+                  (0,0,0) 0 ""
 
 --
 -- Extensions\/shortcuts.
