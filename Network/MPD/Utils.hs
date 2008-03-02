@@ -42,8 +42,11 @@ showBool :: Bool -> String
 showBool x = if x then "1" else "0"
 
 -- Parse a boolean response value.
-parseBool :: String -> Bool
-parseBool = (== "1") . take 1
+parseBool :: String -> Maybe Bool
+parseBool s = case take 1 s of
+                  "1" -> Just True
+                  "0" -> Just False
+                  _   -> Nothing
 
 -- Break up a list of strings into an assoc. list, separating at
 -- the first ':'.

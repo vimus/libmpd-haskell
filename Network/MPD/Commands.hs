@@ -814,7 +814,7 @@ takeNum :: (Read a, Integral a) => String -> [(String, String)] -> a
 takeNum v = maybe 0 (fromMaybe 0 . parseNum) . lookup v
 
 takeBool :: String -> [(String, String)] -> Bool
-takeBool v = maybe False parseBool . lookup v
+takeBool v = maybe False (fromMaybe False . parseBool) . lookup v
 
 takeString :: String -> [(String, String)] -> String
 takeString v = fromMaybe "" . lookup v
