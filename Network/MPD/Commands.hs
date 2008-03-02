@@ -836,7 +836,3 @@ takeBool v = maybe False (fromMaybe False . parseBool) . lookup v
 
 takeString :: String -> [(String, String)] -> String
 takeString v = fromMaybe "" . lookup v
-
-takeIndex :: (Integer -> PLIndex) -> String -> [(String, String)]
-          -> Maybe PLIndex
-takeIndex c v = fmap (c . fromMaybe 0 . parseNum) . lookup v
