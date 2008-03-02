@@ -801,6 +801,13 @@ takeSongInfo xs = foldM f song xs
 parse :: (String -> Maybe a) -> (a -> b) -> String -> MPD b
 parse p g x = maybe (throwError $ Unexpected x) (return . g) (p x)
 
+-- A helper for running a parser returning Maybe on a pair of strings.
+-- Returns Just if both strings where parsed successfully, Nothing otherwise.
+pair :: (String -> Maybe a) -> (String, String) -> Maybe (a, a)
+pair p (x, y) = case (p x, p y) of
+                    (Just a, Just b) -> Just (a, b)
+                    _                -> Nothing
+
 -- Helpers for retrieving values from an assoc. list.
 
 takeNum :: (Read a, Integral a) => String -> [(String, String)] -> a
