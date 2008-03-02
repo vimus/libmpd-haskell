@@ -224,14 +224,15 @@ enableOutput = getResponse_ . ("enableoutput " ++) . show
 
 -- | Retrieve information for all output devices.
 outputs :: MPD [Device]
-outputs = liftM (map takeDevInfo . splitGroups . toAssoc)
-    (getResponse "outputs")
-    where
-        takeDevInfo xs = Device {
-            dOutputID      = takeNum "outputid" xs,
-            dOutputName    = takeString "outputname" xs,
-            dOutputEnabled = takeBool "outputenabled" xs
-            }
+outputs = getResponse "outputs" >>=
+           mapM (foldM f empty) . splitGroups . toAssoc
+    where f a ("outputid", x)      = parse parseNum (\x' -> a { dOutputID = x' }) x
+          f a ("outputname", x)    = return a { dOutputName = x }
+          f a ("outputenabled", x) = parse parseBool
+                                     (\x' -> a { dOutputEnabled = x'}) x
+          f _ x                    = throwError . Unexpected $ show x
+
+          empty = Device 0 "" False
 
 -- | Update the server's database.
 -- If no paths are given, all paths will be scanned.
