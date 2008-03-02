@@ -531,15 +531,20 @@ ping = getResponse_ "ping"
 
 -- | Get server statistics.
 stats :: MPD Stats
-stats = liftM (parseStats . toAssoc) (getResponse "stats")
-    where parseStats xs =
-                Stats { stsArtists = takeNum "artists" xs,
-                        stsAlbums = takeNum "albums" xs,
-                        stsSongs = takeNum "songs" xs,
-                        stsUptime = takeNum "uptime" xs,
-                        stsPlaytime = takeNum "playtime" xs,
-                        stsDbPlaytime = takeNum "db_playtime" xs,
-                        stsDbUpdate = takeNum "db_update" xs }
+stats = getResponse "stats" >>= foldM f defaultStats . toAssoc
+    where
+        f a ("artists", x)  = parse parseNum (\x' -> a { stsArtists  = x' }) x
+        f a ("albums", x)   = parse parseNum (\x' -> a { stsAlbums   = x' }) x
+        f a ("songs", x)    = parse parseNum (\x' -> a { stsSongs    = x' }) x
+        f a ("uptime", x)   = parse parseNum (\x' -> a { stsUptime   = x' }) x
+        f a ("playtime", x) = parse parseNum (\x' -> a { stsPlaytime = x' }) x
+        f a ("db_playtime", x) = parse parseNum
+                                 (\x' -> a { stsDbPlaytime = x' }) x
+        f a ("db_update", x) = parse parseNum (\x' -> a { stsDbUpdate = x' }) x
+        f _ x = throwError . Unexpected $ show x
+        defaultStats =
+            Stats { stsArtists = 0, stsAlbums = 0, stsSongs = 0, stsUptime = 0
+                  , stsPlaytime = 0, stsDbPlaytime = 0, stsDbUpdate = 0 }
 
 -- | Get the server's status.
 status :: MPD Status
