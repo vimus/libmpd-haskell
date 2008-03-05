@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans -fno-warn-missing-methods #-}
-module Main (main) where
+module Properties (main) where
 import Network.MPD.Utils
 
 import Control.Monad

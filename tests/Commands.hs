@@ -9,7 +9,7 @@
 -- catching silly mistakes and subtle bugs in the interface itself, without
 -- having to actually send any requests to a real server.
 
-module Main (main) where
+module Commands (main) where
 
 import Network.MPD.Commands
 import Network.MPD.Core (Response)
