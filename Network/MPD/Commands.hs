@@ -416,12 +416,10 @@ playlistSearch q =
 -- | Get the currently playing song.
 currentSong :: MPD (Maybe Song)
 currentSong = do
-    currStatus <- status
-    if stState currStatus == Stopped
-        then return Nothing
-        else do ls <- liftM toAssoc (getResponse "currentsong")
-                if null ls then return Nothing
-                           else liftM Just (takeSongInfo ls)
+    cs <- status
+    if stState cs == Stopped
+       then return Nothing
+       else getResponse1 "currentsong" >>= fmap Just . takeSongInfo . toAssoc
 
 --
 -- Playback commands
