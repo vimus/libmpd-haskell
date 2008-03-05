@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternGuards #-}
 {-
     libmpd for Haskell, an MPD client library.
     Copyright (C) 2005-2008  Ben Sinclair <bsinclai@turing.une.edu.au>
@@ -22,7 +23,7 @@
 -- License     : LGPL
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
--- Portability : Haskell 98
+-- Portability : unportable (uses PatternGuards)
 --
 -- Interface to the user commands supported by MPD.
 
@@ -399,9 +400,12 @@ plChanges version =
 -- | Like 'plChanges' but only returns positions and ids.
 plChangesPosId :: Integer -> MPD [(PLIndex, PLIndex)]
 plChangesPosId plver =
-    liftM (map takePosid . splitGroups . toAssoc) (getResponse cmd)
-    where cmd          = "plchangesposid " ++ show plver
-          takePosid xs = (Pos $ takeNum "cpos" xs, ID $ takeNum "Id" xs)
+    getResponse ("plchangesposid " ++ show plver) >>=
+    mapM f . splitGroups . toAssoc
+    where f xs | [("cpos", x), ("Id", y)] <- xs
+               , Just (x', y') <- pair parseNum (x, y)
+               = return (Pos x', ID y')
+               | otherwise = throwError . Unexpected $ show xs
 
 -- | Search for songs in the current playlist with strict matching.
 playlistFind :: Query -> MPD [Song]
