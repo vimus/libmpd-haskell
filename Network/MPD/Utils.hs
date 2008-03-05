@@ -28,10 +28,14 @@
 
 module Network.MPD.Utils (
     parseDate, parseNum, parseBool, showBool,
-    toAssoc, splitGroups
+    breakChar, toAssoc, splitGroups
     ) where
 
 import Data.Char (isDigit)
+
+-- Break a string a character, removing the separator.
+breakChar :: Char -> String -> (String, String)
+breakChar c s = let (x, y) = break (== c) s in (x, drop 1 y)
 
 -- XXX: need a more robust date parser.
 -- Parse a date value.

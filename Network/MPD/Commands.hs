@@ -400,8 +400,8 @@ listPlaylist = liftM takeValues . getResponse . ("listplaylist " ++) . show
 -- instead.
 playlist :: MPD [(PLIndex, Path)]
 playlist = liftM (map f) (getResponse "playlist")
-    where f s = let (pos, name) = break (== ':') s
-                in (Pos $ read pos, drop 1 name)
+    where f s = let (pos, name) = breakChar ':' s in
+                (Pos $ read pos, name)
 
 -- | Retrieve a list of changed songs currently in the playlist since
 -- a given playlist version.
@@ -581,10 +581,10 @@ status = getResponse "status" >>= foldM f empty . toAssoc
           state "stop"  = Just Stopped
           state _       = Nothing
 
-          time s = let (y,_:z) = break (== ':') s in pair parseNum (y, z)
+          time s = pair parseNum $ breakChar ':' s
 
-          audio s = let (u,_:u') = break (== ':') s
-                        (v,_:w)  = break (== ':') u' in
+          audio s = let (u, u') = breakChar ':' s
+                        (v, w)  = breakChar ':' u' in
                     case (parseNum u, parseNum v, parseNum w) of
                         (Just a, Just b, Just c) -> Just (a, b, c)
                         _                        -> Nothing
@@ -804,12 +804,12 @@ takeSongInfo xs = foldM f song xs
           -- Catch unrecognised keys
           f _ x                = throwError (Unexpected (show x))
 
-          parseTuple s = let (x, y) = break (== '/') s in
+          parseTuple s = let (x, y) = breakChar '/' s in
                          -- Handle incomplete values. For example, songs might
                          -- have a track number, without specifying the total
                          -- number of tracks, in which case the resulting
                          -- tuple will have two identical parts.
-                         case (parseNum x, parseNum $ drop 1 y) of
+                         case (parseNum x, parseNum y) of
                              (Just x', Nothing) -> Just (x', x')
                              (Just x', Just y') -> Just (x', y')
                              _                  -> Nothing
