@@ -92,20 +92,7 @@ type Path         = String
 -- database for entries with certain metadata values.
 data Meta = Artist | Album | Title | Track | Name | Genre | Date
     | Composer | Performer | Disc | Any | Filename
-
-instance Show Meta where
-    show Artist    = "Artist"
-    show Album     = "Album"
-    show Title     = "Title"
-    show Track     = "Track"
-    show Name      = "Name"
-    show Genre     = "Genre"
-    show Date      = "Date"
-    show Composer  = "Composer"
-    show Performer = "Performer"
-    show Disc      = "Disc"
-    show Any       = "Any"
-    show Filename  = "Filename"
+      deriving Show
 
 -- | A query is composed of a scope modifier and a query string.
 --
