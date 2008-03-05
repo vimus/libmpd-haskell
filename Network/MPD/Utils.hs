@@ -27,9 +27,18 @@
 -- Utilities.
 
 module Network.MPD.Utils (
-    parseNum, parseBool, showBool,
+    parseDate, parseNum, parseBool, showBool,
     toAssoc, splitGroups
     ) where
+
+import Data.Char (isDigit)
+
+-- XXX: need a more robust date parser.
+-- Parse a date value.
+-- > parseDate "2008" = Just 2008
+-- > parseDate "2008-03-01" = Just 2008
+parseDate :: String -> Maybe Int
+parseDate = parseNum . takeWhile isDigit
 
 -- Parse a positive or negative integer value, returning 'Nothing' on failure.
 parseNum :: (Read a, Integral a) => String -> Maybe a

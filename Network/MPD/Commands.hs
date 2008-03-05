@@ -792,7 +792,7 @@ takeSongInfo xs = foldM f song xs
           f a ("Name", x)      = return a { sgName = x }
           f a ("Composer", x)  = return a { sgComposer = x }
           f a ("Performer", x) = return a { sgPerformer = x }
-          f a ("Date", x)      = parse parseNum (\x' -> a { sgDate = x'}) x
+          f a ("Date", x)      = parse parseDate (\x' -> a { sgDate = x' }) x
           f a ("Track", x)     = parse parseTuple (\x' -> a { sgTrack = x'}) x
           f a ("Disc", x)      = parse parseTuple (\x' -> a { sgDisc = x'}) x
           f a ("file", x)      = return a { sgFilePath = x }
