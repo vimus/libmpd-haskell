@@ -805,7 +805,14 @@ takeSongInfo xs = foldM f song xs
           f _ x                = throwError (Unexpected (show x))
 
           parseTuple s = let (x, y) = break (== '/') s in
-                         pair parseNum (x, drop 1 y)
+                         -- Handle incomplete values. For example, songs might
+                         -- have a track number, without specifying the total
+                         -- number of tracks, in which case the resulting
+                         -- tuple will have two identical parts.
+                         case (parseNum x, parseNum $ drop 1 y) of
+                             (Just x', Nothing) -> Just (x', x')
+                             (Just x', Just y') -> Just (x', y')
+                             _                  -> Nothing
 
           song = Song { sgArtist = "", sgAlbum = "", sgTitle = ""
                       , sgGenre = "", sgName = "", sgComposer = ""
