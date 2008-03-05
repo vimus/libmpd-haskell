@@ -804,7 +804,8 @@ takeSongInfo xs = foldM f song xs
           -- Catch unrecognised keys
           f _ x                = throwError (Unexpected (show x))
 
-          parseTuple s = pair parseNum $ break (== '/') s
+          parseTuple s = let (x, y) = break (== '/') s in
+                         pair parseNum (x, drop 1 y)
 
           song = Song { sgArtist = "", sgAlbum = "", sgTitle = ""
                       , sgGenre = "", sgName = "", sgComposer = ""
