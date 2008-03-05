@@ -84,6 +84,21 @@ showResult expectedResult (Failure result mms) =
     "\n    expected result: " ++ show expectedResult ++
     "\n    actual result: " ++ show result
 
+emptySong = Song { sgArtist   = ""
+                 , sgAlbum    = ""
+                 , sgTitle    = ""
+                 , sgFilePath = ""
+                 , sgGenre    = ""
+                 , sgName     = ""
+                 , sgComposer = ""
+                 , sgPerformer = ""
+                 , sgLength   = 0
+                 , sgDate     = 0
+                 , sgTrack    = (0,0)
+                 , sgDisc     = (0,0)
+                 , sgIndex    = Nothing }
+
+
 --
 -- Admin commands
 --
