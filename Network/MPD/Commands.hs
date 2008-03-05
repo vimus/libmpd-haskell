@@ -821,8 +821,3 @@ pair :: (String -> Maybe a) -> (String, String) -> Maybe (a, a)
 pair p (x, y) = case (p x, p y) of
                     (Just a, Just b) -> Just (a, b)
                     _                -> Nothing
-
--- Helpers for retrieving values from an assoc. list.
-
-takeNum :: (Read a, Integral a) => String -> [(String, String)] -> a
-takeNum v = maybe 0 (fromMaybe 0 . parseNum) . lookup v
