@@ -12,7 +12,7 @@
 module Commands (main) where
 
 import Network.MPD.Commands
-import Network.MPD.Core (Response)
+import Network.MPD.Core (Response, MPDError(..))
 import Network.MPD.StringConn
 
 import Control.Monad
@@ -38,6 +38,9 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("add_", testAdd_)
                   ,("addId", testAddId)
                   ,("clear", testClear)
+                  ,("plChangesPosId 0", testPlChangesPosId_0)
+                  ,("plChangesPosId 1", testPlChangesPosId_1)
+                  ,("plChangesPosId wierd", testPlChangesPosId_Wierd)
                   ,("currentSong(_)", testCurrentSongStopped)
                   ,("currentSong(>)", testCurrentSongPlaying)
                   ,("delete0", testDelete0)
@@ -263,6 +266,21 @@ testAddId =
          (addId "dir/Foo-Bar.ogg")
 
 testClear = test_ [("playlistclear \"foo\"", Right "OK")] (clear "foo")
+
+testPlChangesPosId_0 =
+    test [("plchangesposid 10", Right "OK")]
+         (Right [])
+         (plChangesPosId 10)
+
+testPlChangesPosId_1 =
+    test [("plchangesposid 10", Right "cpos: 0\nId: 20\nOK")]
+         (Right [(Pos 0, ID 20)])
+         (plChangesPosId 10)
+
+testPlChangesPosId_Wierd =
+    test [("plchangesposid 10", Right "cpos: foo\nId: bar\nOK")]
+         (Left $ Unexpected "[(\"cpos\",\"foo\"),(\"Id\",\"bar\")]")
+         (plChangesPosId 10)
 
 testCurrentSongStopped =
     test [("status", Right "repeat: 0\n\
