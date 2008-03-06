@@ -115,7 +115,7 @@ instance Show Query where
 data PLIndex = Pos Integer -- ^ A playlist position index (starting from 0)
              | ID Integer  -- ^ A playlist ID number that more robustly
                            --   identifies a song.
-    deriving Show
+    deriving (Show, Eq)
 
 -- | Represents the different playback states.
 data State = Playing
