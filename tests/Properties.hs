@@ -74,8 +74,7 @@ newtype SimpleDateString = SDS String
     deriving Show
 
 instance Arbitrary SimpleDateString where
-    arbitrary = fmap (SDS . concatMap show) .
-                replicateM 4 . oneof $ map return [0..9]
+    arbitrary = (SDS . show) `fmap` (arbitrary :: Gen PosInt)
 
 -- Complex date representations, like "2004-20-30".
 newtype ComplexDateString = CDS String
@@ -84,9 +83,8 @@ newtype ComplexDateString = CDS String
 instance Arbitrary ComplexDateString where
     arbitrary = do
         -- eww...
-        y <- replicateM 4 . oneof $ map return [0..9]
-        let (m, d) = splitAt 2 y
-        return . CDS . intercalate "-" $ map (concatMap show) [y, m, d]
+        [y,m,d] <- replicateM 3 (arbitrary :: Gen PosInt)
+        return . CDS . intercalate "-" $ map show [y,m,d]
 
 prop_parseDate_simple :: SimpleDateString -> Bool
 prop_parseDate_simple (SDS x) = isJust $ parseDate x
