@@ -52,11 +52,7 @@ newtype IntegralString = IS String
     deriving Show
 
 instance Arbitrary IntegralString where
-    arbitrary = do
-        xs <- sized $ \n -> replicateM (n `min` 15) $
-                            oneof (map return ['0'..'9'])
-        neg <- oneof [return True, return False]
-        return $ IS (if neg then '-':xs else xs)
+    arbitrary = fmap (IS . show) (arbitrary :: Gen Integer)
 
 newtype BoolString = BS String
     deriving Show
