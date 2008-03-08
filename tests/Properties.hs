@@ -26,7 +26,11 @@ main = do
                         mytest prop_toAssoc_rev)
                   ,("toAssoc / integrity",
                         mytest prop_toAssoc_integrity)
-                  ,("parseNum", mytest prop_parseNum)]
+                  ,("parseNum", mytest prop_parseNum)
+                  ,("parseDate / simple",
+                        mytest prop_parseDate_simple)
+                  ,("parseDate / complex",
+                        mytest prop_parseDate_complex)]
 
 mytest :: Testable a => a -> Int -> IO ()
 mytest a n = check defaultConfig { configMaxTest = n } a
@@ -59,6 +63,31 @@ newtype BoolString = BS String
 
 instance Arbitrary BoolString where
     arbitrary = fmap BS $ oneof [return "1", return "0"]
+
+-- Simple date representation, like "2004" and "1998".
+newtype SimpleDateString = SDS String
+    deriving Show
+
+instance Arbitrary SimpleDateString where
+    arbitrary = fmap (SDS . concatMap show) .
+                replicateM 4 . oneof $ map return [0..9]
+
+-- Complex date representations, like "2004-20-30".
+newtype ComplexDateString = CDS String
+    deriving Show
+
+instance Arbitrary ComplexDateString where
+    arbitrary = do
+        -- eww...
+        y <- replicateM 4 . oneof $ map return [0..9]
+        let (m, d) = splitAt 2 y
+        return . CDS . intercalate "-" $ map (concatMap show) [y, m, d]
+
+prop_parseDate_simple :: SimpleDateString -> Bool
+prop_parseDate_simple (SDS x) = isJust $ parseDate x
+
+prop_parseDate_complex :: ComplexDateString -> Bool
+prop_parseDate_complex (CDS x) = isJust $ parseDate x
 
 prop_toAssoc_rev :: [AssocString] -> Bool
 prop_toAssoc_rev x = toAssoc (fromAssoc r) == r
