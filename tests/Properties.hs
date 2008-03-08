@@ -60,6 +60,15 @@ newtype BoolString = BS String
 instance Arbitrary BoolString where
     arbitrary = fmap BS $ oneof [return "1", return "0"]
 
+-- Positive integers.
+newtype PosInt = PI Integer
+
+instance Show PosInt where
+    show (PI x) = show x
+
+instance Arbitrary PosInt where
+    arbitrary = (PI . abs) `fmap` arbitrary
+
 -- Simple date representation, like "2004" and "1998".
 newtype SimpleDateString = SDS String
     deriving Show
