@@ -744,10 +744,6 @@ failOnEmpty xs = return xs
 getResponse1 :: String -> MPD [String]
 getResponse1 x = getResponse x >>= failOnEmpty
 
--- getResponse1 for multiple commands.
-getResponses1 :: [String] -> MPD [String]
-getResponses1 cmds = getResponses cmds >>= failOnEmpty
-
 --
 -- Parsing.
 --
