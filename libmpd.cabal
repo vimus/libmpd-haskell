@@ -17,6 +17,10 @@ Cabal-Version:      >= 1.2
 Extra-Source-Files: TODO README ChangeLog tests/Properties.hs tests/Commands.hs
                     tests/Main.hs tests/run-tests
 
+flag test
+    Description: Test build
+    Default:     False
+
 flag splitBase
     Description: Choose the new smaller, split-up base package.
 
@@ -25,5 +29,10 @@ Library
     Exposed-Modules:    Network.MPD
     Other-Modules:      Network.MPD.Core, Network.MPD.Commands, Network.MPD.SocketConn,
                         Network.MPD.StringConn Network.MPD.Utils
-    ghc-options:        -Wall -O2
+
+    if flag(test)
+        ghc-options:    -Wall -Werror -O
+    else
+        ghc-options:    -Wall -O2
+
     ghc-prof-options:   -auto-all -prof
