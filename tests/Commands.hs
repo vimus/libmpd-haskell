@@ -56,6 +56,9 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("swap0", testSwap0)
                   ,("swap1", testSwap1)
                   ,("shuffle", testShuffle)
+                  ,("playlistInfo0", testPlaylistInfo0)
+                  ,("playlistInfo / pos", testPlaylistInfoPos)
+                  ,("playlistInfo / id", testPlaylistInfoId)
                   ,("crossfade", testCrossfade)
                   ,("play", testPlay)
                   ,("pause", testPause)
@@ -352,6 +355,39 @@ testSwap0 = test_ [("swap 1 2", Right "OK")] (swap (Pos 1) (Pos 2))
 testSwap1 = test_ [("swapid 1 2", Right "OK")] (swap (ID 1) (ID 2))
 
 testShuffle = test_ [("shuffle", Right "OK")] shuffle
+
+testPlaylistInfo0 = test [("playlistinfo", Right "file: dir/Foo-Bar.ogg\n\
+                                                 \Time: 60\n\
+                                                 \Artist: Foo\n\
+                                                 \Title: Bar\n\
+                                                 \OK")]
+                    (Right [emptySong { sgFilePath = "dir/Foo-Bar.ogg"
+                                      , sgLength = 60
+                                      , sgArtist = "Foo"
+                                      , sgTitle = "Bar" }])
+                    (playlistInfo Nothing)
+
+testPlaylistInfoPos = test [("playlistinfo 1", Right "file: dir/Foo-Bar.ogg\n\
+                                                     \Time: 60\n\
+                                                     \Artist: Foo\n\
+                                                     \Title: Bar\n\
+                                                     \OK")]
+                      (Right [emptySong { sgFilePath = "dir/Foo-Bar.ogg"
+                                        , sgLength = 60
+                                        , sgArtist = "Foo"
+                                        , sgTitle = "Bar" }])
+                      (playlistInfo . Just $ Pos 1)
+
+testPlaylistInfoId = test [("playlistid 1", Right "file: dir/Foo-Bar.ogg\n\
+                                                  \Time: 60\n\
+                                                  \Artist: Foo\n\
+                                                  \Title: Bar\n\
+                                                  \OK")]
+                     (Right [emptySong { sgFilePath = "dir/Foo-Bar.ogg"
+                                       , sgLength = 60
+                                       , sgArtist = "Foo"
+                                       , sgTitle = "Bar" }])
+                     (playlistInfo . Just $ ID 1)
 
 --
 -- Playback commands
