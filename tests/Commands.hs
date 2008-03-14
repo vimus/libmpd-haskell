@@ -59,6 +59,7 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("playlistInfo0", testPlaylistInfo0)
                   ,("playlistInfo / pos", testPlaylistInfoPos)
                   ,("playlistInfo / id", testPlaylistInfoId)
+                  ,("listPlaylistInfo", testListPlaylistInfo)
                   ,("crossfade", testCrossfade)
                   ,("play", testPlay)
                   ,("pause", testPause)
@@ -388,6 +389,18 @@ testPlaylistInfoId = test [("playlistid 1", Right "file: dir/Foo-Bar.ogg\n\
                                        , sgArtist = "Foo"
                                        , sgTitle = "Bar" }])
                      (playlistInfo . Just $ ID 1)
+
+testListPlaylistInfo = test [("listplaylistinfo \"foo\""
+                             ,Right "file: dir/Foo-Bar.ogg\n\
+                                    \Time: 60\n\
+                                    \Artist: Foo\n\
+                                    \Title: Bar\n\
+                                    \OK")]
+                       (Right [emptySong { sgFilePath = "dir/Foo-Bar.ogg"
+                                         , sgLength = 60
+                                         , sgArtist = "Foo"
+                                         , sgTitle = "Bar" }])
+                       (listPlaylistInfo "foo")
 
 --
 -- Playback commands
