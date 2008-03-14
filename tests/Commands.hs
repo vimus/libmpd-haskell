@@ -63,6 +63,8 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("listPlaylist", testListPlaylist)
                   ,("crossfade", testCrossfade)
                   ,("play", testPlay)
+                  ,("play / pos", testPlayPos)
+                  ,("play / id", testPlayId)
                   ,("pause", testPause)
                   ,("stop", testStop)
                   ,("next", testNext)
@@ -417,6 +419,10 @@ testListPlaylist = test [("listplaylist \"foo\""
 testCrossfade = test_ [("crossfade 0", Right "OK")] (crossfade 0)
 
 testPlay = test_ [("play", Right "OK")] (play Nothing)
+
+testPlayPos = test_ [("play 1", Right "OK")] (play . Just $ Pos 1)
+
+testPlayId = test_ [("playid 1", Right "OK")] (play . Just $ ID 1)
 
 testPause = test_ [("pause 0", Right "OK")] (pause False)
 
