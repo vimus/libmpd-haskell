@@ -78,6 +78,7 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("notCommands", testNotCommands)
                   ,("tagTypes", testTagTypes)
                   ,("urlHandlers", testUrlHandlers)
+                  ,("password", testPassword)
                   ,("ping", testPing)
                   ,("song parsing / incomplete track",
                     testSongParseIncompleteTrack)
@@ -465,6 +466,8 @@ testUrlHandlers =
     test [("urlhandlers", Right "urlhandler: foo\nurlhandler: bar")]
          (Right ["foo", "bar"])
          urlHandlers
+
+testPassword = test_ [("password foo", Right "OK")] (password "foo")
 
 testPing = test_ [("ping", Right "OK")] ping
 
