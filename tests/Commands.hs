@@ -74,6 +74,8 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("stop", testStop)
                   ,("next", testNext)
                   ,("previous", testPrevious)
+                  ,("seek / pos", testSeekPos)
+                  ,("seek / id", testSeekId)
                   ,("random", testRandom)
                   ,("repeat", testRepeat)
                   ,("setVolume", testSetVolume)
@@ -472,6 +474,10 @@ testStop = test_ [("stop", Right "OK")] stop
 testNext = test_ [("next", Right "OK")] next
 
 testPrevious = test_ [("previous", Right "OK")] previous
+
+testSeekPos = test_ [("seek 1 10", Right "OK")] (seek (Just $ Pos 1) 10)
+
+testSeekId = test_ [("seekid 1 10", Right "OK")] (seek (Just $ ID 1) 10)
 
 testRandom = test_ [("random 0", Right "OK")] (random False)
 
