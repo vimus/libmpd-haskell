@@ -387,9 +387,11 @@ listPlaylist = liftM takeValues . getResponse . ("listplaylist " ++) . show
 -- deprecated and likely to disappear at any time, please use 'playlistInfo'
 -- instead.
 playlist :: MPD [(PLIndex, Path)]
-playlist = liftM (map f) (getResponse "playlist")
-    where f s = let (pos, name) = breakChar ':' s in
-                (Pos $ read pos, name)
+playlist = mapM f =<< getResponse "playlist"
+    where f s | (pos, name) <- breakChar ':' s
+              , Just pos'   <- parseNum pos
+              = return (Pos pos', name)
+              | otherwise = throwError . Unexpected $ show s
 
 -- | Retrieve a list of changed songs currently in the playlist since
 -- a given playlist version.
