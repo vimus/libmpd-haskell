@@ -787,7 +787,7 @@ takeSongInfo xs = foldM f song xs
           -- We prefer Id.
           f a ("Pos", _)       = return a
           -- Catch unrecognised keys
-          f _ x                = throwError (Unexpected (show x))
+          f _ x                = throwError . Unexpected $ show x
 
           parseTuple s = let (x, y) = breakChar '/' s in
                          -- Handle incomplete values. For example, songs might
