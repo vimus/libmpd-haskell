@@ -64,6 +64,8 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("listPlaylist", testListPlaylist)
                   ,("playlist", testPlaylist)
                   ,("plchanges", testPlChanges)
+                  ,("playlistFind", testPlaylistFind)
+                  ,("playlistSearch", testPlaylistSearch)
                   ,("crossfade", testCrossfade)
                   ,("play", testPlay)
                   ,("play / pos", testPlayPos)
@@ -434,6 +436,22 @@ testPlChanges = test [("plchanges 0"
                 (Right [emptySong { sgArtist = "Foo"
                                   , sgTitle = "Bar" }])
                 (plChanges 0)
+
+testPlaylistFind = test [("playlistfind Artist \"Foo\""
+                         ,Right "file: dir/Foo/Bar.ogg\n\
+                                \Artist: Foo\n\
+                                \OK")]
+                   (Right [emptySong { sgFilePath = "dir/Foo/Bar.ogg"
+                                     , sgArtist = "Foo" }])
+                   (playlistFind $ Query Artist "Foo")
+
+testPlaylistSearch = test [("playlistsearch Artist \"Foo\""
+                           ,Right "file: dir/Foo/Bar.ogg\n\
+                                  \Artist: Foo\n\
+                                  \OK")]
+                     (Right [emptySong { sgFilePath = "dir/Foo/Bar.ogg"
+                                       , sgArtist = "Foo" }])
+                     (playlistSearch $ Query Artist "Foo")
 
 --
 -- Playback commands
