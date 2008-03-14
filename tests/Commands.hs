@@ -36,6 +36,7 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("count", testCount)
                   ,("add", testAdd)
                   ,("add_", testAdd_)
+                  ,("add_ / playlist", testAdd_pl)
                   ,("addId", testAddId)
                   ,("clear", testClear)
                   ,("plChangesPosId 0", testPlChangesPosId_0)
@@ -267,6 +268,9 @@ testAdd =
          (add "" "foo")
 
 testAdd_ = test_ [("add \"foo\"", Right "OK")] (add_ "" "foo")
+
+testAdd_pl = test_ [("playlistadd \"foo\" \"bar\"", Right "OK")]
+             (add_ "foo" "bar")
 
 testAddId =
     test [("addid \"dir/Foo-Bar.ogg\"", Right "Id: 20\nOK")]
