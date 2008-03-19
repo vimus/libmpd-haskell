@@ -68,14 +68,21 @@ toAssoc = map f
     where f x = let (k,v) = break (== ':') x in
                 (k,dropWhile (== ' ') $ drop 1 v)
 
--- Takes an assoc. list with recurring keys, and groups each cycle of
--- keys with their values together. The first key of each cycle needs
--- to be present in every cycle for it to work, but the rest don't
--- affect anything.
+-- Takes an assoc. list with recurring keys and groups each cycle of
+-- keys with their values together. There can be several keys that
+-- begin cycles, being listed as the first tuple component in the
+-- first parameter. When a cycle finishes all of its pairs are passed
+-- to the key's associated function (the second tuple component) and
+-- the result appended to the resulting list.
 --
--- > splitGroups [(1,'a'),(2,'b'),(1,'c'),(2,'d')] ==
--- >     [[(1,'a'),(2,'b')],[(1,'c'),(2,'d')]]
-splitGroups :: Eq a => [(a, b)] -> [[(a, b)]]
-splitGroups [] = []
-splitGroups (x:xs) = ((x:us):splitGroups vs)
-    where (us,vs) = break (\y -> fst x == fst y) xs
+-- > splitGroups [(1,id),(5,id)]
+-- >             [(1,'a'),(2,'b'),(5,'c'),(6,'d'),(1,'z'),(2,'y'),(3,'x')] ==
+-- >     [[(1,'a'),(2,'b')],[(5,'c'),(6,'d')],[(1,'z'),(2,'y'),(3,'x')]]
+splitGroups :: Eq a => [(a,[(a,b)] -> c)] -> [(a, b)] -> [c]
+splitGroups [] _ = []
+splitGroups _ [] = []
+splitGroups wrappers (x@(k,_):xs) =
+  maybe (splitGroups wrappers xs) id $ do
+    f <- k `lookup` wrappers
+    let (us,vs) = break (\(k',_) -> k' `elem` map fst wrappers) xs
+    return $ (f $ x:us) : splitGroups wrappers vs

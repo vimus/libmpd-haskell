@@ -114,12 +114,15 @@ prop_showBool :: Bool -> Bool
 prop_showBool True = showBool True == "1"
 prop_showBool x    = showBool x == "0"
 
-prop_splitGroups_rev :: [(String, String)] -> Bool
-prop_splitGroups_rev xs =
-    let r = splitGroups xs in r == splitGroups (concat r)
+prop_splitGroups_rev :: [(String, String)] -> Property
+prop_splitGroups_rev xs = not (null xs) ==>
+    let wrappers = [(fst $ head xs, id)]
+        r = splitGroups wrappers xs
+    in r == splitGroups wrappers (concat r)
 
-prop_splitGroups_integrity :: [(String, String)] -> Bool
-prop_splitGroups_integrity xs = sort (concat $ splitGroups xs) == sort xs
+prop_splitGroups_integrity :: [(String, String)] -> Property
+prop_splitGroups_integrity xs = not (null xs) ==>
+    sort (concat $ splitGroups [(fst $ head xs, id)] xs) == sort xs
 
 prop_parseNum :: IntegralString -> Bool
 prop_parseNum (IS xs@"")      = parseNum xs == Nothing

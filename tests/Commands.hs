@@ -432,11 +432,13 @@ testPlaylist = test [("playlist"
                playlist
 
 testPlChanges = test [("plchanges 0"
-                      ,Right "Artist: Foo\n\
+                      ,Right "file: foo/bar.ogg\n\
+                             \Artist: Foo\n\
                              \Title: Bar\n\
                              \OK")]
                 (Right [emptySong { sgArtist = "Foo"
-                                  , sgTitle = "Bar" }])
+                                  , sgTitle = "Bar"
+                                  , sgFilePath = "foo/bar.ogg" }])
                 (plChanges 0)
 
 testPlaylistFind = test [("playlistfind Artist \"Foo\""

@@ -213,7 +213,7 @@ enableOutput = getResponse_ . ("enableoutput " ++) . show
 -- | Retrieve information for all output devices.
 outputs :: MPD [Device]
 outputs = getResponse "outputs" >>=
-           mapM (foldM f empty) . splitGroups . toAssoc
+           mapM (foldM f empty) . splitGroups [("outputid",id)] . toAssoc
     where f a ("outputid", x)      = parse parseNum (\x' -> a { dOutputID = x' }) x
           f a ("outputname", x)    = return a { dOutputName = x }
           f a ("outputenabled", x) = parse parseBool
@@ -256,8 +256,8 @@ listAllInfo = lsInfo' "listallinfo"
 -- Helper for lsInfo and listAllInfo.
 lsInfo' :: String -> Path -> MPD [Either Path Song]
 lsInfo' cmd path = do
-    (dirs,_,songs) <- takeEntries =<< getResponse (cmd ++ " " ++ show path)
-    return (map Left dirs ++ map Right songs)
+    liftM (extractEntries (Just . Right, const Nothing, Just . Left)) $
+         takeEntries =<< getResponse (cmd ++ " " ++ show path)
 
 -- | Search the database for entries exactly matching a query.
 find :: Query -> MPD [Song]
@@ -403,7 +403,7 @@ plChanges version =
 plChangesPosId :: Integer -> MPD [(PLIndex, PLIndex)]
 plChangesPosId plver =
     getResponse ("plchangesposid " ++ show plver) >>=
-    mapM f . splitGroups . toAssoc
+    mapM f . splitGroups [("cpos",id)] . toAssoc
     where f xs | [("cpos", x), ("Id", y)] <- xs
                , Just (x', y') <- pair parseNum (x, y)
                = return (Pos x', ID y')
@@ -668,17 +668,21 @@ findDuplicates =
 
 -- | List directories non-recursively.
 lsDirs :: Path -> MPD [Path]
-lsDirs path = liftM (\(x,_,_) -> x) $
-              takeEntries =<< getResponse ("lsinfo " ++ show path)
+lsDirs path =
+    liftM (extractEntries (const Nothing,const Nothing, Just)) $
+        takeEntries =<< getResponse ("lsinfo " ++ show path)
 
 -- | List files non-recursively.
 lsFiles :: Path -> MPD [Path]
-lsFiles path = liftM (map sgFilePath . (\(_,_,x) -> x)) $
-               takeEntries =<< getResponse ("lsinfo " ++ show path)
+lsFiles path =
+    liftM (extractEntries (Just . sgFilePath, const Nothing, const Nothing)) $
+        takeEntries =<< getResponse ("lsinfo " ++ show path)
 
 -- | List all playlists.
 lsPlaylists :: MPD [PlaylistName]
-lsPlaylists = liftM (\(_,x,_) -> x) $ takeEntries =<< getResponse "lsinfo"
+lsPlaylists =
+    liftM (extractEntries (const Nothing, Just, const Nothing)) $
+        takeEntries =<< getResponse "lsinfo"
 
 -- | Search the database for songs relating to an artist.
 findArtist :: Artist -> MPD [Song]
@@ -754,20 +758,35 @@ getResponse1 x = getResponse x >>= failOnEmpty
 takeValues :: [String] -> [String]
 takeValues = snd . unzip . toAssoc
 
+data EntryType
+    = SongEntry Song
+    | PLEntry   String
+    | DirEntry  String
+      deriving Show
+
 -- Separate the result of an lsinfo\/listallinfo call into directories,
 -- playlists, and songs.
-takeEntries :: [String] -> MPD ([String], [String], [Song])
-takeEntries s = do
-    ss <- mapM takeSongInfo . splitGroups $ reverse filedata
-    return (dirs, playlists, ss)
-    where (dirs, playlists, filedata) = foldl split ([], [], []) $ toAssoc s
-          split (ds, pls, ss) x@(k, v) | k == "directory" = (v:ds, pls, ss)
-                                       | k == "playlist"  = (ds, v:pls, ss)
-                                       | otherwise        = (ds, pls, x:ss)
+takeEntries :: [String] -> MPD [EntryType]
+takeEntries = mapM toEntry . splitGroups wrappers . toAssoc . reverse
+    where
+        toEntry xs@(("file",_):_)   = liftM SongEntry $ takeSongInfo xs
+        toEntry (("directory",d):_) = return $ DirEntry d
+        toEntry (("playlist",pl):_) = return $ PLEntry  pl
+        toEntry _ = error "takeEntries: splitGroups is broken"
+        wrappers = [("file",id), ("directory",id), ("playlist",id)]
+
+-- Extract a subset of songs, directories, and playlists.
+extractEntries :: (Song -> Maybe a, String -> Maybe a, String -> Maybe a)
+               -> [EntryType] -> [a]
+extractEntries (fSong,fPlayList,fDir) = catMaybes . map f
+    where
+        f (SongEntry s) = fSong s
+        f (PLEntry pl)  = fPlayList pl
+        f (DirEntry d)  = fDir d
 
 -- Build a list of song instances from a response.
 takeSongs :: [String] -> MPD [Song]
-takeSongs = mapM takeSongInfo . splitGroups . toAssoc
+takeSongs = mapM takeSongInfo . splitGroups [("file",id)] . toAssoc
 
 -- Builds a song instance from an assoc. list.
 takeSongInfo :: [(String, String)] -> MPD Song
