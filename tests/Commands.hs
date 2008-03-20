@@ -88,6 +88,8 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("password", testPassword)
                   ,("ping", testPing)
                   ,("stats", testStats)
+                  ,("updateId0", testUpdateId0)
+                  ,("updateId1", testUpdateId1)
                   ,("song parsing / incomplete track",
                     testSongParseIncompleteTrack)
                   ,("song parsing / complete track",
@@ -536,3 +538,11 @@ testStats = test [("stats", Right "artists: 1\n\
 --
 -- Extensions\/shortcuts
 --
+
+testUpdateId0 = test [("update", Right "updating_db: 1")]
+                (Right 1)
+                (updateId [])
+
+testUpdateId1 = test [("update \"foo\"", Right "updating_db: 1")]
+                (Right 1)
+                (updateId ["foo"])
