@@ -93,6 +93,8 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("toggle / stop", testToggleStop)
                   ,("toggle / play", testTogglePlay)
                   ,("toggle / pause", testTogglePause)
+                  ,("addMany0", testAddMany0)
+                  ,("addMany1", testAddMany1)
                   ,("song parsing / incomplete track",
                     testSongParseIncompleteTrack)
                   ,("song parsing / complete track",
@@ -564,3 +566,9 @@ testTogglePause = test_
                 [("status", Right "state: pause")
                 ,("play", Right "OK")]
                 toggle
+
+testAddMany0 = test_ [("add \"bar\"", Right "OK")]
+               (addMany "" ["bar"])
+
+testAddMany1 = test_ [("playlistadd \"foo\" \"bar\"", Right "OK")]
+               (addMany "foo" ["bar"])
