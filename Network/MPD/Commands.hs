@@ -68,7 +68,7 @@ import Network.MPD.Utils
 import Control.Monad (foldM, liftM, unless)
 import Control.Monad.Error (throwError)
 import Prelude hiding (repeat)
-import Data.List (findIndex, intersperse, isPrefixOf)
+import Data.List (findIndex, intercalate, isPrefixOf)
 import Data.Maybe
 import System.FilePath (dropFileName)
 
@@ -738,7 +738,7 @@ getResponse_ x = getResponse x >> return ()
 
 -- Get the lines of the daemon's response to a list of commands.
 getResponses :: [String] -> MPD [String]
-getResponses cmds = getResponse . concat $ intersperse "\n" cmds'
+getResponses cmds = getResponse $ intercalate "\n" cmds'
     where cmds' = "command_list_begin" : cmds ++ ["command_list_end"]
 
 -- Helper that throws unexpected error if input is empty.
