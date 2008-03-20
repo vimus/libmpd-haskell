@@ -95,6 +95,7 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("toggle / pause", testTogglePause)
                   ,("addMany0", testAddMany0)
                   ,("addMany1", testAddMany1)
+                  ,("deleteMany1", testDeleteMany1)
                   ,("song parsing / incomplete track",
                     testSongParseIncompleteTrack)
                   ,("song parsing / complete track",
@@ -572,3 +573,6 @@ testAddMany0 = test_ [("add \"bar\"", Right "OK")]
 
 testAddMany1 = test_ [("playlistadd \"foo\" \"bar\"", Right "OK")]
                (addMany "foo" ["bar"])
+
+testDeleteMany1 = test_ [("playlistdelete \"foo\" 1", Right "OK")]
+                  (deleteMany "foo" [Pos 1])
