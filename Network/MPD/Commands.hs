@@ -166,7 +166,7 @@ data Stats =
                                      --   the database.
           , stsDbUpdate   :: Integer -- ^ Last database update in UNIX time.
           }
-    deriving Show
+    deriving (Eq, Show)
 
 -- | Represents a single song item.
 data Song =
