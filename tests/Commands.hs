@@ -87,6 +87,7 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("urlHandlers", testUrlHandlers)
                   ,("password", testPassword)
                   ,("ping", testPing)
+                  ,("stats", testStats)
                   ,("song parsing / incomplete track",
                     testSongParseIncompleteTrack)
                   ,("song parsing / complete track",
@@ -518,6 +519,19 @@ testUrlHandlers =
 testPassword = test_ [("password foo", Right "OK")] (password "foo")
 
 testPing = test_ [("ping", Right "OK")] ping
+
+testStats = test [("stats", Right "artists: 1\n\
+                                  \albums: 1\n\
+                                  \songs: 1\n\
+                                  \uptime: 100\n\
+                                  \playtime: 100\n\
+                                  \db_playtime: 100\n\
+                                  \db_update: 10\n\
+                                  \OK")]
+            (Right Stats { stsArtists = 1, stsAlbums = 1, stsSongs =  1
+                         , stsUptime = 100, stsPlaytime = 100, stsDbUpdate = 10
+                         , stsDbPlaytime = 100 })
+            stats
 
 --
 -- Extensions\/shortcuts
