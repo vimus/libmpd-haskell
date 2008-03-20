@@ -590,7 +590,7 @@ status = getResponse "status" >>= foldM f empty . toAssoc
 -- | Like 'update', but returns the update job id.
 updateId :: [Path] -> MPD Integer
 updateId paths = liftM (read . head . takeValues) cmd
-  where cmd = case paths of
+  where cmd = case map show paths of
                 []  -> getResponse "update"
                 [x] -> getResponse ("update " ++ x)
                 xs  -> getResponses (map ("update " ++) xs)
