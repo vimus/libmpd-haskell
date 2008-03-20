@@ -90,6 +90,9 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("stats", testStats)
                   ,("updateId0", testUpdateId0)
                   ,("updateId1", testUpdateId1)
+                  ,("toggle / stop", testToggleStop)
+                  ,("toggle / play", testTogglePlay)
+                  ,("toggle / pause", testTogglePause)
                   ,("song parsing / incomplete track",
                     testSongParseIncompleteTrack)
                   ,("song parsing / complete track",
@@ -546,3 +549,18 @@ testUpdateId0 = test [("update", Right "updating_db: 1")]
 testUpdateId1 = test [("update \"foo\"", Right "updating_db: 1")]
                 (Right 1)
                 (updateId ["foo"])
+
+testTogglePlay = test_
+               [("status", Right "state: play")
+               ,("pause 1", Right "OK")]
+               toggle
+
+testToggleStop = test_
+                [("status", Right "state: stop")
+                ,("play", Right "OK")]
+                toggle
+
+testTogglePause = test_
+                [("status", Right "state: pause")
+                ,("play", Right "OK")]
+                toggle
