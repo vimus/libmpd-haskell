@@ -27,6 +27,7 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("update1", testUpdate1)
                   ,("updateMany", testUpdateMany)
                   ,("find", testFind)
+                  ,("find / complex query", testFindComplex)
                   ,("list(Nothing)", testListNothing)
                   ,("list(Just)", testListJust)
                   ,("listAll", testListAll)
@@ -216,6 +217,19 @@ testFind =
                       , sgIndex     = Nothing
                       }])
          (find (Query Artist "Foo"))
+
+testFindComplex =
+    test [("find Artist \"Foo\" Album \"Bar\"",
+           Right "file: dir/Foo/Bar/Baz.ogg\n\
+                 \Artist: Foo\n\
+                 \Album: Bar\n\
+                 \Title: Baz\n\
+                 \OK")]
+    (Right [emptySong { sgFilePath = "dir/Foo/Bar/Baz.ogg"
+                      , sgArtist = "Foo"
+                      , sgAlbum = "Bar"
+                      , sgTitle = "Baz" }])
+    (find $ MultiQuery [Query Artist "Foo", Query Album "Bar"])
 
 testListNothing =
     test [("list Title", Right "Title: Foo\nTitle: Bar\nOK")]
