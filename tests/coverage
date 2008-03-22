@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Generate code coverage reports with hpc.
+# Needs to be run from within './tests'.
+# Non-relevant modules are excluded from the final
+# reports.
+
+rm -f *.tix
+mkdir -p build report
+ghc -i.. -fhpc --make Main.hs -odir=build -hidir=build && \
+    ./Main && \
+    hpc markup Main --destdir=report --exclude=Main --exclude=Properties \
+    --exclude=Commands --exclude=Network.MPD.StringConn && \
+    hpc report Main --exclude=Main --exclude=Properties --exclude=Commands \
+    --exclude=Network.MPD.StringConn
