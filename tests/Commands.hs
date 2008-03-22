@@ -78,6 +78,7 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("previous", testPrevious)
                   ,("seek / pos", testSeekPos)
                   ,("seek / id", testSeekId)
+                  ,("seek / current", testSeekCur)
                   ,("random", testRandom)
                   ,("repeat", testRepeat)
                   ,("setVolume", testSetVolume)
@@ -507,6 +508,12 @@ testPrevious = test_ [("previous", Right "OK")] previous
 testSeekPos = test_ [("seek 1 10", Right "OK")] (seek (Just $ Pos 1) 10)
 
 testSeekId = test_ [("seekid 1 10", Right "OK")] (seek (Just $ ID 1) 10)
+
+testSeekCur = test_ [("status", Right "state: play\n\
+                                      \songid: 1\n\
+                                      \OK")
+                    ,("seekid 1 10", Right "OK")]
+              (seek Nothing 10)
 
 testRandom = test_ [("random 0", Right "OK")] (random False)
 
