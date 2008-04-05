@@ -2,6 +2,7 @@ module Network.MPD.Parse where
 
 import Control.Monad.Error
 import Network.MPD.Utils
+import Network.MPD.Core (MPD, MPDError(Unexpected))
 
 type Seconds = Integer
 
@@ -20,6 +21,9 @@ parseCount = foldM f empty . toAssoc
                                     (\x' -> a { cPlaytime = x' }) x
               f _ x               = Left $ show x
               empty = Count { cSongs = 0, cPlaytime = 0 }
+
+runParser :: ([String] -> Either String a) -> [String] -> MPD a
+runParser f = either (throwError . Unexpected) return . f
 
 -- A helper that runs a parser on a string and, depending, on the
 -- outcome, either returns the result of some command applied to the

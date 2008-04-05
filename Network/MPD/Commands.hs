@@ -262,8 +262,7 @@ search query = getResponse ("search " ++ show query) >>= takeSongs
 
 -- | Count the number of entries matching a query.
 count :: Query -> MPD Count
-count query = getResponse ("count " ++ show query) >>= psrProc parseCount
-    where psrProc f = either (throwError . Unexpected) return . f
+count query = getResponse ("count " ++ show query) >>= runParser parseCount
 
 --
 -- Playlist commands
