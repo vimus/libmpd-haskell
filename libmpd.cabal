@@ -27,8 +27,9 @@ flag splitBase
 Library
     Build-Depends:      base, network, mtl, filepath
     Exposed-Modules:    Network.MPD
-    Other-Modules:      Network.MPD.Core, Network.MPD.Commands, Network.MPD.SocketConn,
-                        Network.MPD.StringConn Network.MPD.Utils
+    Other-Modules:      Network.MPD.Core, Network.MPD.Commands,
+                        Network.MPD.Parse, Network.MPD.SocketConn,
+                        Network.MPD.StringConn, Network.MPD.Utils
 
     if flag(test)
         ghc-options:    -Wall -Werror -O

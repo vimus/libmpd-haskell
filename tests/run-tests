@@ -11,5 +11,5 @@ if $(grep Falsifiable test.log >/dev/null) \
 else
     rm test.log
 fi
-runhaskell Setup configure --disable-optimization -f test && \
-runhaskell Setup build && runhaskell Setup haddock
+#runhaskell Setup configure --disable-optimization -f test && \
+#runhaskell Setup build && runhaskell Setup haddock

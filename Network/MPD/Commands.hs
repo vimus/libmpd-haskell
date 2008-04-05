@@ -64,6 +64,7 @@ module Network.MPD.Commands (
 
 import Network.MPD.Core
 import Network.MPD.Utils
+import Network.MPD.Parse
 
 import Control.Monad (foldM, liftM, unless)
 import Control.Monad.Error (throwError)
@@ -79,7 +80,6 @@ import System.FilePath (dropFileName)
 type Artist       = String
 type Album        = String
 type Title        = String
-type Seconds      = Integer
 
 -- | Used for commands which require a playlist name.
 -- If empty, the current playlist is used.
@@ -183,13 +183,6 @@ data Song =
 instance Eq Song where
     (==) x y = sgFilePath x == sgFilePath y
 
--- | Represents the result of running 'count'.
-data Count =
-    Count { cSongs    :: Integer -- ^ Number of songs matching the query
-          , cPlaytime :: Seconds -- ^ Total play time of matching songs
-          }
-    deriving (Eq, Show)
-
 -- | Represents an output device.
 data Device =
     Device { dOutputID      :: Int    -- ^ Output's ID number
@@ -269,14 +262,8 @@ search query = getResponse ("search " ++ show query) >>= takeSongs
 
 -- | Count the number of entries matching a query.
 count :: Query -> MPD Count
-count query = getResponse ("count " ++ show query) >>=
-              foldM f empty . toAssoc
-    where f a ("songs", x)    = parse parseNum
-                                (\x' -> a { cSongs = x'}) x
-          f a ("playtime", x) = parse parseNum
-                                (\x' -> a { cPlaytime = x' }) x
-          f _ x               = throwError . Unexpected $ show x
-          empty = Count { cSongs = 0, cPlaytime = 0 }
+count query = getResponse ("count " ++ show query) >>= psrProc parseCount
+    where psrProc f = either (throwError . Unexpected) return . f
 
 --
 -- Playlist commands
@@ -825,16 +812,3 @@ takeSongInfo xs = foldM f song xs
                       , sgPerformer = "", sgDate = 0, sgTrack = (0,0)
                       , sgDisc = (0,0), sgFilePath = "", sgLength = 0
                       , sgIndex = Nothing }
-
--- A helper that runs a parser on a string and, depending, on the outcome,
--- either returns the result of some command applied to the result, or throws
--- an Unexpected error. Used when building structures.
-parse :: (String -> Maybe a) -> (a -> b) -> String -> MPD b
-parse p g x = maybe (throwError $ Unexpected x) (return . g) (p x)
-
--- A helper for running a parser returning Maybe on a pair of strings.
--- Returns Just if both strings where parsed successfully, Nothing otherwise.
-pair :: (String -> Maybe a) -> (String, String) -> Maybe (a, a)
-pair p (x, y) = case (p x, p y) of
-                    (Just a, Just b) -> Just (a, b)
-                    _                -> Nothing
