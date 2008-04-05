@@ -31,7 +31,8 @@ main = do
                   ,("parseDate / simple",
                         mytest prop_parseDate_simple)
                   ,("parseDate / complex",
-                        mytest prop_parseDate_complex)]
+                        mytest prop_parseDate_complex)
+                  ,("parseCount", mytest prop_parseCount)]
 
 mytest :: Testable a => a -> Int -> IO ()
 mytest a n = check defaultConfig { configMaxTest = n } a
@@ -147,3 +148,12 @@ instance Displayable Count where
     display s = unlines $
         ["songs: "    ++ show (cSongs s)
         ,"playtime: " ++ show (cPlaytime s)]
+
+instance Arbitrary Count where
+    arbitrary = do
+        songs <- arbitrary
+        time  <- arbitrary
+        return $ Count { cSongs = songs, cPlaytime = time }
+
+prop_parseCount :: Count -> Bool
+prop_parseCount c = Right c == (parseCount . lines $ display c)
