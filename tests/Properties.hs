@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans -fno-warn-missing-methods #-}
 module Properties (main) where
 import Network.MPD.Utils
+import Network.MPD.Parse
 
 import Control.Monad
 import Data.Char
@@ -128,3 +129,21 @@ prop_parseNum :: IntegralString -> Bool
 prop_parseNum (IS xs@"")      = parseNum xs == Nothing
 prop_parseNum (IS xs@('-':_)) = fromMaybe 0 (parseNum xs) <= 0
 prop_parseNum (IS xs)         = fromMaybe 0 (parseNum xs) >= 0
+
+
+--------------------------------------------------------------------------
+-- Parsers
+--------------------------------------------------------------------------
+
+-- | A uniform interface for types that
+-- can be turned into raw responses
+class Displayable a where
+    empty   :: a             -- ^ An empty instance
+    display :: a -> String   -- ^ Transform instantiated object to a
+                             --   string
+
+instance Displayable Count where
+    empty = Count { cSongs = 0, cPlaytime = 0 }
+    display s = unlines $
+        ["songs: "    ++ show (cSongs s)
+        ,"playtime: " ++ show (cPlaytime s)]
