@@ -127,14 +127,6 @@ data Song =
 instance Eq Song where
     (==) x y = sgFilePath x == sgFilePath y
 
--- | Represents an output device.
-data Device =
-    Device { dOutputID      :: Int    -- ^ Output's ID number
-           , dOutputName    :: String -- ^ Output's name as defined in the MPD
-                                      --   configuration file
-           , dOutputEnabled :: Bool }
-    deriving (Eq, Show)
-
 --
 -- Admin commands
 --
@@ -149,15 +141,7 @@ enableOutput = getResponse_ . ("enableoutput " ++) . show
 
 -- | Retrieve information for all output devices.
 outputs :: MPD [Device]
-outputs = getResponse "outputs" >>=
-           mapM (foldM f empty) . splitGroups [("outputid",id)] . toAssoc
-    where f a ("outputid", x)      = parse parseNum (\x' -> a { dOutputID = x' }) x
-          f a ("outputname", x)    = return a { dOutputName = x }
-          f a ("outputenabled", x) = parse parseBool
-                                     (\x' -> a { dOutputEnabled = x'}) x
-          f _ x                    = throwError . Unexpected $ show x
-
-          empty = Device 0 "" False
+outputs = getResponse "outputs" >>= runParser parseOutputs
 
 -- | Update the server's database.
 -- If no paths are given, all paths will be scanned.

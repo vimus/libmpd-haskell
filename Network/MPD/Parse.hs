@@ -34,6 +34,24 @@ parseCount = foldM f empty . toAssoc
               f _ x               = Left $ show x
               empty = Count { cSongs = 0, cPlaytime = 0 }
 
+-- | Represents an output device.
+data Device =
+    Device { dOutputID      :: Int    -- ^ Output's ID number
+           , dOutputName    :: String -- ^ Output's name as defined in the MPD
+                                      --   configuration file
+           , dOutputEnabled :: Bool }
+    deriving (Eq, Show)
+
+-- | Retrieve information for all output devices.
+parseOutputs :: [String] -> Either String [Device]
+parseOutputs = mapM (foldM f empty) . splitGroups [("outputid",id)] . toAssoc
+    where f a ("outputid", x)      = parse parseNum (\x' -> a { dOutputID = x' }) x
+          f a ("outputname", x)    = return a { dOutputName = x }
+          f a ("outputenabled", x) = parse parseBool
+                                     (\x' -> a { dOutputEnabled = x'}) x
+          f _ x                    = fail $ show x
+          empty = Device 0 "" False
+
 -- | Container for database statistics.
 data Stats =
     Stats { stsArtists    :: Integer -- ^ Number of artists.
