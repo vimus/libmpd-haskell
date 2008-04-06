@@ -32,7 +32,8 @@ main = do
                         mytest prop_parseDate_simple)
                   ,("parseDate / complex",
                         mytest prop_parseDate_complex)
-                  ,("parseCount", mytest prop_parseCount)]
+                  ,("parseCount", mytest prop_parseCount)
+                  ,("parseDevice", mytest prop_parseOutputs)]
 
 mytest :: Testable a => a -> Int -> IO ()
 mytest a n = check defaultConfig { configMaxTest = n } a
@@ -157,3 +158,22 @@ instance Arbitrary Count where
 
 prop_parseCount :: Count -> Bool
 prop_parseCount c = Right c == (parseCount . lines $ display c)
+
+instance Displayable Device where
+    empty = Device 0 "" False
+    display d = unlines $
+        ["outputid: "      ++ show (dOutputID d)
+        ,"outputname: "    ++ dOutputName d
+        ,"outputenabled: " ++ showBool (dOutputEnabled d)]
+
+instance Arbitrary Device where
+    arbitrary = do
+        did <- arbitrary
+        -- name can't contain newlines and the parser skips initial spaces.
+        name <- (filter (/= '\n') . dropWhile isSpace) `fmap` arbitrary
+        enabled <- arbitrary
+        return $ Device did name enabled
+
+prop_parseOutputs :: [Device] -> Bool
+prop_parseOutputs ds =
+    Right ds == (parseOutputs . lines $ concatMap display ds)
