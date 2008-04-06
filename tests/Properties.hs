@@ -33,7 +33,8 @@ main = do
                   ,("parseDate / complex",
                         mytest prop_parseDate_complex)
                   ,("parseCount", mytest prop_parseCount)
-                  ,("parseDevice", mytest prop_parseOutputs)]
+                  ,("parseOutputs", mytest prop_parseOutputs)
+                  ,("parseSong", mytest prop_parseSong)]
 
 mytest :: Testable a => a -> Int -> IO ()
 mytest a n = check defaultConfig { configMaxTest = n } a
@@ -137,6 +138,10 @@ prop_parseNum (IS xs)         = fromMaybe 0 (parseNum xs) >= 0
 -- Parsers
 --------------------------------------------------------------------------
 
+-- MPD fields can't contain newlines and the parser skips initial spaces.
+field :: Gen String
+field = (filter (/= '\n') . dropWhile isSpace) `fmap` arbitrary
+
 -- | A uniform interface for types that
 -- can be turned into raw responses
 class Displayable a where
@@ -169,11 +174,50 @@ instance Displayable Device where
 instance Arbitrary Device where
     arbitrary = do
         did <- arbitrary
-        -- name can't contain newlines and the parser skips initial spaces.
-        name <- (filter (/= '\n') . dropWhile isSpace) `fmap` arbitrary
+        name <- field
         enabled <- arbitrary
         return $ Device did name enabled
 
 prop_parseOutputs :: [Device] -> Bool
 prop_parseOutputs ds =
     Right ds == (parseOutputs . lines $ concatMap display ds)
+
+instance Displayable Song where
+    empty = Song { sgArtist = "", sgAlbum = "", sgTitle = "", sgFilePath = ""
+                 , sgGenre  = "", sgName  = "", sgComposer = ""
+                 , sgPerformer = "", sgLength = 0, sgDate = 0
+                 , sgTrack = (0,0), sgDisc = (0,0), sgIndex = Nothing }
+    display s = unlines $
+        ["file: "      ++ sgFilePath s
+        ,"Artist: "    ++ sgArtist s
+        ,"Album: "     ++ sgAlbum s
+        ,"Title: "     ++ sgTitle s
+        ,"Genre: "     ++ sgGenre s
+        ,"Name: "      ++ sgName s
+        ,"Composer: "  ++ sgComposer s
+        ,"Performer: " ++ sgPerformer s
+        ,"Date: "      ++ show (sgDate s)
+        ,"Track: "     ++ (let (x,y) = sgTrack s in show x++"/"++show y)
+        ,"Disc: "      ++ (let (x,y) = sgDisc  s in show x++"/"++show y)
+        ,"Time: "      ++ show (sgLength s)]
+        ++ maybe [] (\x -> [case x of Pos n -> "Pos: " ++ show n
+                                      ID  n -> "Id: "  ++ show n]) (sgIndex s)
+
+instance Arbitrary Song where
+    arbitrary = do
+        [file,artist,album,title,genre,name,cmpsr,prfmr] <- replicateM 8 field
+        date  <- abs `fmap` arbitrary
+        len   <- abs `fmap` arbitrary
+        track <- two $ abs `fmap` arbitrary
+        disc  <- two $ abs `fmap` arbitrary
+        idx   <- oneof [return Nothing
+                       ,liftM (Just . Pos) $ abs `fmap` arbitrary
+                       ,liftM (Just . ID)  $ abs `fmap` arbitrary]
+        return $ Song { sgArtist = artist, sgAlbum = album, sgTitle = title
+                      , sgFilePath = file, sgGenre = genre, sgName = name
+                      , sgComposer = cmpsr, sgPerformer = prfmr, sgLength = len
+                      , sgDate = date, sgTrack = track, sgDisc = disc
+                      , sgIndex = idx }
+
+prop_parseSong :: Song -> Bool
+prop_parseSong s = Right s == (parseSong . toAssoc . lines $ display s)

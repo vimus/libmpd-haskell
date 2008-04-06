@@ -97,8 +97,11 @@ parseSong xs = foldM f song xs
           f a ("Time", x)      = parse parseNum (\x' -> a { sgLength = x'}) x
           f a ("Id", x)        = parse parseNum
                                  (\x' -> a { sgIndex = Just (ID x') }) x
-          -- We prefer Id.
-          f a ("Pos", _)       = return a
+          -- We prefer Id but take Pos if no Id has been found.
+          f a ("Pos", x)       =
+              maybe (parse parseNum (\x' -> a { sgIndex = Just (Pos x') }) x)
+                    (const $ return a)
+                    (sgIndex a)
           -- Catch unrecognised keys
           f _ x                = fail $ show x
 
