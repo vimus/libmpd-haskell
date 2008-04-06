@@ -15,7 +15,7 @@ Tested-With:        GHC == 6.5, GHC == 6.6.1, Hugs == 2006.9
 Build-Type:         Simple
 Cabal-Version:      >= 1.2
 Extra-Source-Files: TODO README ChangeLog tests/Properties.hs tests/Commands.hs
-                    tests/Main.hs tests/run-tests
+                    tests/Main.hs tests/run-tests tests/coverage
 
 flag test
     Description: Test build
