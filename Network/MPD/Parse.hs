@@ -155,7 +155,7 @@ parseStatus = foldM f empty . toAssoc
           empty = Status Stopped 0 False False 0 0 Nothing Nothing (0,0) 0 0
                   (0,0,0) 0 ""
 
-runParser :: ([String] -> Either String a) -> [String] -> MPD a
+runParser :: (input -> Either String a) -> input -> MPD a
 runParser f = either (throwError . Unexpected) return . f
 
 -- A helper that runs a parser on a string and, depending, on the
