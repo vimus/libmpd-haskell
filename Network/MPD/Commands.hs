@@ -66,7 +66,7 @@ import Network.MPD.Core
 import Network.MPD.Utils
 import Network.MPD.Parse
 
-import Control.Monad (foldM, liftM, unless)
+import Control.Monad (liftM, unless)
 import Control.Monad.Error (throwError)
 import Prelude hiding (repeat)
 import Data.List (findIndex, intercalate, isPrefixOf)
@@ -111,21 +111,6 @@ instance Show Query where
     show (Query meta query) = show meta ++ " " ++ show query
     show (MultiQuery xs)    = show xs
     showList xs _ = unwords $ map show xs
-
--- | Represents a single song item.
-data Song =
-    Song { sgArtist, sgAlbum, sgTitle, sgFilePath, sgGenre, sgName, sgComposer
-         , sgPerformer :: String
-         , sgLength    :: Seconds       -- ^ Length in seconds
-         , sgDate      :: Int           -- ^ Year
-         , sgTrack     :: (Int, Int)    -- ^ Track number\/total tracks
-         , sgDisc      :: (Int, Int)    -- ^ Position in set\/total in set
-         , sgIndex     :: Maybe PLIndex }
-    deriving Show
-
--- Avoid the need for writing a proper 'elem' for use in 'prune'.
-instance Eq Song where
-    (==) x y = sgFilePath x == sgFilePath y
 
 --
 -- Admin commands
@@ -339,7 +324,8 @@ currentSong = do
     cs <- status
     if stState cs == Stopped
        then return Nothing
-       else getResponse1 "currentsong" >>= fmap Just . takeSongInfo . toAssoc
+       else getResponse1 "currentsong" >>=
+            fmap Just . runParser parseSong . toAssoc
 
 --
 -- Playback commands
@@ -630,7 +616,7 @@ data EntryType
 takeEntries :: [String] -> MPD [EntryType]
 takeEntries = mapM toEntry . splitGroups wrappers . toAssoc . reverse
     where
-        toEntry xs@(("file",_):_)   = liftM SongEntry $ takeSongInfo xs
+        toEntry xs@(("file",_):_)   = liftM SongEntry $ runParser parseSong xs
         toEntry (("directory",d):_) = return $ DirEntry d
         toEntry (("playlist",pl):_) = return $ PLEntry  pl
         toEntry _ = error "takeEntries: splitGroups is broken"
@@ -647,42 +633,4 @@ extractEntries (fSong,fPlayList,fDir) = catMaybes . map f
 
 -- Build a list of song instances from a response.
 takeSongs :: [String] -> MPD [Song]
-takeSongs = mapM takeSongInfo . splitGroups [("file",id)] . toAssoc
-
--- Builds a song instance from an assoc. list.
-takeSongInfo :: [(String, String)] -> MPD Song
-takeSongInfo xs = foldM f song xs
-    where f a ("Artist", x)    = return a { sgArtist = x }
-          f a ("Album", x)     = return a { sgAlbum  = x }
-          f a ("Title", x)     = return a { sgTitle = x }
-          f a ("Genre", x)     = return a { sgGenre = x }
-          f a ("Name", x)      = return a { sgName = x }
-          f a ("Composer", x)  = return a { sgComposer = x }
-          f a ("Performer", x) = return a { sgPerformer = x }
-          f a ("Date", x)      = parse parseDate (\x' -> a { sgDate = x' }) x
-          f a ("Track", x)     = parse parseTuple (\x' -> a { sgTrack = x'}) x
-          f a ("Disc", x)      = parse parseTuple (\x' -> a { sgDisc = x'}) x
-          f a ("file", x)      = return a { sgFilePath = x }
-          f a ("Time", x)      = parse parseNum (\x' -> a { sgLength = x'}) x
-          f a ("Id", x)        = parse parseNum
-                                 (\x' -> a { sgIndex = Just (ID x') }) x
-          -- We prefer Id.
-          f a ("Pos", _)       = return a
-          -- Catch unrecognised keys
-          f _ x                = throwError . Unexpected $ show x
-
-          parseTuple s = let (x, y) = breakChar '/' s in
-                         -- Handle incomplete values. For example, songs might
-                         -- have a track number, without specifying the total
-                         -- number of tracks, in which case the resulting
-                         -- tuple will have two identical parts.
-                         case (parseNum x, parseNum y) of
-                             (Just x', Nothing) -> Just (x', x')
-                             (Just x', Just y') -> Just (x', y')
-                             _                  -> Nothing
-
-          song = Song { sgArtist = "", sgAlbum = "", sgTitle = ""
-                      , sgGenre = "", sgName = "", sgComposer = ""
-                      , sgPerformer = "", sgDate = 0, sgTrack = (0,0)
-                      , sgDisc = (0,0), sgFilePath = "", sgLength = 0
-                      , sgIndex = Nothing }
+takeSongs = mapM (runParser parseSong) . splitGroups [("file",id)] . toAssoc
