@@ -88,7 +88,7 @@ instance Arbitrary ComplexDateString where
     arbitrary = do
         -- eww...
         [y,m,d] <- replicateM 3 (arbitrary :: Gen PosInt)
-        return . CDS . intercalate "-" $ map show [y,m,d]
+        return . CDS . concat . intersperse "-" $ map show [y,m,d]
 
 prop_parseDate_simple :: SimpleDateString -> Bool
 prop_parseDate_simple (SDS x) = isJust $ parseDate x
