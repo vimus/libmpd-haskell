@@ -1,4 +1,2 @@
 TODO:
     - improve parsing performance
-    - find a way to retrieve the name of the currently loaded
-    playlist (if any). should return "current" by default.
