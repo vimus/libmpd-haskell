@@ -35,7 +35,8 @@ main = do
                         mytest prop_parseDate_complex)
                   ,("parseCount", mytest prop_parseCount)
                   ,("parseOutputs", mytest prop_parseOutputs)
-                  ,("parseSong", mytest prop_parseSong)]
+                  ,("parseSong", mytest prop_parseSong)
+                  ,("parseStats", mytest prop_parseStats)]
 
 mytest :: Testable a => a -> Int -> IO ()
 mytest a n = check defaultConfig { configMaxTest = n } a
@@ -181,3 +182,11 @@ instance Arbitrary Song where
 
 prop_parseSong :: Song -> Bool
 prop_parseSong s = Right s == (parseSong . toAssoc . lines $ display s)
+
+instance Arbitrary Stats where
+    arbitrary = do
+        [arts,albs,sngs,upt,plt,dbplt,dbupd] <- replicateM 7 (fmap abs $ arbitrary)
+        return $ Stats arts albs sngs upt plt dbplt dbupd
+
+prop_parseStats :: Stats -> Bool
+prop_parseStats s = Right s == (parseStats . lines $ display s)
