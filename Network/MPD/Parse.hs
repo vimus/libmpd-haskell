@@ -53,6 +53,7 @@ data Count =
           }
     deriving (Eq, Show)
 
+-- | Builds a 'Count' instance from an assoc. list.
 parseCount :: [String] -> Either String Count
 parseCount = foldM f empty . toAssoc
         where f a ("songs", x)    = parse parseNum
@@ -70,7 +71,7 @@ data Device =
            , dOutputEnabled :: Bool }
     deriving (Eq, Show)
 
--- | Retrieve information for all output devices.
+-- | Builds a list of 'Device' instances from an assoc. list
 parseOutputs :: [String] -> Either String [Device]
 parseOutputs = mapM (foldM f empty) . splitGroups [("outputid",id)] . toAssoc
     where f a ("outputid", x)      = parse parseNum (\x' -> a { dOutputID = x' }) x
@@ -108,7 +109,7 @@ data Song =
 instance Eq Song where
     (==) x y = sgFilePath x == sgFilePath y
 
--- Builds a song instance from an assoc. list.
+-- | Builds a 'Song' instance from an assoc. list.
 parseSong :: [(String, String)] -> Either String Song
 parseSong xs = foldM f song xs
     where f a ("Artist", x)    = return a { sgArtist = x }
@@ -149,6 +150,7 @@ parseSong xs = foldM f song xs
                       , sgDisc = (0,0), sgFilePath = "", sgLength = 0
                       , sgIndex = Nothing }
 
+-- | Builds a 'Stats' instance from an assoc. list.
 parseStats :: [String] -> Either String Stats
 parseStats = foldM f defaultStats . toAssoc
     where
@@ -196,6 +198,7 @@ data Status =
            , stError           :: String }
     deriving Show
 
+-- | Builds a 'Status' instance from an assoc. list.
 parseStatus :: [String] -> Either String Status
 parseStatus = foldM f empty . toAssoc
     where f a ("state", x)          = parse state (\x' -> a { stState = x'}) x
@@ -239,16 +242,17 @@ parseStatus = foldM f empty . toAssoc
           empty = Status Stopped 0 False False 0 0 Nothing Nothing (0,0) 0 0
                   (0,0,0) 0 ""
 
+-- | Run a parser and lift the result into the 'MPD' monad
 runParser :: (input -> Either String a) -> input -> MPD a
 runParser f = either (throwError . Unexpected) return . f
 
--- A helper that runs a parser on a string and, depending, on the
+-- | A helper that runs a parser on a string and, depending, on the
 -- outcome, either returns the result of some command applied to the
 -- result, or fails. Used when building structures.
 parse :: Monad m => (String -> Maybe a) -> (a -> b) -> String -> m b
 parse p g x = maybe (fail x) (return . g) (p x)
 
--- A helper for running a parser returning Maybe on a pair of strings.
+-- | A helper for running a parser returning Maybe on a pair of strings.
 -- Returns Just if both strings where parsed successfully, Nothing otherwise.
 pair :: (String -> Maybe a) -> (String, String) -> Maybe (a, a)
 pair p (x, y) = case (p x, p y) of
