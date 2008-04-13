@@ -7,7 +7,7 @@ About MPD:
     sockets. Its website is at http://www.musicpd.org/.
 
 Dependencies:
-    The Glasgow Haskell Compiler >= 6.4       http://haskell.org/ghc
+    The Glasgow Haskell Compiler >= 6.6       http://haskell.org/ghc
     Cabal > 1.0                               http://haskell.org/cabal
     network                                   http://hackage.haskell.org/cgi-bin/hackage-scripts/package/network
     mtl                                       http://hackage.haskell.org/cgi-bin/hackage-scripts/package/mtl
