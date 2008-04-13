@@ -94,6 +94,23 @@ data Stats =
           }
     deriving (Eq, Show)
 
+-- | Builds a 'Stats' instance from an assoc. list.
+parseStats :: [String] -> Either String Stats
+parseStats = foldM f defaultStats . toAssoc
+    where
+        f a ("artists", x)  = parse parseNum (\x' -> a { stsArtists  = x' }) x
+        f a ("albums", x)   = parse parseNum (\x' -> a { stsAlbums   = x' }) x
+        f a ("songs", x)    = parse parseNum (\x' -> a { stsSongs    = x' }) x
+        f a ("uptime", x)   = parse parseNum (\x' -> a { stsUptime   = x' }) x
+        f a ("playtime", x) = parse parseNum (\x' -> a { stsPlaytime = x' }) x
+        f a ("db_playtime", x) = parse parseNum
+                                 (\x' -> a { stsDbPlaytime = x' }) x
+        f a ("db_update", x) = parse parseNum (\x' -> a { stsDbUpdate = x' }) x
+        f _ x = fail $ show x
+        defaultStats =
+            Stats { stsArtists = 0, stsAlbums = 0, stsSongs = 0, stsUptime = 0
+                  , stsPlaytime = 0, stsDbPlaytime = 0, stsDbUpdate = 0 }
+
 -- | Represents a single song item.
 data Song =
     Song { sgArtist, sgAlbum, sgTitle, sgFilePath, sgGenre, sgName, sgComposer
@@ -149,23 +166,6 @@ parseSong xs = foldM f song xs
                       , sgPerformer = "", sgDate = 0, sgTrack = (0,0)
                       , sgDisc = (0,0), sgFilePath = "", sgLength = 0
                       , sgIndex = Nothing }
-
--- | Builds a 'Stats' instance from an assoc. list.
-parseStats :: [String] -> Either String Stats
-parseStats = foldM f defaultStats . toAssoc
-    where
-        f a ("artists", x)  = parse parseNum (\x' -> a { stsArtists  = x' }) x
-        f a ("albums", x)   = parse parseNum (\x' -> a { stsAlbums   = x' }) x
-        f a ("songs", x)    = parse parseNum (\x' -> a { stsSongs    = x' }) x
-        f a ("uptime", x)   = parse parseNum (\x' -> a { stsUptime   = x' }) x
-        f a ("playtime", x) = parse parseNum (\x' -> a { stsPlaytime = x' }) x
-        f a ("db_playtime", x) = parse parseNum
-                                 (\x' -> a { stsDbPlaytime = x' }) x
-        f a ("db_update", x) = parse parseNum (\x' -> a { stsDbUpdate = x' }) x
-        f _ x = fail $ show x
-        defaultStats =
-            Stats { stsArtists = 0, stsAlbums = 0, stsSongs = 0, stsUptime = 0
-                  , stsPlaytime = 0, stsDbPlaytime = 0, stsDbUpdate = 0 }
 
 -- | Container for MPD status.
 data Status =
