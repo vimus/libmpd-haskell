@@ -99,10 +99,6 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("addMany0", testAddMany0)
                   ,("addMany1", testAddMany1)
                   ,("deleteMany1", testDeleteMany1)
-                  ,("song parsing / incomplete track",
-                    testSongParseIncompleteTrack)
-                  ,("song parsing / complete track",
-                    testSongParseCompleteTrack)
                   ]
 
 test a b c = liftM (showResult b) $ testMPD a b (return Nothing) c
@@ -131,32 +127,6 @@ emptySong = Song { sgArtist   = ""
                  , sgTrack    = (0,0)
                  , sgDisc     = (0,0)
                  , sgIndex    = Nothing }
-
---
--- Parser behaviour.
--- These tests are meant to expose problems with internal
--- parsers.
---
-
--- Should handle track = 'X'.
-testSongParseIncompleteTrack =
-    test [("find Artist \"Foo\"", Right "file: dir/Foo-Bar.ogg\n\
-                                        \Track: 1\n\
-                                        \OK")]
-         (Right [emptySong { sgTrack = (1,1)
-                           , sgFilePath = "dir/Foo-Bar.ogg"
-                           }])
-         (find $ Query Artist "Foo")
-
--- Should handle track = 'X/Y'.
-testSongParseCompleteTrack =
-    test [("find Artist \"Foo\"", Right "file: dir/Foo-Bar.ogg\n\
-                                        \Track: 2/12\n\
-                                        \OK")]
-         (Right [emptySong { sgTrack = (2,12)
-                           , sgFilePath = "dir/Foo-Bar.ogg"
-                           }])
-         (find $ Query Artist "Foo")
 
 --
 -- Admin commands
