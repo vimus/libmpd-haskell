@@ -1,3 +1,14 @@
+* v0.2.0, 2008-04-14
+	- A connection stub for testing purposes.
+	- QuickCheck tests for parsing.
+	- Partial unit test coverage.
+	- Many bug fixes.
+	- Precise error handling.
+	- Parsing improvements.
+	- Code coverage generation.
+	- Cabal 1.2 support.
+	- Uniform command names.
+
 * v0.1.3, 2007-10-02
 	- Bugfixes.
 
