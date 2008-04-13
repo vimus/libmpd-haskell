@@ -18,23 +18,13 @@ Extra-Source-Files: TODO README ChangeLog tests/Properties.hs tests/Commands.hs
                     tests/Main.hs tests/Displayable.hs tests/run-tests
                     tests/coverage
 
-flag test
-    Description: Test build
-    Default:     False
-
-flag splitBase
-    Description: Choose the new smaller, split-up base package.
-
 Library
-    Build-Depends:      base, network, mtl, filepath
+    Build-Depends:      base >= 2.1.1, network >= 2.0.1, mtl >= 1.0.1,
+                        filepath >= 1.0
     Exposed-Modules:    Network.MPD
     Other-Modules:      Network.MPD.Core, Network.MPD.Commands,
                         Network.MPD.Parse, Network.MPD.SocketConn,
                         Network.MPD.StringConn, Network.MPD.Utils
 
-    if flag(test)
-        ghc-options:    -Wall
-    else
-        ghc-options:    -Wall
-
+    ghc-options:        -Wall
     ghc-prof-options:   -auto-all -prof
