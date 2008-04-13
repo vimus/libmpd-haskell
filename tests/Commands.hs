@@ -241,35 +241,26 @@ testPlChangesPosId_Wierd =
          (plChangesPosId 10)
 
 testCurrentSongStopped =
-    test [("status", Right "repeat: 0\n\
-                           \random: 0\n\
-                           \playlist: 253\n\
-                           \playlistlength: 0\n\
-                           \xfade: 0\n\
-                           \state: stop\nOK")]
-         (Right Nothing)
+    test [("status", Right resp)] (Right Nothing)
          (currentSong)
+    where obj = empty { stState = Stopped, stPlaylistVersion = 253 }
+          resp = display obj ++ "OK"
 
 testCurrentSongPlaying =
-    test [("status", Right "volume: 80\n\
-                           \repeat: 0\n\
-                           \random: 0\n\
-                           \playlist: 252\n\
-                           \playlistlength: 21\n\
-                           \xfade: 0\n\
-                           \state: play\n\
-                           \song: 20\n\
-                           \songid: 238\n\
-                           \time: 158:376\n\
-                           \bitrate: 192\n\
-                           \audio: 44100:16:2\n\
-                           \OK")
+    test [("status", Right resp2)
          ,("currentsong", Right resp1)]
          (Right $ Just song)
          (currentSong)
     where song = empty { sgArtist = "Foo", sgTitle = "Bar"
                        , sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60 }
-          resp1 = display song ++ "OK"
+          resp1 = display song
+
+          estatus = empty { stVolume = 80, stPlaylistVersion = 252
+                          , stPlaylistLength = 21, stSongPos = Just (Pos 20)
+                          , stSongID = Just (ID 238), stTime = (158, 376)
+                          , stBitrate = 192, stAudio = (44100, 16, 2)
+                          , stState = Playing }
+          resp2 = display estatus ++ "OK"
 
 testDelete0 = test_ [("delete 1", Right "OK")] (delete "" (Pos 1))
 
@@ -378,11 +369,11 @@ testSeekPos = test_ [("seek 1 10", Right "OK")] (seek (Just $ Pos 1) 10)
 
 testSeekId = test_ [("seekid 1 10", Right "OK")] (seek (Just $ ID 1) 10)
 
-testSeekCur = test_ [("status", Right "state: play\n\
-                                      \songid: 1\n\
-                                      \OK")
+testSeekCur = test_ [("status", Right resp)
                     ,("seekid 1 10", Right "OK")]
               (seek Nothing 10)
+    where obj = empty { stState = Playing, stSongID = Just (ID 1) }
+          resp = display obj ++ "OK"
 
 testRandom = test_ [("random 0", Right "OK")] (random False)
 
@@ -441,19 +432,22 @@ testUpdateId1 = test [("update \"foo\"", Right "updating_db: 1")]
                 (updateId ["foo"])
 
 testTogglePlay = test_
-               [("status", Right "state: play")
+               [("status", Right resp)
                ,("pause 1", Right "OK")]
                toggle
+    where resp = display empty { stState = Playing }
 
 testToggleStop = test_
-                [("status", Right "state: stop")
+                [("status", Right resp)
                 ,("play", Right "OK")]
                 toggle
+    where resp = display empty { stState = Stopped }
 
 testTogglePause = test_
-                [("status", Right "state: pause")
+                [("status", Right resp)
                 ,("play", Right "OK")]
                 toggle
+    where resp = display empty { stState = Paused }
 
 testAddMany0 = test_ [("add \"bar\"", Right "OK")]
                (addMany "" ["bar"])
