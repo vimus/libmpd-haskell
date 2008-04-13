@@ -11,6 +11,7 @@
 
 module Commands (main) where
 
+import Displayable
 import Network.MPD.Commands
 import Network.MPD.Core (Response, MPDError(..))
 import Network.MPD.StringConn
@@ -114,20 +115,6 @@ showResult expectedResult (Failure result mms) =
     "\n    expected result: " ++ show expectedResult ++
     "\n    actual result: " ++ show result
 
-emptySong = Song { sgArtist   = ""
-                 , sgAlbum    = ""
-                 , sgTitle    = ""
-                 , sgFilePath = ""
-                 , sgGenre    = ""
-                 , sgName     = ""
-                 , sgComposer = ""
-                 , sgPerformer = ""
-                 , sgLength   = 0
-                 , sgDate     = 0
-                 , sgTrack    = (0,0)
-                 , sgDisc     = (0,0)
-                 , sgIndex    = Nothing }
-
 --
 -- Admin commands
 --
@@ -137,20 +124,10 @@ testEnableOutput = test_ [("enableoutput 1", Right "OK")] (enableOutput 1)
 testDisableOutput = test_ [("disableoutput 1", Right "OK")] (disableOutput 1)
 
 testOutputs =
-    test [("outputs", Right $ unlines ["outputid: 0"
-                                      ,"outputname: SoundCard0"
-                                      ,"outputenabled: 1"
-                                      ,"outputid: 1"
-                                      ,"outputname: SoundCard1"
-                                      ,"outputenabled: 0"
-                                      ,"OK"])]
-         (Right [Device { dOutputID = 0
-                        , dOutputName = "SoundCard0"
-                        , dOutputEnabled = True }
-                ,Device { dOutputID = 1
-                        , dOutputName = "SoundCard1"
-                        , dOutputEnabled = False }])
-         outputs
+    test [("outputs", Right resp)] (Right [obj1, obj2]) outputs
+    where obj1 = empty { dOutputName = "SoundCard0", dOutputEnabled = True }
+          obj2 = empty { dOutputName = "SoundCard1", dOutputID = 1 }
+          resp = concatMap display [obj1, obj2] ++ "OK"
 
 testUpdate0 = test_ [("update", Right "updating_db: 1\nOK")] (update [])
 
@@ -168,39 +145,18 @@ testUpdateMany =
 --
 
 testFind =
-    test [("find Artist \"Foo\"", Right "file: dir/Foo-Bar.ogg\n\
-                                        \Time: 60\n\
-                                        \Artist: Foo\n\
-                                        \Title: Bar\n\
-                                        \OK")]
-         (Right [Song { sgArtist    = "Foo"
-                      , sgAlbum     = ""
-                      , sgTitle     = "Bar"
-                      , sgFilePath  = "dir/Foo-Bar.ogg"
-                      , sgGenre     = ""
-                      , sgName      = ""
-                      , sgComposer  = ""
-                      , sgPerformer = ""
-                      , sgLength    = 60
-                      , sgDate      = 0
-                      , sgTrack     = (0,0)
-                      , sgDisc      = (0,0)
-                      , sgIndex     = Nothing
-                      }])
-         (find (Query Artist "Foo"))
+    test [("find Artist \"Foo\"", Right resp)] (Right [obj])
+    (find (Query Artist "Foo"))
+    where obj = empty { sgArtist = "Foo", sgTitle = "Bar"
+                      , sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60 }
+          resp = display obj ++ "OK"
 
 testFindComplex =
-    test [("find Artist \"Foo\" Album \"Bar\"",
-           Right "file: dir/Foo/Bar/Baz.ogg\n\
-                 \Artist: Foo\n\
-                 \Album: Bar\n\
-                 \Title: Baz\n\
-                 \OK")]
-    (Right [emptySong { sgFilePath = "dir/Foo/Bar/Baz.ogg"
-                      , sgArtist = "Foo"
-                      , sgAlbum = "Bar"
-                      , sgTitle = "Baz" }])
+    test [("find Artist \"Foo\" Album \"Bar\"", Right resp)] (Right [obj])
     (find $ MultiQuery [Query Artist "Foo", Query Album "Bar"])
+    where obj = empty { sgFilePath = "dir/Foo/Bar/Baz.ogg", sgArtist = "Foo"
+                      , sgAlbum = "Bar", sgTitle = "Baz" }
+          resp = display obj ++ "OK"
 
 testListNothing =
     test [("list Title", Right "Title: Foo\nTitle: Bar\nOK")]
@@ -232,31 +188,17 @@ testListAllInfo =
          (listAllInfo "")
 
 testSearch =
-    test [("search Artist \"oo\"", Right "file: dir/Foo-Bar.ogg\n\
-                                         \Time: 60\n\
-                                         \Artist: Foo\n\
-                                         \Title: Bar\n\
-                                         \OK")]
-         (Right [Song { sgArtist    = "Foo"
-                      , sgAlbum     = ""
-                      , sgTitle     = "Bar"
-                      , sgFilePath  = "dir/Foo-Bar.ogg"
-                      , sgGenre     = ""
-                      , sgName      = ""
-                      , sgComposer  = ""
-                      , sgPerformer = ""
-                      , sgLength    = 60
-                      , sgDate      = 0
-                      , sgTrack     = (0,0)
-                      , sgDisc      = (0,0)
-                      , sgIndex     = Nothing
-                      }])
+    test [("search Artist \"oo\"", Right resp)] (Right [obj])
          (search (Query Artist "oo"))
+    where obj = empty { sgArtist = "Foo", sgTitle = "Bar"
+                      , sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60 }
+          resp = display obj ++ "OK"
 
 testCount =
-    test [("count Title \"Foo\"", Right "songs: 1\nplaytime: 60\nOK")]
-         (Right (Count 1 60))
+    test [("count Title \"Foo\"", Right resp)] (Right obj)
          (count (Query Title "Foo"))
+    where obj = Count 1 60
+          resp = display obj ++ "OK"
 
 --
 -- Playlist commands
@@ -322,26 +264,12 @@ testCurrentSongPlaying =
                            \bitrate: 192\n\
                            \audio: 44100:16:2\n\
                            \OK")
-         ,("currentsong", Right "file: dir/Foo-Bar.ogg\n\
-                                \Time: 60\n\
-                                \Artist: Foo\n\
-                                \Title: Bar\n\
-                                \OK")]
-         (Right . Just $ Song { sgArtist    = "Foo"
-                              , sgAlbum     = ""
-                              , sgTitle     = "Bar"
-                              , sgFilePath  = "dir/Foo-Bar.ogg"
-                              , sgGenre     = ""
-                              , sgName      = ""
-                              , sgComposer  = ""
-                              , sgPerformer = ""
-                              , sgLength    = 60
-                              , sgDate      = 0
-                              , sgTrack     = (0,0)
-                              , sgDisc      = (0,0)
-                              , sgIndex     = Nothing
-                              })
+         ,("currentsong", Right resp1)]
+         (Right $ Just song)
          (currentSong)
+    where song = empty { sgArtist = "Foo", sgTitle = "Bar"
+                       , sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60 }
+          resp1 = display song ++ "OK"
 
 testDelete0 = test_ [("delete 1", Right "OK")] (delete "" (Pos 1))
 
@@ -369,50 +297,30 @@ testSwap1 = test_ [("swapid 1 2", Right "OK")] (swap (ID 1) (ID 2))
 
 testShuffle = test_ [("shuffle", Right "OK")] shuffle
 
-testPlaylistInfo0 = test [("playlistinfo", Right "file: dir/Foo-Bar.ogg\n\
-                                                 \Time: 60\n\
-                                                 \Artist: Foo\n\
-                                                 \Title: Bar\n\
-                                                 \OK")]
-                    (Right [emptySong { sgFilePath = "dir/Foo-Bar.ogg"
-                                      , sgLength = 60
-                                      , sgArtist = "Foo"
-                                      , sgTitle = "Bar" }])
+testPlaylistInfo0 = test [("playlistinfo", Right resp)] (Right [obj])
                     (playlistInfo Nothing)
+    where obj = empty { sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60
+                      , sgArtist = "Foo", sgTitle = "Bar" }
+          resp = display obj ++ "OK"
 
-testPlaylistInfoPos = test [("playlistinfo 1", Right "file: dir/Foo-Bar.ogg\n\
-                                                     \Time: 60\n\
-                                                     \Artist: Foo\n\
-                                                     \Title: Bar\n\
-                                                     \OK")]
-                      (Right [emptySong { sgFilePath = "dir/Foo-Bar.ogg"
-                                        , sgLength = 60
-                                        , sgArtist = "Foo"
-                                        , sgTitle = "Bar" }])
+testPlaylistInfoPos = test [("playlistinfo 1", Right resp)] (Right [obj])
                       (playlistInfo . Just $ Pos 1)
+    where obj = empty { sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60
+                      , sgArtist = "Foo", sgTitle = "Bar" }
+          resp = display obj ++ "OK"
 
-testPlaylistInfoId = test [("playlistid 1", Right "file: dir/Foo-Bar.ogg\n\
-                                                  \Time: 60\n\
-                                                  \Artist: Foo\n\
-                                                  \Title: Bar\n\
-                                                  \OK")]
-                     (Right [emptySong { sgFilePath = "dir/Foo-Bar.ogg"
-                                       , sgLength = 60
-                                       , sgArtist = "Foo"
-                                       , sgTitle = "Bar" }])
+testPlaylistInfoId = test [("playlistid 1", Right resp)] (Right [obj])
                      (playlistInfo . Just $ ID 1)
+    where obj = empty { sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60
+                      , sgArtist = "Foo", sgTitle = "Bar" }
+          resp = display obj ++ "OK"
 
-testListPlaylistInfo = test [("listplaylistinfo \"foo\""
-                             ,Right "file: dir/Foo-Bar.ogg\n\
-                                    \Time: 60\n\
-                                    \Artist: Foo\n\
-                                    \Title: Bar\n\
-                                    \OK")]
-                       (Right [emptySong { sgFilePath = "dir/Foo-Bar.ogg"
-                                         , sgLength = 60
-                                         , sgArtist = "Foo"
-                                         , sgTitle = "Bar" }])
+testListPlaylistInfo = test [("listplaylistinfo \"foo\"", Right resp)]
+                       (Right [obj])
                        (listPlaylistInfo "foo")
+    where obj = empty { sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60
+                      , sgArtist = "Foo", sgTitle = "Bar" }
+          resp = display obj ++ "OK"
 
 testListPlaylist = test [("listplaylist \"foo\""
                          ,Right "file: dir/Foo-bar.ogg\n\
@@ -429,31 +337,22 @@ testPlaylist = test [("playlist"
                       ,(Pos 2, "Bar.ogg")])
                playlist
 
-testPlChanges = test [("plchanges 0"
-                      ,Right "file: foo/bar.ogg\n\
-                             \Artist: Foo\n\
-                             \Title: Bar\n\
-                             \OK")]
-                (Right [emptySong { sgArtist = "Foo"
-                                  , sgTitle = "Bar"
-                                  , sgFilePath = "foo/bar.ogg" }])
-                (plChanges 0)
+testPlChanges = test [("plchanges 0", Right resp)] (Right [obj]) (plChanges 0)
+    where obj = empty { sgArtist = "Foo", sgTitle = "Bar"
+                      , sgFilePath = "foo/bar.ogg" }
+          resp = display obj ++ "OK"
 
-testPlaylistFind = test [("playlistfind Artist \"Foo\""
-                         ,Right "file: dir/Foo/Bar.ogg\n\
-                                \Artist: Foo\n\
-                                \OK")]
-                   (Right [emptySong { sgFilePath = "dir/Foo/Bar.ogg"
-                                     , sgArtist = "Foo" }])
+testPlaylistFind = test [("playlistfind Artist \"Foo\"", Right resp)]
+                   (Right [obj])
                    (playlistFind $ Query Artist "Foo")
+    where obj = empty { sgFilePath = "dir/Foo/Bar.ogg", sgArtist = "Foo" }
+          resp = display obj ++ "OK"
 
-testPlaylistSearch = test [("playlistsearch Artist \"Foo\""
-                           ,Right "file: dir/Foo/Bar.ogg\n\
-                                  \Artist: Foo\n\
-                                  \OK")]
-                     (Right [emptySong { sgFilePath = "dir/Foo/Bar.ogg"
-                                       , sgArtist = "Foo" }])
+testPlaylistSearch = test [("playlistsearch Artist \"Foo\"", Right resp)]
+                     (Right [obj])
                      (playlistSearch $ Query Artist "Foo")
+    where obj = empty { sgFilePath = "dir/Foo/Bar.ogg", sgArtist = "Foo" }
+          resp = display obj ++ "OK"
 
 --
 -- Playback commands
@@ -523,18 +422,11 @@ testPassword = test_ [("password foo", Right "OK")] (password "foo")
 
 testPing = test_ [("ping", Right "OK")] ping
 
-testStats = test [("stats", Right "artists: 1\n\
-                                  \albums: 1\n\
-                                  \songs: 1\n\
-                                  \uptime: 100\n\
-                                  \playtime: 100\n\
-                                  \db_playtime: 100\n\
-                                  \db_update: 10\n\
-                                  \OK")]
-            (Right Stats { stsArtists = 1, stsAlbums = 1, stsSongs =  1
-                         , stsUptime = 100, stsPlaytime = 100, stsDbUpdate = 10
-                         , stsDbPlaytime = 100 })
-            stats
+testStats = test [("stats", Right resp)] (Right obj) stats
+    where obj = empty { stsArtists = 1, stsAlbums = 1, stsSongs =  1
+                      , stsUptime = 100, stsPlaytime = 100, stsDbUpdate = 10
+                      , stsDbPlaytime = 100 }
+          resp = display obj ++ "OK"
 
 --
 -- Extensions\/shortcuts
