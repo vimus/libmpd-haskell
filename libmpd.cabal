@@ -11,7 +11,7 @@ Synopsis:           An MPD client library.
 Description:        A client library for MPD, the Music Player Daemon
                     (<http://www.musicpd.org/>).
 Category:           Network, Sound
-Tested-With:        GHC == 6.5, GHC == 6.6.1, Hugs == 2006.9
+Tested-With:        GHC == 6.6.1, GHC == 6.8.2
 Build-Type:         Simple
 Cabal-Version:      >= 1.2
 Extra-Source-Files: TODO README ChangeLog tests/Properties.hs tests/Commands.hs
