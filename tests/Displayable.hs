@@ -44,3 +44,14 @@ instance Displayable Song where
         ++ maybe [] (\x -> [case x of Pos n -> "Pos: " ++ show n
                                       ID  n -> "Id: "  ++ show n]) (sgIndex s)
 
+instance Displayable Stats where
+    empty = Stats { stsArtists = 0, stsAlbums = 0, stsSongs = 0, stsUptime = 0
+                  , stsPlaytime = 0, stsDbPlaytime = 0, stsDbUpdate = 0 }
+    display s = unlines $
+        ["artists: " ++ show (stsArtists s)
+        ,"albums: " ++ show (stsAlbums s)
+        ,"songs: " ++ show (stsSongs s)
+        ,"uptime: " ++ show (stsUptime s)
+        ,"playtime: " ++ show (stsPlaytime s)
+        ,"db_playtime: " ++ show (stsDbPlaytime s)
+        ,"db_update: " ++ show (stsDbUpdate s)]
