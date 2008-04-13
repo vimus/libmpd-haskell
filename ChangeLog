@@ -1,3 +1,5 @@
+* v0.2.1, 2008-04-14
+	- Cleaned up libmpd.cabal.
 * v0.2.0, 2008-04-14
 	- A connection stub for testing purposes.
 	- QuickCheck tests for parsing.
