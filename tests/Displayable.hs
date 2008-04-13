@@ -55,3 +55,33 @@ instance Displayable Stats where
         ,"playtime: " ++ show (stsPlaytime s)
         ,"db_playtime: " ++ show (stsDbPlaytime s)
         ,"db_update: " ++ show (stsDbUpdate s)]
+
+instance Displayable Status where
+    empty = Status { stState = Stopped, stVolume = 0, stRepeat = False
+                   , stRandom = False, stPlaylistVersion = 0
+                   , stPlaylistLength = 0, stSongPos = Nothing
+                   , stSongID = Nothing, stTime = (0, 0), stBitrate = 0
+                   , stXFadeWidth = 0, stAudio = (0, 0, 0)
+                   , stUpdatingDb = 0, stError = "" }
+    display s = unlines $
+        ["state: " ++ (case stState s of Playing -> "play"
+                                         Paused  -> "pause"
+                                         _       -> "stop")
+        ,"volume: " ++ show (stVolume s)
+        ,"repeat: " ++ showBool (stRepeat s)
+        ,"random: " ++ showBool (stRandom s)
+        ,"playlist: " ++ show (stPlaylistVersion s)
+        ,"playlistlength: " ++ show (stPlaylistLength s)
+        ,"xfade: " ++ show (stXFadeWidth s)
+        ,"time: " ++ (let (x, y) = stTime s in show x ++ ":" ++ show y)
+        ,"bitrate: " ++ show (stBitrate s)
+        ,"xfade: " ++ show (stXFadeWidth s)
+
+        ,"audio: " ++ (let (x, y, z) = stAudio s in show x ++ ":" ++ show y ++
+                                       ":" ++ show z)
+        ,"updating_db: " ++ show (stUpdatingDb s)
+        ,"error: " ++ show (stError s)]
+        ++ maybe [] (\x -> [case x of Pos n -> "song: " ++ show n
+                                      _     -> undefined]) (stSongPos s)
+        ++ maybe [] (\x -> [case x of ID n  -> "songid: " ++ show n
+                                      _     -> undefined]) (stSongID s)
