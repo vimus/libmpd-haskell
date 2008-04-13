@@ -196,7 +196,7 @@ data Status =
            , stUpdatingDb      :: Integer
              -- | Last error message (if any).
            , stError           :: String }
-    deriving Show
+    deriving (Eq, Show)
 
 -- | Builds a 'Status' instance from an assoc. list.
 parseStatus :: [String] -> Either String Status
