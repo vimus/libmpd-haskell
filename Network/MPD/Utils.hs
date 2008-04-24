@@ -33,7 +33,7 @@ module Network.MPD.Utils (
 
 import Data.Char (isDigit)
 
--- Break a string a character, removing the separator.
+-- Break a string by character, removing the separator.
 breakChar :: Char -> String -> (String, String)
 breakChar c s = let (x, y) = break (== c) s in (x, drop 1 y)
 
