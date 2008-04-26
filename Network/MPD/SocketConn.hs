@@ -1,6 +1,6 @@
 -- | Module    : Network.MPD.SocketConn
 -- Copyright   : (c) Ben Sinclair 2005-2008
--- License     : LGPL
+-- License     : LGPL (see LICENSE)
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
 -- Portability : Haskell 98

@@ -2,7 +2,7 @@
 
 -- | Module    : Network.MPD.Core
 -- Copyright   : (c) Ben Sinclair 2005-2008
--- License     : LGPL
+-- License     : LGPL (see LICENSE)
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
 -- Portability : not Haskell 98 (uses MultiParamTypeClasses)

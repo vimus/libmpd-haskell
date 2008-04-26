@@ -2,7 +2,7 @@
 
 -- | Module    : Network.MPD.Commands
 -- Copyright   : (c) Ben Sinclair 2005-2008
--- License     : LGPL
+-- License     : LGPL (see LICENSE)
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
 -- Portability : unportable (uses PatternGuards)
