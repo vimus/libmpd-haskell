@@ -24,7 +24,8 @@ Library
     Exposed-Modules:    Network.MPD
     Other-Modules:      Network.MPD.Core, Network.MPD.Commands,
                         Network.MPD.Parse, Network.MPD.SocketConn,
-                        Network.MPD.StringConn, Network.MPD.Utils
+                        Network.MPD.StringConn, Network.MPD.Types,
+                        Network.MPD.Utils
 
     ghc-options:        -Wall
     ghc-prof-options:   -auto-all -prof

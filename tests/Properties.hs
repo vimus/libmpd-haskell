@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans -fno-warn-missing-methods #-}
 module Properties (main) where
 import Displayable
+import Network.MPD.Types
 import Network.MPD.Utils
 import Network.MPD.Parse
 

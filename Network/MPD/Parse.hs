@@ -9,30 +9,11 @@
 
 module Network.MPD.Parse where
 
+import Network.MPD.Types
+
 import Control.Monad.Error
 import Network.MPD.Utils
 import Network.MPD.Core (MPD, MPDError(Unexpected))
-
-type Seconds = Integer
-
--- | Represents a song's playlist index.
-data PLIndex = Pos Integer -- ^ A playlist position index (starting from 0)
-             | ID Integer  -- ^ A playlist ID number that more robustly
-                           --   identifies a song.
-    deriving (Show, Eq)
-
--- | Represents the different playback states.
-data State = Playing
-           | Stopped
-           | Paused
-    deriving (Show, Eq)
-
--- | Represents the result of running 'count'.
-data Count =
-    Count { cSongs    :: Integer -- ^ Number of songs matching the query
-          , cPlaytime :: Seconds -- ^ Total play time of matching songs
-          }
-    deriving (Eq, Show)
 
 -- | Builds a 'Count' instance from an assoc. list.
 parseCount :: [String] -> Either String Count
@@ -44,14 +25,6 @@ parseCount = foldM f empty . toAssoc
               f _ x               = Left $ show x
               empty = Count { cSongs = 0, cPlaytime = 0 }
 
--- | Represents an output device.
-data Device =
-    Device { dOutputID      :: Int    -- ^ Output's ID number
-           , dOutputName    :: String -- ^ Output's name as defined in the MPD
-                                      --   configuration file
-           , dOutputEnabled :: Bool }
-    deriving (Eq, Show)
-
 -- | Builds a list of 'Device' instances from an assoc. list
 parseOutputs :: [String] -> Either String [Device]
 parseOutputs = mapM (foldM f empty) . splitGroups [("outputid",id)] . toAssoc
@@ -61,19 +34,6 @@ parseOutputs = mapM (foldM f empty) . splitGroups [("outputid",id)] . toAssoc
                                      (\x' -> a { dOutputEnabled = x'}) x
           f _ x                    = fail $ show x
           empty = Device 0 "" False
-
--- | Container for database statistics.
-data Stats =
-    Stats { stsArtists    :: Integer -- ^ Number of artists.
-          , stsAlbums     :: Integer -- ^ Number of albums.
-          , stsSongs      :: Integer -- ^ Number of songs.
-          , stsUptime     :: Seconds -- ^ Daemon uptime in seconds.
-          , stsPlaytime   :: Seconds -- ^ Total playing time.
-          , stsDbPlaytime :: Seconds -- ^ Total play time of all the songs in
-                                     --   the database.
-          , stsDbUpdate   :: Integer -- ^ Last database update in UNIX time.
-          }
-    deriving (Eq, Show)
 
 -- | Builds a 'Stats' instance from an assoc. list.
 parseStats :: [String] -> Either String Stats
@@ -92,20 +52,6 @@ parseStats = foldM f defaultStats . toAssoc
             Stats { stsArtists = 0, stsAlbums = 0, stsSongs = 0, stsUptime = 0
                   , stsPlaytime = 0, stsDbPlaytime = 0, stsDbUpdate = 0 }
 
--- | Represents a single song item.
-data Song =
-    Song { sgArtist, sgAlbum, sgTitle, sgFilePath, sgGenre, sgName, sgComposer
-         , sgPerformer :: String
-         , sgLength    :: Seconds       -- ^ Length in seconds
-         , sgDate      :: Int           -- ^ Year
-         , sgTrack     :: (Int, Int)    -- ^ Track number\/total tracks
-         , sgDisc      :: (Int, Int)    -- ^ Position in set\/total in set
-         , sgIndex     :: Maybe PLIndex }
-    deriving Show
-
--- Avoid the need for writing a proper 'elem' for use in 'prune'.
-instance Eq Song where
-    (==) x y = sgFilePath x == sgFilePath y
 
 -- | Builds a 'Song' instance from an assoc. list.
 parseSong :: [(String, String)] -> Either String Song
@@ -147,37 +93,6 @@ parseSong xs = foldM f song xs
                       , sgPerformer = "", sgDate = 0, sgTrack = (0,0)
                       , sgDisc = (0,0), sgFilePath = "", sgLength = 0
                       , sgIndex = Nothing }
-
--- | Container for MPD status.
-data Status =
-    Status { stState :: State
-             -- | A percentage (0-100)
-           , stVolume          :: Int
-           , stRepeat          :: Bool
-           , stRandom          :: Bool
-             -- | A value that is incremented by the server every time the
-             --   playlist changes.
-           , stPlaylistVersion :: Integer
-             -- | The number of items in the current playlist.
-           , stPlaylistLength  :: Integer
-             -- | Current song's position in the playlist.
-           , stSongPos         :: Maybe PLIndex
-             -- | Current song's playlist ID.
-           , stSongID          :: Maybe PLIndex
-             -- | Time elapsed\/total time.
-           , stTime            :: (Seconds, Seconds)
-             -- | Bitrate (in kilobytes per second) of playing song (if any).
-           , stBitrate         :: Int
-             -- | Crossfade time.
-           , stXFadeWidth      :: Seconds
-             -- | Samplerate\/bits\/channels for the chosen output device
-             --   (see mpd.conf).
-           , stAudio           :: (Int, Int, Int)
-             -- | Job ID of currently running update (if any).
-           , stUpdatingDb      :: Integer
-             -- | Last error message (if any).
-           , stError           :: String }
-    deriving (Eq, Show)
 
 -- | Builds a 'Status' instance from an assoc. list.
 parseStatus :: [String] -> Either String Status
