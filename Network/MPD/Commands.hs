@@ -11,11 +11,9 @@
 
 module Network.MPD.Commands (
     -- * Command related data types
-    State(..), Status(..), Stats(..),
-    Device(..),
-    Query(..), Meta(..),
-    Artist, Album, Title, Seconds, PlaylistName, Path,
-    PLIndex(..), Song(..), Count(..),
+    Artist, Album, Title, PlaylistName, Path,
+    Meta(..), Query(..),
+    module Network.MPD.Types,
 
     -- * Admin commands
     disableOutput, enableOutput, kill, outputs, update,
