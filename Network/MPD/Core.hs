@@ -154,6 +154,7 @@ parseResponse s | null xs                    = Left  $ NoMPD
                 | otherwise                  = Right $ takeWhile ("OK" /=) xs
     where xs = lines s
 
+-- Turn MPD ACK into the corresponding 'MPDError'
 parseAck :: String -> MPDError
 parseAck s = ACK ack msg
     where
