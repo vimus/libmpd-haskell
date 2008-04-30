@@ -5,7 +5,7 @@
 -- Stability   : alpha
 -- Portability : Haskell 98
 --
--- Connection over a network socket.
+-- A testing scaffold for MPD commands
 
 module Network.MPD.StringConn (Expect, Result(..), testMPD) where
 
