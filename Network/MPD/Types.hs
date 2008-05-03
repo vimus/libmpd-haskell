@@ -60,11 +60,7 @@ data Song =
          , sgTrack     :: (Int, Int)    -- ^ Track number\/total tracks
          , sgDisc      :: (Int, Int)    -- ^ Position in set\/total in set
          , sgIndex     :: Maybe PLIndex }
-    deriving Show
-
--- Avoid the need for writing a proper 'elem' for use in 'prune'.
-instance Eq Song where
-    (==) x y = sgFilePath x == sgFilePath y
+    deriving (Eq, Show)
 
 -- | Container for MPD status.
 data Status =

@@ -491,8 +491,9 @@ findDuplicates =
         playlistInfo Nothing
     where dups [] (_, dup) = dup
           dups (x:xs) (ys, dup)
-              | x `elem` xs && x `notElem` ys = dups xs (ys, x:dup)
-              | otherwise                     = dups xs (x:ys, dup)
+              | x `mSong` xs && not (x `mSong` ys) = dups xs (ys, x:dup)
+              | otherwise                          = dups xs (x:ys, dup)
+          mSong x = let m = sgFilePath x in any ((==) m . sgFilePath)
 
 -- | List directories non-recursively.
 lsDirs :: Path -> MPD [Path]
