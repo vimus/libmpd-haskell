@@ -1,11 +1,11 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, TypeSynonymInstances #-}
 
 -- | Module    : Network.MPD.Commands
 -- Copyright   : (c) Ben Sinclair 2005-2008
 -- License     : LGPL (see LICENSE)
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
--- Portability : unportable (uses PatternGuards)
+-- Portability : unportable (uses PatternGuards and TypeSynonymInstances)
 --
 -- Interface to the user commands supported by MPD.
 
@@ -58,6 +58,26 @@ import System.FilePath (dropFileName)
 -- Data types
 --
 
+-- | A uniform interface for argument preparation
+-- The basic idea is that one should be able to
+-- to magically prepare an argument for use with
+-- an MPD command, without necessarily knowing/\caring
+-- about how it needs to be represented internally.
+class Show a => MPDArg a where
+    prep :: a -> String
+    -- Note that because of this, we almost
+    -- never have to actually provide
+    -- an implementation of 'prep'
+    prep = show
+
+instance MPDArg String where
+    -- We do this to avoid mangling
+    -- non-ascii characters with 'show'
+    prep x = "\"" ++ x ++ "\""
+
+instance MPDArg Int
+instance MPDArg Integer
+
 type Artist       = String
 type Album        = String
 type Title        = String
@@ -76,6 +96,8 @@ data Meta = Artist | Album | Title | Track | Name | Genre | Date
     | Composer | Performer | Disc | Any | Filename
       deriving Show
 
+instance MPDArg Meta
+
 -- | A query is composed of a scope modifier and a query string.
 --
 -- To match entries where album equals \"Foo\", use:
@@ -92,6 +114,8 @@ instance Show Query where
     show (Query meta query) = show meta ++ " \"" ++ query ++ "\""
     show (MultiQuery xs)    = show xs
     showList xs _ = unwords $ map show xs
+
+instance MPDArg Query
 
 --
 -- Admin commands
