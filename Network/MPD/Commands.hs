@@ -77,6 +77,7 @@ instance MPDArg String where
 
 instance MPDArg Int
 instance MPDArg Integer
+instance MPDArg Bool where prep = showBool
 
 type Artist       = String
 type Album        = String
