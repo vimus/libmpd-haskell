@@ -124,11 +124,11 @@ instance MPDArg Query
 
 -- | Turn off an output device.
 disableOutput :: Int -> MPD ()
-disableOutput = getResponse_ . ("disableoutput " ++) . show
+disableOutput = getResponse_ . ("disableoutput " ++) . prep
 
 -- | Turn on an output device.
 enableOutput :: Int -> MPD ()
-enableOutput = getResponse_ . ("enableoutput " ++) . show
+enableOutput = getResponse_ . ("enableoutput " ++) . prep
 
 -- | Retrieve information for all output devices.
 outputs :: MPD [Device]
@@ -139,8 +139,8 @@ outputs = getResponse "outputs" >>= runParser parseOutputs
 -- Unreadable or non-existent paths are silently ignored.
 update :: [Path] -> MPD ()
 update  [] = getResponse_ "update"
-update [x] = getResponse_ ("update \"" ++ x ++ "\"")
-update  xs = getResponses (map (\x -> "update \"" ++ x ++ "\"") xs) >> return ()
+update [x] = getResponse_ ("update " ++ prep x)
+update xs  = getResponses (map (\x -> "update " ++ prep x) xs) >> return ()
 
 --
 -- Database commands
@@ -150,7 +150,7 @@ update  xs = getResponses (map (\x -> "update \"" ++ x ++ "\"") xs) >> return ()
 list :: Meta -- ^ Metadata to list
      -> Maybe Query -> MPD [String]
 list mtype query = liftM takeValues (getResponse cmd)
-    where cmd = "list " ++ show mtype ++ maybe "" ((" "++) . show) query
+    where cmd = "list " ++ prep mtype ++ maybe "" ((" "++) . prep) query
 
 -- | Non-recursively list the contents of a database directory.
 lsInfo :: Path -> MPD [Either Path Song]
@@ -159,7 +159,7 @@ lsInfo = lsInfo' "lsinfo"
 -- | List the songs (without metadata) in a database directory recursively.
 listAll :: Path -> MPD [Path]
 listAll path = liftM (map snd . filter ((== "file") . fst) . toAssoc)
-                     (getResponse ("listall \"" ++ path ++ "\""))
+                     (getResponse ("listall " ++ prep path))
 
 -- | Recursive 'lsInfo'.
 listAllInfo :: Path -> MPD [Either Path Song]
@@ -169,19 +169,19 @@ listAllInfo = lsInfo' "listallinfo"
 lsInfo' :: String -> Path -> MPD [Either Path Song]
 lsInfo' cmd path = do
     liftM (extractEntries (Just . Right, const Nothing, Just . Left)) $
-         takeEntries =<< getResponse (cmd ++ " \"" ++ path ++ "\"")
+         takeEntries =<< getResponse (cmd ++ " " ++ prep path)
 
 -- | Search the database for entries exactly matching a query.
 find :: Query -> MPD [Song]
-find query = getResponse ("find " ++ show query) >>= takeSongs
+find query = getResponse ("find " ++ prep query) >>= takeSongs
 
 -- | Search the database using case insensitive matching.
 search :: Query -> MPD [Song]
-search query = getResponse ("search " ++ show query) >>= takeSongs
+search query = getResponse ("search " ++ prep query) >>= takeSongs
 
 -- | Count the number of entries matching a query.
 count :: Query -> MPD Count
-count query = getResponse ("count " ++ show query) >>= runParser parseCount
+count query = getResponse ("count " ++ prep query) >>= runParser parseCount
 
 --
 -- Playlist commands
@@ -193,7 +193,7 @@ count query = getResponse ("count " ++ show query) >>= runParser parseCount
 -- This might do better to throw an exception than silently return 0.
 -- | Like 'add', but returns a playlist id.
 addId :: Path -> MPD Integer
-addId p = getResponse1 ("addid \"" ++ p ++ "\"") >>=
+addId p = getResponse1 ("addid " ++ prep p) >>=
           parse parseNum id . snd . head . toAssoc
 
 -- | Like 'add_' but returns a list of the files added.
@@ -204,66 +204,65 @@ add plname x = add_ plname x >> listAll x
 -- Adds to current if no playlist is specified.
 -- Will create a new playlist if the one specified does not already exist.
 add_ :: PlaylistName -> Path -> MPD ()
-add_ "" path     = getResponse_ ("add \"" ++ path ++ "\"")
-add_ plname path = getResponse_ $
-                   "playlistadd \"" ++ plname ++ "\" \"" ++ path ++ "\""
+add_ "" path     = getResponse_ ("add " ++ prep path)
+add_ plname path = getResponse_ ("playlistadd " ++ prep plname ++ " " ++ prep path)
 
 -- | Clear a playlist. Clears current playlist if no playlist is specified.
 -- If the specified playlist does not exist, it will be created.
 clear :: PlaylistName -> MPD ()
 clear = getResponse_ . cmd
     where cmd "" = "clear"
-          cmd pl = "playlistclear \"" ++ pl ++ "\""
+          cmd pl = "playlistclear " ++ prep pl
 
 -- | Remove a song from a playlist.
 -- If no playlist is specified, current playlist is used.
 -- Note that a playlist position ('Pos') is required when operating on
 -- playlists other than the current.
 delete :: PlaylistName -> PLIndex -> MPD ()
-delete "" (Pos x) = getResponse_ ("delete " ++ show x)
-delete "" (ID x)  = getResponse_ ("deleteid " ++ show x)
+delete "" (Pos x) = getResponse_ ("delete " ++ prep x)
+delete "" (ID x)  = getResponse_ ("deleteid " ++ prep x)
 delete plname (Pos x) =
-    getResponse_ ("playlistdelete \"" ++ plname ++ "\" " ++ show x)
+    getResponse_ ("playlistdelete " ++ prep plname ++ " " ++ prep x)
 delete _ _ = fail "'delete' within a playlist doesn't accept a playlist ID"
 
 -- | Load an existing playlist.
 load :: PlaylistName -> MPD ()
-load plname = getResponse_ $ "load \"" ++ plname ++ "\""
+load plname = getResponse_ $ "load " ++ prep plname
 
 -- | Move a song to a given position.
 -- Note that a playlist position ('Pos') is required when operating on
 -- playlists other than the current.
 move :: PlaylistName -> PLIndex -> Integer -> MPD ()
 move "" (Pos from) to =
-    getResponse_ ("move " ++ show from ++ " " ++ show to)
+    getResponse_ ("move " ++ prep from ++ " " ++ prep to)
 move "" (ID from) to =
-    getResponse_ ("moveid " ++ show from ++ " " ++ show to)
+    getResponse_ ("moveid " ++ prep from ++ " " ++ prep to)
 move plname (Pos from) to =
-    getResponse_ ("playlistmove \"" ++ plname ++ "\" " ++ show from ++
-                       " " ++ show to)
+    getResponse_ ("playlistmove " ++ prep plname ++ " " ++ prep from ++
+                       " " ++ prep to)
 move _ _ _ = fail "'move' within a playlist doesn't accept a playlist ID"
 
 -- | Delete existing playlist.
 rm :: PlaylistName -> MPD ()
-rm plname = getResponse_ $ "rm \"" ++ plname ++ "\""
+rm plname = getResponse_ $ "rm " ++ prep plname
 
 -- | Rename an existing playlist.
 rename :: PlaylistName -- ^ Original playlist
        -> PlaylistName -- ^ New playlist name
        -> MPD ()
 rename plname new =
-    getResponse_ $ "rename \"" ++ plname ++ "\" \"" ++ new ++ "\""
+    getResponse_ $ "rename " ++ prep plname ++ " " ++ prep new
 
 -- | Save the current playlist.
 save :: PlaylistName -> MPD ()
-save plname = getResponse_ $ "save \"" ++ plname ++ "\""
+save plname = getResponse_ $ "save " ++ prep plname
 
 -- | Swap the positions of two songs.
 -- Note that the positions must be of the same type, i.e. mixing 'Pos' and 'ID'
 -- will result in a no-op.
 swap :: PLIndex -> PLIndex -> MPD ()
-swap (Pos x) (Pos y) = getResponse_ ("swap "   ++ show x ++ " " ++ show y)
-swap (ID x)  (ID y)  = getResponse_ ("swapid " ++ show x ++ " " ++ show y)
+swap (Pos x) (Pos y) = getResponse_ ("swap "   ++ prep x ++ " " ++ prep y)
+swap (ID x)  (ID y)  = getResponse_ ("swapid " ++ prep x ++ " " ++ prep y)
 swap _ _ = fail "'swap' cannot mix position and ID arguments"
 
 -- | Shuffle the playlist.
@@ -274,19 +273,19 @@ shuffle = getResponse_ "shuffle"
 playlistInfo :: Maybe PLIndex -> MPD [Song]
 playlistInfo x = getResponse cmd >>= takeSongs
     where cmd = case x of
-                    Just (Pos x') -> "playlistinfo " ++ show x'
-                    Just (ID x')  -> "playlistid " ++ show x'
+                    Just (Pos x') -> "playlistinfo " ++ prep x'
+                    Just (ID x')  -> "playlistid " ++ prep x'
                     Nothing       -> "playlistinfo"
 
 -- | Retrieve metadata for files in a given playlist.
 listPlaylistInfo :: PlaylistName -> MPD [Song]
 listPlaylistInfo plname =
-    takeSongs =<< (getResponse $ "listplaylistinfo \"" ++ plname ++ "\"")
+    takeSongs =<< getResponse ("listplaylistinfo " ++ prep plname)
 
 -- | Retrieve a list of files in a given playlist.
 listPlaylist :: PlaylistName -> MPD [Path]
 listPlaylist plname =
-    liftM takeValues . getResponse $ "listplaylist \"" ++ plname ++ "\""
+    liftM takeValues . getResponse $ "listplaylist " ++ prep plname
 
 -- | Retrieve file paths and positions of songs in the current playlist.
 -- Note that this command is only included for completeness sake; it's
@@ -303,7 +302,7 @@ playlist = mapM f =<< getResponse "playlist"
 -- a given playlist version.
 plChanges :: Integer -> MPD [Song]
 plChanges version =
-    takeSongs =<< (getResponse . ("plchanges " ++) $ show version)
+    takeSongs =<< (getResponse . ("plchanges " ++) $ prep version)
 
 -- | Like 'plChanges' but only returns positions and ids.
 plChangesPosId :: Integer -> MPD [(PLIndex, PLIndex)]
@@ -317,13 +316,12 @@ plChangesPosId plver =
 
 -- | Search for songs in the current playlist with strict matching.
 playlistFind :: Query -> MPD [Song]
-playlistFind q = takeSongs =<< (getResponse . ("playlistfind " ++) $ show q)
+playlistFind q = takeSongs =<< getResponse ("playlistfind " ++ prep q)
 
 -- | Search case-insensitively with partial matches for songs in the
 -- current playlist.
 playlistSearch :: Query -> MPD [Song]
-playlistSearch q =
-    takeSongs =<< (getResponse . ("playlistsearch " ++) $ show q)
+playlistSearch q = takeSongs =<< getResponse ("playlistsearch " ++ prep q)
 
 -- | Get the currently playing song.
 currentSong :: MPD (Maybe Song)
@@ -340,17 +338,17 @@ currentSong = do
 
 -- | Set crossfading between songs.
 crossfade :: Seconds -> MPD ()
-crossfade = getResponse_ . ("crossfade " ++) . show
+crossfade = getResponse_ . ("crossfade " ++) . prep
 
 -- | Begin\/continue playing.
 play :: Maybe PLIndex -> MPD ()
 play Nothing        = getResponse_ "play"
-play (Just (Pos x)) = getResponse_ ("play " ++ show x)
-play (Just (ID x))  = getResponse_ ("playid " ++ show x)
+play (Just (Pos x)) = getResponse_ ("play " ++ prep x)
+play (Just (ID x))  = getResponse_ ("playid " ++ prep x)
 
 -- | Pause playing.
 pause :: Bool -> MPD ()
-pause = getResponse_ . ("pause " ++) . showBool
+pause = getResponse_ . ("pause " ++) . prep
 
 -- | Stop playing.
 stop :: MPD ()
@@ -368,24 +366,24 @@ previous = getResponse_ "previous"
 -- Seeks in current song if no position is given.
 seek :: Maybe PLIndex -> Seconds -> MPD ()
 seek (Just (Pos x)) time =
-    getResponse_ ("seek " ++ show x ++ " " ++ show time)
+    getResponse_ ("seek " ++ prep x ++ " " ++ prep time)
 seek (Just (ID x)) time =
-    getResponse_ ("seekid " ++ show x ++ " " ++ show time)
+    getResponse_ ("seekid " ++ prep x ++ " " ++ prep time)
 seek Nothing time = do
     st <- status
     unless (stState st == Stopped) (seek (stSongID st) time)
 
 -- | Set random playing.
 random :: Bool -> MPD ()
-random = getResponse_ . ("random " ++) . showBool
+random = getResponse_ . ("random " ++) . prep
 
 -- | Set repeating.
 repeat :: Bool -> MPD ()
-repeat = getResponse_ . ("repeat " ++) . showBool
+repeat = getResponse_ . ("repeat " ++) . prep
 
 -- | Set the volume (0-100 percent).
 setVolume :: Int -> MPD ()
-setVolume = getResponse_ . ("setvol " ++) . show
+setVolume = getResponse_ . ("setvol " ++) . prep
 
 -- | Increase or decrease volume by a given percent, e.g.
 -- 'volume 10' will increase the volume by 10 percent, while
@@ -393,7 +391,7 @@ setVolume = getResponse_ . ("setvol " ++) . show
 -- Note that this command is only included for completeness sake ; it's
 -- deprecated and may disappear at any time, please use 'setVolume' instead.
 volume :: Int -> MPD ()
-volume = getResponse_ . ("volume " ++) . show
+volume = getResponse_ . ("volume " ++) . prep
 
 --
 -- Miscellaneous commands
@@ -446,8 +444,8 @@ updateId :: [Path] -> MPD Integer
 updateId paths = liftM (read . head . takeValues) cmd
   where cmd = case paths of
                 []  -> getResponse "update"
-                [x] -> getResponse $ "update \"" ++ x ++ "\""
-                xs  -> getResponses $ map (\x -> "update \"" ++ x ++ "\"") xs
+                [x] -> getResponse $ "update " ++ prep x
+                xs  -> getResponses $ map (\x -> "update " ++ prep x) xs
 
 -- | Toggles play\/pause. Plays if stopped.
 toggle :: MPD ()
@@ -461,8 +459,8 @@ addMany _ [] = return ()
 addMany plname [x] = add_ plname x
 addMany plname xs = getResponses (map cmd xs) >> return ()
     where cmd x = case plname of
-                      "" -> "add \"" ++ x ++ "\""
-                      pl -> "playlistadd \"" ++ pl ++ "\" \"" ++ x ++ "\""
+                      "" -> "add " ++ prep x
+                      pl -> "playlistadd " ++ prep pl ++ " " ++ prep x
 
 -- | Delete a list of songs from a playlist.
 -- If there is a duplicate then no further songs will be deleted, so
@@ -471,10 +469,10 @@ deleteMany :: PlaylistName -> [PLIndex] -> MPD ()
 deleteMany _ [] = return ()
 deleteMany plname [x] = delete plname x
 deleteMany "" xs = getResponses (map cmd xs) >> return ()
-    where cmd (Pos x) = "delete " ++ show x
-          cmd (ID x)  = "deleteid " ++ show x
+    where cmd (Pos x) = "delete " ++ prep x
+          cmd (ID x)  = "deleteid " ++ prep x
 deleteMany plname xs = getResponses (map cmd xs) >> return ()
-    where cmd (Pos x) = "playlistdelete \"" ++ plname ++ "\" " ++ show x
+    where cmd (Pos x) = "playlistdelete " ++ prep plname ++ " " ++ prep x
           cmd _       = ""
 
 -- | Returns all songs and directories that match the given partial
@@ -526,13 +524,13 @@ findDuplicates =
 lsDirs :: Path -> MPD [Path]
 lsDirs path =
     liftM (extractEntries (const Nothing,const Nothing, Just)) $
-        takeEntries =<< getResponse ("lsinfo \"" ++ path ++ "\"")
+        takeEntries =<< getResponse ("lsinfo " ++ prep path)
 
 -- | List files non-recursively.
 lsFiles :: Path -> MPD [Path]
 lsFiles path =
     liftM (extractEntries (Just . sgFilePath, const Nothing, const Nothing)) $
-        takeEntries =<< getResponse ("lsinfo \"" ++ path ++ "\"")
+        takeEntries =<< getResponse ("lsinfo " ++ prep path)
 
 -- | List all playlists.
 lsPlaylists :: MPD [PlaylistName]
@@ -560,7 +558,7 @@ listArtists = liftM takeValues (getResponse "list artist")
 -- artist.
 listAlbums :: Maybe Artist -> MPD [Album]
 listAlbums artist = liftM takeValues (getResponse ("list album" ++
-    maybe "" (\s -> " artist \"" ++ s ++ "\"" ) artist  ))
+    maybe "" (\s -> " artist " ++ prep s) artist))
 
 -- | List the songs in an album of some artist.
 listAlbum :: Artist -> Album -> MPD [Song]
