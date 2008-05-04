@@ -17,6 +17,7 @@ import Control.Monad (liftM, unless)
 import Data.List (isPrefixOf)
 import System.IO.Error (isEOFError)
 import Control.Exception (finally)
+import qualified System.IO.UTF8 as U
 
 -- | Run an MPD action against a server.
 withMPDEx :: String            -- ^ Host name.
@@ -49,11 +50,11 @@ send hR str = do
     case hM of
         Nothing -> return $ Left NoMPD
         Just h -> do
-                unless (null str) (hPutStrLn h str >> hFlush h)
+                unless (null str) (U.hPutStrLn h str >> hFlush h)
                 getLines h [] `catch` whenEOF (Left TimedOut)
     where
         getLines handle acc = do
-            l <- hGetLine handle
+            l <- U.hGetLine handle
             if "OK" `isPrefixOf` l || "ACK" `isPrefixOf` l
                 then return . Right . unlines . reverse $ l:acc
                 else getLines handle (l:acc)

@@ -20,7 +20,7 @@ Extra-Source-Files: TODO README ChangeLog tests/Properties.hs tests/Commands.hs
 
 Library
     Build-Depends:      base >= 2.1.1, network >= 2.0.1, mtl >= 1.0.1,
-                        filepath >= 1.0
+                        filepath >= 1.0, utf8-string >= 0.3.1
     Exposed-Modules:    Network.MPD
     Other-Modules:      Network.MPD.Core, Network.MPD.Commands,
                         Network.MPD.Parse, Network.MPD.SocketConn,
