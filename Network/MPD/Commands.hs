@@ -59,10 +59,10 @@ import System.FilePath (dropFileName)
 --
 
 -- | A uniform interface for argument preparation
--- The basic idea is that one should be able to
+-- The basic idea is that one should be able
 -- to magically prepare an argument for use with
 -- an MPD command, without necessarily knowing/\caring
--- about how it needs to be represented internally.
+-- how it needs to be represented internally.
 class Show a => MPDArg a where
     prep :: a -> String
     -- Note that because of this, we almost
