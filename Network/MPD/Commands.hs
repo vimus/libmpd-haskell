@@ -202,7 +202,7 @@ find query = getResponse ("find" <$> query) >>= takeSongs
 
 -- | Search the database using case insensitive matching.
 search :: Query -> MPD [Song]
-search query = getResponse ("search" <$> prep query) >>= takeSongs
+search query = getResponse ("search" <$> query) >>= takeSongs
 
 -- | Count the number of entries matching a query.
 count :: Query -> MPD Count
