@@ -7,6 +7,10 @@
 --
 -- An MPD client library. MPD is a daemon for playing music that is
 -- controlled over a network socket. Its site is at <http://www.musicpd.org/>.
+--
+-- To avoid name clashes with the standard Prelude functions, do:
+--
+-- > import qualified Network.MPD as MPD
 
 module Network.MPD (
     -- * Basic data types
