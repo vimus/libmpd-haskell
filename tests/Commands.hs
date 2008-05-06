@@ -146,14 +146,14 @@ testUpdateMany =
 
 testFind =
     test [("find Artist \"Foo\"", Right resp)] (Right [obj])
-    (find (Query Artist "Foo"))
+    (find [Match Artist "Foo"])
     where obj = empty { sgArtist = "Foo", sgTitle = "Bar"
                       , sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60 }
           resp = display obj ++ "OK"
 
 testFindComplex =
     test [("find Artist \"Foo\" Album \"Bar\"", Right resp)] (Right [obj])
-    (find $ MultiQuery [Query Artist "Foo", Query Album "Bar"])
+    (find [Match Artist "Foo", Match Album "Bar"])
     where obj = empty { sgFilePath = "dir/Foo/Bar/Baz.ogg", sgArtist = "Foo"
                       , sgAlbum = "Bar", sgTitle = "Baz" }
           resp = display obj ++ "OK"
@@ -166,7 +166,7 @@ testListNothing =
 testListJust =
     test [("list Title Artist \"Muzz\"", Right "Title: Foo\nOK")]
          (Right ["Foo"])
-         (list Title (Just $ Query Artist "Muzz"))
+         (list Title $ Just [Match Artist "Muzz"])
 
 testListAll =
     test [("listall \"\"", Right "directory: FooBand\n\
@@ -189,14 +189,14 @@ testListAllInfo =
 
 testSearch =
     test [("search Artist \"oo\"", Right resp)] (Right [obj])
-         (search (Query Artist "oo"))
+         (search [Match Artist "oo"])
     where obj = empty { sgArtist = "Foo", sgTitle = "Bar"
                       , sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60 }
           resp = display obj ++ "OK"
 
 testCount =
     test [("count Title \"Foo\"", Right resp)] (Right obj)
-         (count (Query Title "Foo"))
+         (count [Match Title "Foo"])
     where obj = Count 1 60
           resp = display obj ++ "OK"
 
@@ -335,13 +335,13 @@ testPlChanges = test [("plchanges 0", Right resp)] (Right [obj]) (plChanges 0)
 
 testPlaylistFind = test [("playlistfind Artist \"Foo\"", Right resp)]
                    (Right [obj])
-                   (playlistFind $ Query Artist "Foo")
+                   (playlistFind [Match Artist "Foo"])
     where obj = empty { sgFilePath = "dir/Foo/Bar.ogg", sgArtist = "Foo" }
           resp = display obj ++ "OK"
 
 testPlaylistSearch = test [("playlistsearch Artist \"Foo\"", Right resp)]
                      (Right [obj])
-                     (playlistSearch $ Query Artist "Foo")
+                     (playlistSearch [Match Artist "Foo"])
     where obj = empty { sgFilePath = "dir/Foo/Bar.ogg", sgArtist = "Foo" }
           resp = display obj ++ "OK"
 

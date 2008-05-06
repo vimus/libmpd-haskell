@@ -12,7 +12,7 @@
 module Network.MPD.Commands (
     -- * Command related data types
     Artist, Album, Title, PlaylistName, Path,
-    Meta(..), Query(..),
+    Meta(..), Match(..), Query,
     module Network.MPD.Types,
 
     -- * Admin commands
@@ -125,21 +125,32 @@ data Meta = Artist | Album | Title | Track | Name | Genre | Date
 
 instance MPDArg Meta
 
--- | A query is composed of a scope modifier and a query string.
+-- | When searching for specific items in a collection
+-- of songs, we need a reliable way to build predicates. Match is
+-- one way of achieving this.
+-- Each Match is a clause, and by putting matches together in lists, we can
+-- compose queries.
 --
--- To match entries where album equals \"Foo\", use:
+-- For example, to match any song where the value of artist is \"Foo\", we use:
 --
--- > Query Album "Foo"
+-- > Match Artist "Foo"
 --
--- To match entries where album equals \"Foo\" and artist equals \"Bar\", use:
+-- In composite matches (queries), all clauses must be satisfied, which means
+-- that each additional clause narrows the search. For example, to match
+-- any song where the value of artist is \"Foo\" AND the value of album is
+-- \"Bar\", we use:
 --
--- > MultiQuery [Query Album "Foo", Query Artist "Bar"]
-data Query = Query Meta String  -- ^ Simple query.
-           | MultiQuery [Query] -- ^ Query with multiple conditions.
+-- > [Match Artist "Foo", Match Album "Bar"]
+--
+-- By adding additional clauses we can narrow the search even more, but this
+-- is usually not necessary.
+data Match = Match Meta String
 
-instance Show Query where
-    show (Query meta query) = show meta ++ " \"" ++ query ++ "\""
-    show (MultiQuery xs)    = show xs
+-- | A query comprises a list of Match predicates
+type Query = [Match]
+
+instance Show Match where
+    show (Match meta query) = show meta ++ " \"" ++ query ++ "\""
     showList xs _ = unwords $ map show xs
 
 instance MPDArg Query
@@ -555,15 +566,15 @@ lsPlaylists = liftM (extractEntries (const Nothing, Just, const Nothing)) $
 
 -- | Search the database for songs relating to an artist.
 findArtist :: Artist -> MPD [Song]
-findArtist = find . Query Artist
+findArtist x = find [Match Artist x]
 
 -- | Search the database for songs relating to an album.
 findAlbum :: Album -> MPD [Song]
-findAlbum = find . Query Album
+findAlbum  x = find [Match Album x]
 
 -- | Search the database for songs relating to a song title.
 findTitle :: Title -> MPD [Song]
-findTitle = find . Query Title
+findTitle x = find [Match Title x]
 
 -- | List the artists in the database.
 listArtists :: MPD [Artist]
@@ -577,20 +588,19 @@ listAlbums artist = liftM takeValues $
 
 -- | List the songs in an album of some artist.
 listAlbum :: Artist -> Album -> MPD [Song]
-listAlbum artist album = find (MultiQuery [Query Artist artist
-                                          ,Query Album album])
+listAlbum artist album = find [Match Artist artist, Match Album album]
 
 -- | Search the database for songs relating to an artist using 'search'.
 searchArtist :: Artist -> MPD [Song]
-searchArtist = search . Query Artist
+searchArtist x = search [Match Artist x]
 
 -- | Search the database for songs relating to an album using 'search'.
 searchAlbum :: Album -> MPD [Song]
-searchAlbum = search . Query Album
+searchAlbum x = search [Match Album x]
 
 -- | Search the database for songs relating to a song title.
 searchTitle :: Title -> MPD [Song]
-searchTitle = search . Query Title
+searchTitle x = search [Match Title x]
 
 -- | Retrieve the current playlist.
 -- Equivalent to @playlistinfo Nothing@.
