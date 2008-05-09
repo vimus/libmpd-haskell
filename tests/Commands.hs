@@ -14,7 +14,7 @@ module Commands (main) where
 import Displayable
 import Network.MPD.Commands
 import Network.MPD.Core (Response, MPDError(..))
-import Network.MPD.StringConn
+import StringConn
 
 import Control.Monad
 import Prelude hiding (repeat)

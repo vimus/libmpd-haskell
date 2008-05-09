@@ -1,4 +1,4 @@
--- | Module    : Network.MPD.StringConn
+-- | Module    : StringConn
 -- Copyright   : (c) Ben Sinclair 2005-2008
 -- License     : LGPL (see LICENSE)
 -- Maintainer  : bsinclai@turing.une.edu.au
@@ -7,7 +7,7 @@
 --
 -- A testing scaffold for MPD commands
 
-module Network.MPD.StringConn (Expect, Result(..), testMPD) where
+module StringConn (Expect, Result(..), testMPD) where
 
 import Control.Monad (liftM)
 import Prelude hiding (exp)
