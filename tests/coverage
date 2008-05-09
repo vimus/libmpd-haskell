@@ -11,6 +11,6 @@ ghc -i.. -fhpc --make Main.hs -odir=build -hidir=build && \
     ./Main && \
     hpc markup Main --destdir=report --exclude=Main --exclude=Properties \
     --exclude=Displayable --exclude=Commands \
-    --exclude=Network.MPD.StringConn && \
+    --exclude=StringConn && \
     hpc report Main --exclude=Main --exclude=Properties --exclude=Commands \
-    --exclude=Displayable --exclude=Network.MPD.StringConn
+    --exclude=Displayable --exclude=StringConn
