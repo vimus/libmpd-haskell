@@ -87,7 +87,7 @@ x <++> y = Args $ xs ++ ys
 -- to hand to getResponse.
 infix 2 <$>
 (<$>) :: (MPDArg a) => String -> a -> String
-x <$> y = x ++ " " ++ unwords y'
+x <$> y = x ++ " " ++ unwords (filter (not . null) y')
     where Args y' = prep y
 
 instance MPDArg Args where prep = id
