@@ -146,14 +146,16 @@ instance MPDArg Meta
 -- is usually not necessary.
 data Match = Match Meta String
 
--- | A query comprises a list of Match predicates
-type Query = [Match]
-
 instance Show Match where
     show (Match meta query) = show meta ++ " \"" ++ query ++ "\""
     showList xs _ = unwords $ map show xs
 
-instance MPDArg Query
+-- | A query comprises a list of Match predicates
+type Query = [Match]
+
+instance MPDArg Query where
+    prep = foldl (<++>) (Args []) . f
+        where f = map (\(Match m q) -> Args [show m] <++> q)
 
 --
 -- Admin commands
@@ -185,7 +187,7 @@ update xs  = getResponses (map ("update" <$>) xs) >> return ()
 
 -- | List all metadata of metadata (sic).
 list :: Meta -- ^ Metadata to list
-     -> Maybe Query -> MPD [String]
+     -> Query -> MPD [String]
 list mtype query = liftM takeValues $ getResponse ("list" <$> mtype <++> query)
 
 -- | Non-recursively list the contents of a database directory.

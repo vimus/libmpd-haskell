@@ -161,12 +161,12 @@ testFindComplex =
 testListNothing =
     test [("list Title", Right "Title: Foo\nTitle: Bar\nOK")]
          (Right ["Foo", "Bar"])
-         (list Title Nothing)
+         (list Title [])
 
 testListJust =
     test [("list Title Artist \"Muzz\"", Right "Title: Foo\nOK")]
          (Right ["Foo"])
-         (list Title $ Just [Match Artist "Muzz"])
+         (list Title [Match Artist "Muzz"])
 
 testListAll =
     test [("listall \"\"", Right "directory: FooBand\n\
