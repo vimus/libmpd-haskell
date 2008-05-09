@@ -2,6 +2,7 @@
 	- UTF-8 support.
 	- Fixed corruption by `show' of command parameters.
 	- Tidied up `Query' interface.
+	- Moved StringConn out of Network.MPD to the tests directory.
 
 * v0.2.1, 2008-04-14
 	- Cleaned up libmpd.cabal.
