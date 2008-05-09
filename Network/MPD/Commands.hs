@@ -58,13 +58,13 @@ import System.FilePath (dropFileName)
 -- Data types
 --
 
--- | Arguments for getResponse are accumulated as strings in values of
+-- Arguments for getResponse are accumulated as strings in values of
 -- this type after being converted from whatever type (an instance of
 -- MPDArg) they were to begin with.
 newtype Args = Args [String]
     deriving Show
 
--- | A uniform interface for argument preparation
+-- A uniform interface for argument preparation
 -- The basic idea is that one should be able
 -- to magically prepare an argument for use with
 -- an MPD command, without necessarily knowing/\caring
