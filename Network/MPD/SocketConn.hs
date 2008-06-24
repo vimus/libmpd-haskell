@@ -30,8 +30,12 @@ withMPDEx host port getpw m = do
     let open'  = open host port hR
         close' = close hR
         send'  = send hR
+        cautiousSend' x =
+            send' x >>= either (\e -> case e of TimedOut -> open' >> send' x
+                                                _        -> return $ Left e)
+                               (return . Right)
     open'
-    runMPD m (Conn open' close' send' getpw) `finally` close'
+    runMPD m (Conn open' close' cautiousSend' getpw) `finally` close'
 
 open :: String -> Integer -> IORef (Maybe Handle) -> IO ()
 open host port hR = withSocketsDo $ do
