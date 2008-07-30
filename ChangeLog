@@ -1,4 +1,4 @@
-* v0.2.2, 2008-05-06
+* v0.3.0, 2008-05-06
 	- UTF-8 support (now depends on utf8-string package).
 	- Fixed corruption by `show' of command parameters.
 	- Tidied up `Query' interface.
