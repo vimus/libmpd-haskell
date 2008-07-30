@@ -67,7 +67,7 @@ newtype BoolString = BS String
     deriving Show
 
 instance Arbitrary BoolString where
-    arbitrary = fmap BS $ oneof [return "1", return "0"]
+    arbitrary = fmap BS $ elements ["1", "0"]
 
 -- Positive integers.
 newtype PosInt = PI Integer
@@ -148,20 +148,13 @@ field :: Gen String
 field = (filter (/= '\n') . dropWhile isSpace) `fmap` arbitrary
 
 instance Arbitrary Count where
-    arbitrary = do
-        songs <- arbitrary
-        time  <- arbitrary
-        return $ Count { cSongs = songs, cPlaytime = time }
+    arbitrary = liftM2 Count arbitrary arbitrary
 
 prop_parseCount :: Count -> Bool
 prop_parseCount c = Right c == (parseCount . lines $ display c)
 
 instance Arbitrary Device where
-    arbitrary = do
-        did <- arbitrary
-        name <- field
-        enabled <- arbitrary
-        return $ Device did name enabled
+    arbitrary = liftM3 Device arbitrary field arbitrary
 
 prop_parseOutputs :: [Device] -> Bool
 prop_parseOutputs ds =
