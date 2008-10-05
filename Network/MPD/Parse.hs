@@ -18,20 +18,22 @@ import Network.MPD.Core (MPD, MPDError(Unexpected))
 -- | Builds a 'Count' instance from an assoc. list.
 parseCount :: [String] -> Either String Count
 parseCount = foldM f empty . toAssoc
-        where f a ("songs", x)    = parse parseNum
-                                    (\x' -> a { cSongs = x'}) x
-              f a ("playtime", x) = parse parseNum
-                                    (\x' -> a { cPlaytime = x' }) x
+        where f :: Count -> (String, String) -> Either String Count
+              f a ("songs", x)    = return $ parse parseNum
+                                    (\x' -> a { cSongs = x'}) a x
+              f a ("playtime", x) = return $ parse parseNum
+                                    (\x' -> a { cPlaytime = x' }) a x
               f _ x               = Left $ show x
               empty = Count { cSongs = 0, cPlaytime = 0 }
 
 -- | Builds a list of 'Device' instances from an assoc. list
 parseOutputs :: [String] -> Either String [Device]
 parseOutputs = mapM (foldM f empty) . splitGroups [("outputid",id)] . toAssoc
-    where f a ("outputid", x)      = parse parseNum (\x' -> a { dOutputID = x' }) x
+    where f a ("outputid", x)      = return $ parse parseNum
+                                     (\x' -> a { dOutputID = x' }) a x
           f a ("outputname", x)    = return a { dOutputName = x }
-          f a ("outputenabled", x) = parse parseBool
-                                     (\x' -> a { dOutputEnabled = x'}) x
+          f a ("outputenabled", x) = return $ parse parseBool
+                                     (\x' -> a { dOutputEnabled = x'}) a x
           f _ x                    = fail $ show x
           empty = Device 0 "" False
 
@@ -39,14 +41,20 @@ parseOutputs = mapM (foldM f empty) . splitGroups [("outputid",id)] . toAssoc
 parseStats :: [String] -> Either String Stats
 parseStats = foldM f defaultStats . toAssoc
     where
-        f a ("artists", x)  = parse parseNum (\x' -> a { stsArtists  = x' }) x
-        f a ("albums", x)   = parse parseNum (\x' -> a { stsAlbums   = x' }) x
-        f a ("songs", x)    = parse parseNum (\x' -> a { stsSongs    = x' }) x
-        f a ("uptime", x)   = parse parseNum (\x' -> a { stsUptime   = x' }) x
-        f a ("playtime", x) = parse parseNum (\x' -> a { stsPlaytime = x' }) x
-        f a ("db_playtime", x) = parse parseNum
-                                 (\x' -> a { stsDbPlaytime = x' }) x
-        f a ("db_update", x) = parse parseNum (\x' -> a { stsDbUpdate = x' }) x
+        f a ("artists", x)     = return $ parse parseNum
+                                 (\x' -> a { stsArtists  = x' }) a x
+        f a ("albums", x)      = return $ parse parseNum
+                                 (\x' -> a { stsAlbums   = x' }) a x
+        f a ("songs", x)       = return $ parse parseNum
+                                 (\x' -> a { stsSongs    = x' }) a x
+        f a ("uptime", x)      = return $ parse parseNum
+                                 (\x' -> a { stsUptime   = x' }) a x
+        f a ("playtime", x)    = return $ parse parseNum
+                                 (\x' -> a { stsPlaytime = x' }) a x
+        f a ("db_playtime", x) = return $ parse parseNum
+                                 (\x' -> a { stsDbPlaytime = x' }) a x
+        f a ("db_update", x)   = return $ parse parseNum
+                                 (\x' -> a { stsDbUpdate = x' }) a x
         f _ x = fail $ show x
         defaultStats =
             Stats { stsArtists = 0, stsAlbums = 0, stsSongs = 0, stsUptime = 0
@@ -63,16 +71,21 @@ parseSong xs = foldM f song xs
           f a ("Name", x)      = return a { sgName = x }
           f a ("Composer", x)  = return a { sgComposer = x }
           f a ("Performer", x) = return a { sgPerformer = x }
-          f a ("Date", x)      = parse parseDate (\x' -> a { sgDate = x' }) x
-          f a ("Track", x)     = parse parseTuple (\x' -> a { sgTrack = x'}) x
-          f a ("Disc", x)      = parse parseTuple (\x' -> a { sgDisc = x'}) x
+          f a ("Date", x)      = return $ parse parseDate
+                                 (\x' -> a { sgDate = x' }) a x
+          f a ("Track", x)     = return $ parse parseTuple
+                                 (\x' -> a { sgTrack = x'}) a x
+          f a ("Disc", x)      = return $ parse parseTuple
+                                 (\x' -> a { sgDisc = x'}) a x
           f a ("file", x)      = return a { sgFilePath = x }
-          f a ("Time", x)      = parse parseNum (\x' -> a { sgLength = x'}) x
-          f a ("Id", x)        = parse parseNum
-                                 (\x' -> a { sgIndex = Just (ID x') }) x
+          f a ("Time", x)      = return $ parse parseNum
+                                 (\x' -> a { sgLength = x'}) a x
+          f a ("Id", x)        = return $ parse parseNum
+                                 (\x' -> a { sgIndex = Just (ID x') }) a x
           -- We prefer Id but take Pos if no Id has been found.
           f a ("Pos", x)       =
-              maybe (parse parseNum (\x' -> a { sgIndex = Just (Pos x') }) x)
+              maybe (return $ parse parseNum
+                           (\x' -> a { sgIndex = Just (Pos x') }) a x)
                     (const $ return a)
                     (sgIndex a)
           -- Catch unrecognised keys
@@ -97,30 +110,36 @@ parseSong xs = foldM f song xs
 -- | Builds a 'Status' instance from an assoc. list.
 parseStatus :: [String] -> Either String Status
 parseStatus = foldM f empty . toAssoc
-    where f a ("state", x)          = parse state (\x' -> a { stState = x'}) x
-          f a ("volume", x)         = parse parseNum (\x' -> a { stVolume = x'}) x
-          f a ("repeat", x)         = parse parseBool
-                                      (\x' -> a { stRepeat = x' }) x
-          f a ("random", x)         = parse parseBool
-                                      (\x' -> a { stRandom = x' }) x
-          f a ("playlist", x)       = parse parseNum
-                                      (\x' -> a { stPlaylistVersion = x'}) x
-          f a ("playlistlength", x) = parse parseNum
-                                      (\x' -> a { stPlaylistLength = x'}) x
-          f a ("xfade", x)          = parse parseNum
-                                      (\x' -> a { stXFadeWidth = x'}) x
-          f a ("song", x)           = parse parseNum
-                                      (\x' -> a { stSongPos = Just (Pos x') }) x
-          f a ("songid", x)         = parse parseNum
-                                      (\x' -> a { stSongID = Just (ID x') }) x
-          f a ("time", x)           = parse time (\x' -> a { stTime = x' }) x
-          f a ("bitrate", x)        = parse parseNum
-                                      (\x' -> a { stBitrate = x'}) x
-          f a ("audio", x)          = parse audio (\x' -> a { stAudio = x' }) x
-          f a ("updating_db", x)    = parse parseNum
-                                      (\x' -> a { stUpdatingDb = x' }) x
-          f a ("error", x)          = return a { stError = x }
-          f _ x                     = fail $ show x
+    where f a ("state", x)
+              = return $ parse state     (\x' -> a { stState = x' }) a x
+          f a ("volume", x)
+              = return $ parse parseNum  (\x' -> a { stVolume = x' }) a x
+          f a ("repeat", x)
+              = return $ parse parseBool (\x' -> a { stRepeat = x' }) a x
+          f a ("random", x)
+              = return $ parse parseBool (\x' -> a { stRandom = x' }) a x
+          f a ("playlist", x)
+              = return $ parse parseNum  (\x' -> a { stPlaylistVersion = x' }) a x
+          f a ("playlistlength", x)
+              = return $ parse parseNum  (\x' -> a { stPlaylistLength = x' }) a x
+          f a ("xfade", x)
+              = return $ parse parseNum  (\x' -> a { stXFadeWidth = x' }) a x
+          f a ("song", x)
+              = return $ parse parseNum  (\x' -> a { stSongPos = Just (Pos x') }) a x
+          f a ("songid", x)
+              = return $ parse parseNum  (\x' -> a { stSongID = Just (ID x') }) a x
+          f a ("time", x)
+              = return $ parse time      (\x' -> a { stTime = x' }) a x
+          f a ("bitrate", x)
+              = return $ parse parseNum  (\x' -> a { stBitrate = x' }) a x
+          f a ("audio", x)
+              = return $ parse audio     (\x' -> a { stAudio = x' }) a x
+          f a ("updating_db", x)
+              = return $ parse parseNum  (\x' -> a { stUpdatingDb = x' }) a x
+          f a ("error", x)
+              = return a { stError = x }
+          f _ x
+              = fail $ show x
 
           state "play"  = Just Playing
           state "pause" = Just Paused
@@ -142,11 +161,11 @@ parseStatus = foldM f empty . toAssoc
 runParser :: (input -> Either String a) -> input -> MPD a
 runParser f = either (throwError . Unexpected) return . f
 
--- | A helper that runs a parser on a string and, depending, on the
+-- | A helper that runs a parser on a string and, depending on the
 -- outcome, either returns the result of some command applied to the
--- result, or fails. Used when building structures.
-parse :: Monad m => (String -> Maybe a) -> (a -> b) -> String -> m b
-parse p g x = maybe (fail x) (return . g) (p x)
+-- result, or a default value. Used when building structures.
+parse :: (String -> Maybe a) -> (a -> b) -> b -> String -> b
+parse parser f x = maybe x f . parser
 
 -- | A helper for running a parser returning Maybe on a pair of strings.
 -- Returns Just if both strings where parsed successfully, Nothing otherwise.

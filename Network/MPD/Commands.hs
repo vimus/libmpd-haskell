@@ -231,8 +231,8 @@ count query = getResponse ("count" <$>  query) >>= runParser parseCount
 -- This might do better to throw an exception than silently return 0.
 -- | Like 'add', but returns a playlist id.
 addId :: Path -> MPD Integer
-addId p = getResponse1 ("addid" <$> p) >>=
-          parse parseNum id . snd . head . toAssoc
+addId p = liftM (parse parseNum id 0 . snd . head . toAssoc)
+              $ getResponse1 ("addid" <$> p)
 
 -- | Like 'add_' but returns a list of the files added.
 add :: PlaylistName -> Path -> MPD [Path]
