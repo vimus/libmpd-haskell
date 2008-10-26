@@ -173,7 +173,7 @@ instance Arbitrary Song where
         return $ Song { sgArtist = artist, sgAlbum = album, sgTitle = title
                       , sgFilePath = file, sgGenre = genre, sgName = name
                       , sgComposer = cmpsr, sgPerformer = prfmr, sgLength = len
-                      , sgDate = date, sgTrack = track, sgDisc = disc
+                      , sgDate = date, sgTrack = track, sgDisc = Just disc
                       , sgIndex = idx }
 
 prop_parseSong :: Song -> Bool

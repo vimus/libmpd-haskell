@@ -55,10 +55,10 @@ data Stats =
 data Song =
     Song { sgArtist, sgAlbum, sgTitle, sgFilePath, sgGenre, sgName, sgComposer
          , sgPerformer :: String
-         , sgLength    :: Seconds       -- ^ Length in seconds
-         , sgDate      :: Int           -- ^ Year
-         , sgTrack     :: (Int, Int)    -- ^ Track number\/total tracks
-         , sgDisc      :: (Int, Int)    -- ^ Position in set\/total in set
+         , sgLength    :: Seconds          -- ^ Length in seconds
+         , sgDate      :: Int              -- ^ Year
+         , sgTrack     :: (Int, Int)       -- ^ Track number\/total tracks
+         , sgDisc      :: Maybe (Int, Int) -- ^ Position in set\/total in set
          , sgIndex     :: Maybe PLIndex }
     deriving (Eq, Show)
 

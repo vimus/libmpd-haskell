@@ -75,8 +75,7 @@ parseSong xs = foldM f song xs
                                  (\x' -> a { sgDate = x' }) a x
           f a ("Track", x)     = return $ parse parseTuple
                                  (\x' -> a { sgTrack = x'}) a x
-          f a ("Disc", x)      = return $ parse parseTuple
-                                 (\x' -> a { sgDisc = x'}) a x
+          f a ("Disc", x)      = return a { sgDisc = parseTuple x }
           f a ("file", x)      = return a { sgFilePath = x }
           f a ("Time", x)      = return $ parse parseNum
                                  (\x' -> a { sgLength = x'}) a x
@@ -104,7 +103,7 @@ parseSong xs = foldM f song xs
           song = Song { sgArtist = "", sgAlbum = "", sgTitle = ""
                       , sgGenre = "", sgName = "", sgComposer = ""
                       , sgPerformer = "", sgDate = 0, sgTrack = (0,0)
-                      , sgDisc = (0,0), sgFilePath = "", sgLength = 0
+                      , sgDisc = Nothing, sgFilePath = "", sgLength = 0
                       , sgIndex = Nothing }
 
 -- | Builds a 'Status' instance from an assoc. list.

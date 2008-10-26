@@ -27,7 +27,7 @@ instance Displayable Song where
     empty = Song { sgArtist = "", sgAlbum = "", sgTitle = "", sgFilePath = ""
                  , sgGenre  = "", sgName  = "", sgComposer = ""
                  , sgPerformer = "", sgLength = 0, sgDate = 0
-                 , sgTrack = (0,0), sgDisc = (0,0), sgIndex = Nothing }
+                 , sgTrack = (0,0), sgDisc = Nothing, sgIndex = Nothing }
     display s = unlines $
         ["file: "      ++ sgFilePath s
         ,"Artist: "    ++ sgArtist s
@@ -39,7 +39,7 @@ instance Displayable Song where
         ,"Performer: " ++ sgPerformer s
         ,"Date: "      ++ show (sgDate s)
         ,"Track: "     ++ (let (x,y) = sgTrack s in show x++"/"++show y)
-        ,"Disc: "      ++ (let (x,y) = sgDisc  s in show x++"/"++show y)
+        ,"Disc: "      ++ (case sgDisc s of Just (x,y) -> show x++"/"++show y; _ -> "")
         ,"Time: "      ++ show (sgLength s)]
         ++ maybe [] (\x -> [case x of Pos n -> "Pos: " ++ show n
                                       ID  n -> "Id: "  ++ show n]) (sgIndex s)
