@@ -16,7 +16,8 @@ module Network.MPD.Core (
     getResponse, close, reconnect, kill,
     ) where
 
-import Control.Monad (liftM)
+import Control.Applicative
+import Control.Monad (ap, liftM)
 import Control.Monad.Error (Error(..), MonadError(..))
 import Control.Monad.Trans
 import Prelude hiding (repeat)
@@ -87,6 +88,10 @@ data MPD a = MPD { runMPD :: Conn -> IO (Response a) }
 
 instance Functor MPD where
     fmap f m = MPD $ \conn -> either Left (Right . f) `liftM` runMPD m conn
+
+instance Applicative MPD where
+    pure  = return
+    (<*>) = ap
 
 instance Monad MPD where
     return a = MPD $ \_ -> return $ Right a
