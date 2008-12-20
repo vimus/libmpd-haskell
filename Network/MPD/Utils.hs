@@ -13,6 +13,7 @@ module Network.MPD.Utils (
     ) where
 
 import Data.Char (isDigit)
+import Data.Maybe (fromMaybe)
 
 -- Break a string by character, removing the separator.
 breakChar :: Char -> String -> (String, String)
@@ -63,7 +64,7 @@ splitGroups :: Eq a => [(a,[(a,b)] -> c)] -> [(a, b)] -> [c]
 splitGroups [] _ = []
 splitGroups _ [] = []
 splitGroups wrappers (x@(k,_):xs) =
-    maybe (splitGroups wrappers xs) id $ do
+    fromMaybe (splitGroups wrappers xs) $ do
         f <- k `lookup` wrappers
         let (us,vs) = break (\(k',_) -> k' `elem` map fst wrappers) xs
         return $ (f $ x:us) : splitGroups wrappers vs
