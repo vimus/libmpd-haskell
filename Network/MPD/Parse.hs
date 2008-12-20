@@ -145,7 +145,7 @@ parseStatus = foldM f empty . toAssoc
           state "stop"  = Just Stopped
           state _       = Nothing
 
-          time s = pair parseNum $ breakChar ':' s
+          time = pair parseNum . breakChar ':'
 
           audio s = let (u, u') = breakChar ':' s
                         (v, w)  = breakChar ':' u' in
