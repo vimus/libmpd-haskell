@@ -63,7 +63,7 @@ splitGroups :: Eq a => [(a,[(a,b)] -> c)] -> [(a, b)] -> [c]
 splitGroups [] _ = []
 splitGroups _ [] = []
 splitGroups wrappers (x@(k,_):xs) =
-  maybe (splitGroups wrappers xs) id $ do
-    f <- k `lookup` wrappers
-    let (us,vs) = break (\(k',_) -> k' `elem` map fst wrappers) xs
-    return $ (f $ x:us) : splitGroups wrappers vs
+    maybe (splitGroups wrappers xs) id $ do
+        f <- k `lookup` wrappers
+        let (us,vs) = break (\(k',_) -> k' `elem` map fst wrappers) xs
+        return $ (f $ x:us) : splitGroups wrappers vs
