@@ -18,6 +18,10 @@ Extra-Source-Files: TODO README ChangeLog tests/Properties.hs tests/Commands.hs
                     tests/Main.hs tests/Displayable.hs tests/run-tests
                     tests/coverage
 
+flag test
+    Description: Build test driver
+    Default: False
+
 Library
     Build-Depends:      base >= 2.1.1, network >= 2.0.1, mtl >= 1.0.1,
                         filepath >= 1.0, utf8-string >= 0.3.1
@@ -28,3 +32,11 @@ Library
 
     ghc-options:        -Wall
     ghc-prof-options:   -auto-all -prof
+
+Executable test
+    Hs-Source-Dirs:     . tests
+    Main-Is:            tests/Main.hs
+    Build-Depends:      base, network, mtl, filepath, utf8-string, QuickCheck
+
+    if !flag(test)
+        Buildable: False
