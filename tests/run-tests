@@ -4,8 +4,8 @@
 # Saves output in 'test.log', unless no failures are detected.
 
 runhaskell -itests tests/Main.hs | tee test.log
-if $(grep Falsifiable test.log >/dev/null) \
-    || $(grep "\*\*\* FAILURE \*\*\*" test.log >/dev/null) ; then
+if `grep Falsifiable test.log >/dev/null` \
+    || `grep "\*\*\* FAILURE \*\*\*" test.log >/dev/null` ; then
     #echo "Failure detected!"
     exit 1
 else
