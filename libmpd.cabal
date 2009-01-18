@@ -22,6 +22,9 @@ flag test
     Description: Build test driver
     Default: False
 
+flag coverage
+    Description: Build driver with hpc instrumentation
+
 Library
     Build-Depends:      base >= 2.1.1, network >= 2.0.1, mtl >= 1.0.1,
                         filepath >= 1.0, utf8-string >= 0.3.1
@@ -36,6 +39,9 @@ Executable test
     Main-Is:            tests/Main.hs
     Build-Depends:      base, network, mtl, filepath, utf8-string, QuickCheck
     ghc-options:        -Wall -Werror
+
+    if flag(coverage)
+        ghc-options:    -fhpc
 
     if !flag(test)
         Buildable: False
