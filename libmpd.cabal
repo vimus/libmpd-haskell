@@ -29,14 +29,13 @@ Library
     Other-Modules:      Network.MPD.Core, Network.MPD.Commands,
                         Network.MPD.Parse, Network.MPD.SocketConn,
                         Network.MPD.Types, Network.MPD.Utils
-
-    ghc-options:        -Wall
     ghc-prof-options:   -auto-all -prof
 
 Executable test
     Hs-Source-Dirs:     . tests
     Main-Is:            tests/Main.hs
     Build-Depends:      base, network, mtl, filepath, utf8-string, QuickCheck
+    ghc-options:        -Wall -Werror
 
     if !flag(test)
         Buildable: False
