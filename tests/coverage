@@ -1,16 +1,13 @@
 #!/bin/sh
 
 # Generate code coverage reports with hpc.
-# Needs to be run from within './tests'.
-# Non-relevant modules are excluded from the final
-# reports.
+# Non-relevant modules are excluded from the final reports.
 
-rm -f *.tix
-mkdir -p build report
-ghc -i.. -fhpc --make Main.hs -odir=build -hidir=build && \
-    ./Main && \
-    hpc markup Main --destdir=report --exclude=Main --exclude=Properties \
-    --exclude=Displayable --exclude=Commands \
-    --exclude=StringConn && \
-    hpc report Main --exclude=Main --exclude=Properties --exclude=Commands \
-    --exclude=Displayable --exclude=StringConn
+exclude=`for x in Main Properties Displayable Commands StringConn; do \
+    echo --exclude=$x ; done`
+
+runhaskell Setup configure -f test -f coverage --disable-optimization \
+    && runhaskell Setup build && dist/build/test/test >/dev/null \
+    && hpc markup test.tix --destdir=report $exclude \
+    && hpc report test.tix $exclude \
+    || echo "Please run 'Setup clean' and try again"
