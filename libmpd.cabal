@@ -34,6 +34,9 @@ Library
                         Network.MPD.Types, Network.MPD.Utils
     ghc-prof-options:   -auto-all -prof
 
+    if flag(test)
+        Buildable: False
+
 Executable test
     Hs-Source-Dirs:     . tests
     Main-Is:            tests/Main.hs
