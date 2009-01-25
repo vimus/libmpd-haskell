@@ -1,9 +1,13 @@
 #!/bin/sh
 
 # Run tests and signal error on failure.
-# Saves output in 'test.log', unless no failures are detected.
 
-runhaskell -itests tests/Main.hs | tee test.log
+runhaskell Setup configure -f test --disable-optimization \
+    && runhaskell Setup build \
+    && runhaskell Setup configure \
+    && runhaskell Setup haddock \
+    && dist/build/test/test | tee test.log
+
 if `grep Falsifiable test.log >/dev/null` \
     || `grep "\*\*\* FAILURE \*\*\*" test.log >/dev/null` ; then
     #echo "Failure detected!"
@@ -11,5 +15,3 @@ if `grep Falsifiable test.log >/dev/null` \
 else
     rm test.log
 fi
-runhaskell Setup configure --disable-optimization -f test && \
-runhaskell Setup build && runhaskell Setup haddock
