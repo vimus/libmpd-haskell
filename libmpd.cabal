@@ -40,7 +40,7 @@ Library
 Executable test
     Hs-Source-Dirs:     . tests
     Main-Is:            tests/Main.hs
-    Build-Depends:      base, network, mtl, filepath, utf8-string, QuickCheck
+    Build-Depends:      base, network, mtl, filepath, utf8-string, QuickCheck < 2
     ghc-options:        -Wall -Werror
 
     if flag(coverage)
