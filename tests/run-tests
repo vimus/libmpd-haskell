@@ -6,7 +6,8 @@ runhaskell Setup configure -f test --disable-optimization \
     && runhaskell Setup build \
     && runhaskell Setup configure \
     && runhaskell Setup haddock \
-    && dist/build/test/test | tee test.log
+    && dist/build/test/test | tee test.log \
+    || exit 1
 
 if `grep Falsifiable test.log >/dev/null` \
     || `grep "\*\*\* FAILURE \*\*\*" test.log >/dev/null` ; then
