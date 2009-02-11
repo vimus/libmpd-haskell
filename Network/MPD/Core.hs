@@ -154,7 +154,7 @@ tryPassword conn cont = do
 
 -- Consume response and return a Response.
 parseResponse :: String -> Response [String]
-parseResponse s | null xs                    = Left  $ NoMPD
+parseResponse s | null xs                    = Left NoMPD
                 | isPrefixOf "ACK" (head xs) = Left  $ parseAck s
                 | otherwise                  = Right $ takeWhile ("OK" /=) xs
     where xs = lines s

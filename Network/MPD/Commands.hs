@@ -205,7 +205,7 @@ listAllInfo = lsInfo' "listallinfo"
 
 -- Helper for lsInfo and listAllInfo.
 lsInfo' :: String -> Path -> MPD [Either Path Song]
-lsInfo' cmd path = do
+lsInfo' cmd path =
     liftM (extractEntries (Just . Right, const Nothing, Just . Left)) $
          takeEntries =<< getResponse (cmd <$> path)
 
