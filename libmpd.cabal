@@ -24,6 +24,7 @@ flag test
 
 flag coverage
     Description: Build driver with hpc instrumentation
+    Default: False
 
 Library
     Build-Depends:      base >= 2.1.1, network >= 2.0.1, mtl >= 1.0.1,
