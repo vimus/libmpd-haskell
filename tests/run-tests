@@ -9,8 +9,8 @@ runhaskell Setup configure -f test --disable-optimization \
     && dist/build/test/test | tee test.log \
     || exit 1
 
-if `grep Falsifiable test.log >/dev/null` \
-    || `grep "\*\*\* FAILURE \*\*\*" test.log >/dev/null` ; then
+if `fgrep -q Falsifiable test.log` \
+    || `fgrep -q "\*\*\* FAILURE \*\*\*" test.log` ; then
     #echo "Failure detected!"
     exit 1
 else
