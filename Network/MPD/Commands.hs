@@ -12,7 +12,7 @@
 module Network.MPD.Commands (
     -- * Command related data types
     Artist, Album, Title, PlaylistName, Path,
-    Meta(..), Match(..), Query,
+    Meta(..), Query, (=?),
     module Network.MPD.Types,
 
     -- * Admin commands
@@ -49,6 +49,7 @@ import Network.MPD.Types
 
 import Control.Monad (liftM, unless)
 import Control.Monad.Error (throwError)
+import Data.Monoid
 import Prelude hiding (repeat)
 import Data.List (findIndex, intersperse, isPrefixOf)
 import Data.Maybe
@@ -125,37 +126,46 @@ data Meta = Artist | Album | Title | Track | Name | Genre | Date
 
 instance MPDArg Meta
 
--- | When searching for specific items in a collection
--- of songs, we need a reliable way to build predicates. Match is
--- one way of achieving this.
--- Each Match is a clause, and by putting matches together in lists, we can
--- compose queries.
---
--- For example, to match any song where the value of artist is \"Foo\", we use:
---
--- > Match Artist "Foo"
---
--- In composite matches (queries), all clauses must be satisfied, which means
--- that each additional clause narrows the search. For example, to match
--- any song where the value of artist is \"Foo\" AND the value of album is
--- \"Bar\", we use:
---
--- > [Match Artist "Foo", Match Album "Bar"]
---
--- By adding additional clauses we can narrow the search even more, but this
--- is usually not necessary.
+-- A single query clause, comprising a metadata key and a desired value.
 data Match = Match Meta String
 
 instance Show Match where
     show (Match meta query) = show meta ++ " \"" ++ query ++ "\""
     showList xs _ = unwords $ map show xs
 
--- | A query comprises a list of Match predicates
-type Query = [Match]
+-- | An interface for creating MPD queries.
+--
+-- For example, to match any song where the value of artist is \"Foo\", we
+-- use:
+--
+-- > Artist =? "Foo"
+--
+-- We can also compose queries, thus narrowing the search. For example, to
+-- match any song where the value of artist is \"Foo\" and the value of album
+-- is \"Bar\", we use:
+--
+-- > Artist =? "Foo" `mappend` (Album =? "Bar")
+--
+-- or:
+--
+-- > mconcat [Artist =? "Foo", Album =? "Bar"]
+--
+-- Note that this requires you to
+--
+-- > import Data.Monoid
+newtype Query = Query [Match] deriving Show
+
+instance Monoid Query where
+    mempty  = Query []
+    Query a `mappend` Query b = Query (a ++ b)
 
 instance MPDArg Query where
     prep = foldl (<++>) (Args []) . f
-        where f = map (\(Match m q) -> Args [show m] <++> q)
+        where f (Query ms) = map (\(Match m q) -> Args [show m] <++> q) ms
+
+-- | Create a query.
+(=?) :: Meta -> String -> Query
+m =? s = Query [Match m s]
 
 --
 -- Admin commands
@@ -568,15 +578,15 @@ lsPlaylists = liftM (extractEntries (const Nothing, Just, const Nothing)) $
 
 -- | Search the database for songs relating to an artist.
 findArtist :: Artist -> MPD [Song]
-findArtist x = find [Match Artist x]
+findArtist x = find (Artist =? x)
 
 -- | Search the database for songs relating to an album.
 findAlbum :: Album -> MPD [Song]
-findAlbum  x = find [Match Album x]
+findAlbum  x = find (Album =? x)
 
 -- | Search the database for songs relating to a song title.
 findTitle :: Title -> MPD [Song]
-findTitle x = find [Match Title x]
+findTitle x = find (Title =? x)
 
 -- | List the artists in the database.
 listArtists :: MPD [Artist]
@@ -590,19 +600,19 @@ listAlbums artist = liftM takeValues $
 
 -- | List the songs in an album of some artist.
 listAlbum :: Artist -> Album -> MPD [Song]
-listAlbum artist album = find [Match Artist artist, Match Album album]
+listAlbum artist album = find $ mconcat [Artist =? artist, Album =? album]
 
 -- | Search the database for songs relating to an artist using 'search'.
 searchArtist :: Artist -> MPD [Song]
-searchArtist x = search [Match Artist x]
+searchArtist x = search (Artist =? x)
 
 -- | Search the database for songs relating to an album using 'search'.
 searchAlbum :: Album -> MPD [Song]
-searchAlbum x = search [Match Album x]
+searchAlbum x = search (Album =? x)
 
 -- | Search the database for songs relating to a song title.
 searchTitle :: Title -> MPD [Song]
-searchTitle x = search [Match Title x]
+searchTitle x = search (Title =? x)
 
 -- | Retrieve the current playlist.
 -- Equivalent to @playlistinfo Nothing@.

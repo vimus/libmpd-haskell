@@ -17,6 +17,7 @@ import Network.MPD.Core (Response, MPDError(..))
 import StringConn
 
 import Control.Monad
+import Data.Monoid
 import Prelude hiding (repeat)
 import Text.Printf
 
@@ -146,14 +147,14 @@ testUpdateMany =
 
 testFind =
     test [("find Artist \"Foo\"", Right resp)] (Right [obj])
-    (find [Match Artist "Foo"])
+    (find (Artist =? "Foo"))
     where obj = empty { sgArtist = "Foo", sgTitle = "Bar"
                       , sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60 }
           resp = display obj ++ "OK"
 
 testFindComplex =
     test [("find Artist \"Foo\" Album \"Bar\"", Right resp)] (Right [obj])
-    (find [Match Artist "Foo", Match Album "Bar"])
+    (find (Artist =? "Foo" `mappend` (Album =? "Bar")))
     where obj = empty { sgFilePath = "dir/Foo/Bar/Baz.ogg", sgArtist = "Foo"
                       , sgAlbum = "Bar", sgTitle = "Baz" }
           resp = display obj ++ "OK"
@@ -161,12 +162,12 @@ testFindComplex =
 testListNothing =
     test [("list Title", Right "Title: Foo\nTitle: Bar\nOK")]
          (Right ["Foo", "Bar"])
-         (list Title [])
+         (list Title mempty)
 
 testListJust =
     test [("list Title Artist \"Muzz\"", Right "Title: Foo\nOK")]
          (Right ["Foo"])
-         (list Title [Match Artist "Muzz"])
+         (list Title (Artist =? "Muzz"))
 
 testListAll =
     test [("listall \"\"", Right "directory: FooBand\n\
@@ -189,14 +190,14 @@ testListAllInfo =
 
 testSearch =
     test [("search Artist \"oo\"", Right resp)] (Right [obj])
-         (search [Match Artist "oo"])
+         (search (Artist =? "oo"))
     where obj = empty { sgArtist = "Foo", sgTitle = "Bar"
                       , sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60 }
           resp = display obj ++ "OK"
 
 testCount =
     test [("count Title \"Foo\"", Right resp)] (Right obj)
-         (count [Match Title "Foo"])
+         (count (Title =? "Foo"))
     where obj = Count 1 60
           resp = display obj ++ "OK"
 
@@ -335,13 +336,13 @@ testPlChanges = test [("plchanges 0", Right resp)] (Right [obj]) (plChanges 0)
 
 testPlaylistFind = test [("playlistfind Artist \"Foo\"", Right resp)]
                    (Right [obj])
-                   (playlistFind [Match Artist "Foo"])
+                   (playlistFind (Artist =? "Foo"))
     where obj = empty { sgFilePath = "dir/Foo/Bar.ogg", sgArtist = "Foo" }
           resp = display obj ++ "OK"
 
 testPlaylistSearch = test [("playlistsearch Artist \"Foo\"", Right resp)]
                      (Right [obj])
-                     (playlistSearch [Match Artist "Foo"])
+                     (playlistSearch (Artist =? "Foo"))
     where obj = empty { sgFilePath = "dir/Foo/Bar.ogg", sgArtist = "Foo" }
           resp = display obj ++ "OK"
 
