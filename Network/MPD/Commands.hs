@@ -12,7 +12,7 @@
 module Network.MPD.Commands (
     -- * Command related data types
     Artist, Album, Title, PlaylistName, Path,
-    Meta(..), Query, (=?),
+    Meta(..), Query, (=?), (<&>),
     module Network.MPD.Types,
 
     -- * Admin commands
@@ -144,15 +144,7 @@ instance Show Match where
 -- match any song where the value of artist is \"Foo\" and the value of album
 -- is \"Bar\", we use:
 --
--- > Artist =? "Foo" `mappend` (Album =? "Bar")
---
--- or:
---
--- > mconcat [Artist =? "Foo", Album =? "Bar"]
---
--- Note that this requires you to
---
--- > import Data.Monoid
+-- > Artist =? "Foo" <&> Album =? "Bar"
 newtype Query = Query [Match] deriving Show
 
 instance Monoid Query where
@@ -166,6 +158,11 @@ instance MPDArg Query where
 -- | Create a query.
 (=?) :: Meta -> String -> Query
 m =? s = Query [Match m s]
+
+-- | Combine queries.
+infixr 6 <&>
+(<&>) :: Query -> Query -> Query
+(<&>) = mappend
 
 --
 -- Admin commands
@@ -600,7 +597,7 @@ listAlbums artist = liftM takeValues $
 
 -- | List the songs in an album of some artist.
 listAlbum :: Artist -> Album -> MPD [Song]
-listAlbum artist album = find $ mconcat [Artist =? artist, Album =? album]
+listAlbum artist album = find (Artist =? artist <&> Album =? album)
 
 -- | Search the database for songs relating to an artist using 'search'.
 searchArtist :: Artist -> MPD [Song]

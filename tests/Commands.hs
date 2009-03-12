@@ -154,7 +154,7 @@ testFind =
 
 testFindComplex =
     test [("find Artist \"Foo\" Album \"Bar\"", Right resp)] (Right [obj])
-    (find (Artist =? "Foo" `mappend` (Album =? "Bar")))
+    (find (Artist =? "Foo" <&> Album =? "Bar"))
     where obj = empty { sgFilePath = "dir/Foo/Bar/Baz.ogg", sgArtist = "Foo"
                       , sgAlbum = "Bar", sgTitle = "Baz" }
           resp = display obj ++ "OK"
