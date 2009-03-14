@@ -12,7 +12,7 @@
 module Network.MPD.Commands (
     -- * Command related data types
     Artist, Album, Title, PlaylistName, Path,
-    Meta(..), Query, (=?), (<&>),
+    Meta(..), Query, (=?), (<&>), anything,
     module Network.MPD.Types,
 
     -- * Admin commands
@@ -154,6 +154,10 @@ instance Monoid Query where
 instance MPDArg Query where
     prep = foldl (<++>) (Args []) . f
         where f (Query ms) = map (\(Match m q) -> Args [show m] <++> q) ms
+
+-- | An empty query. Matches anything.
+anything :: Query
+anything = mempty
 
 -- | Create a query.
 (=?) :: Meta -> String -> Query

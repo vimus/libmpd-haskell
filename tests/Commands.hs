@@ -17,7 +17,6 @@ import Network.MPD.Core (Response, MPDError(..))
 import StringConn
 
 import Control.Monad
-import Data.Monoid
 import Prelude hiding (repeat)
 import Text.Printf
 
@@ -162,7 +161,7 @@ testFindComplex =
 testListNothing =
     test [("list Title", Right "Title: Foo\nTitle: Bar\nOK")]
          (Right ["Foo", "Bar"])
-         (list Title mempty)
+         (list Title anything)
 
 testListJust =
     test [("list Title Artist \"Muzz\"", Right "Title: Foo\nOK")]
