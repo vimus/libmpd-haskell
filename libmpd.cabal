@@ -31,8 +31,8 @@ Library
                         filepath >= 1.0, utf8-string >= 0.3.1
     Exposed-Modules:    Network.MPD
     Other-Modules:      Network.MPD.Core, Network.MPD.Commands,
-                        Network.MPD.Parse, Network.MPD.SocketConn,
-                        Network.MPD.Types, Network.MPD.Utils
+                        Network.MPD.Parse, Network.MPD.Types,
+                        Network.MPD.Utils
     ghc-prof-options:   -auto-all -prof
 
     if flag(test)

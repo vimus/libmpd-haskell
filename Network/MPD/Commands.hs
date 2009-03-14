@@ -173,21 +173,21 @@ infixr 6 <&>
 --
 
 -- | Turn off an output device.
-disableOutput :: Int -> MPD ()
+disableOutput :: MonadMPD m => Int -> m ()
 disableOutput = getResponse_ . ("disableoutput" <$>)
 
 -- | Turn on an output device.
-enableOutput :: Int -> MPD ()
+enableOutput :: MonadMPD m => Int -> m ()
 enableOutput = getResponse_ . ("enableoutput" <$>)
 
 -- | Retrieve information for all output devices.
-outputs :: MPD [Device]
+outputs :: MonadMPD m => m [Device]
 outputs = getResponse "outputs" >>= runParser parseOutputs
 
 -- | Update the server's database.
 -- If no paths are given, all paths will be scanned.
 -- Unreadable or non-existent paths are silently ignored.
-update :: [Path] -> MPD ()
+update :: MonadMPD m => [Path] -> m ()
 update  [] = getResponse_ "update"
 update [x] = getResponse_ ("update" <$> x)
 update xs  = getResponses (map ("update" <$>) xs) >> return ()
@@ -197,39 +197,40 @@ update xs  = getResponses (map ("update" <$>) xs) >> return ()
 --
 
 -- | List all metadata of metadata (sic).
-list :: Meta -- ^ Metadata to list
-     -> Query -> MPD [String]
+list :: MonadMPD m
+     => Meta -- ^ Metadata to list
+     -> Query -> m [String]
 list mtype query = liftM takeValues $ getResponse ("list" <$> mtype <++> query)
 
 -- | Non-recursively list the contents of a database directory.
-lsInfo :: Path -> MPD [Either Path Song]
+lsInfo :: MonadMPD m => Path -> m [Either Path Song]
 lsInfo = lsInfo' "lsinfo"
 
 -- | List the songs (without metadata) in a database directory recursively.
-listAll :: Path -> MPD [Path]
+listAll :: MonadMPD m => Path -> m [Path]
 listAll path = liftM (map snd . filter ((== "file") . fst) . toAssoc)
                      (getResponse $ "listall" <$> path)
 
 -- | Recursive 'lsInfo'.
-listAllInfo :: Path -> MPD [Either Path Song]
+listAllInfo :: MonadMPD m => Path -> m [Either Path Song]
 listAllInfo = lsInfo' "listallinfo"
 
 -- Helper for lsInfo and listAllInfo.
-lsInfo' :: String -> Path -> MPD [Either Path Song]
+lsInfo' :: MonadMPD m => String -> Path -> m [Either Path Song]
 lsInfo' cmd path =
     liftM (extractEntries (Just . Right, const Nothing, Just . Left)) $
          takeEntries =<< getResponse (cmd <$> path)
 
 -- | Search the database for entries exactly matching a query.
-find :: Query -> MPD [Song]
+find :: MonadMPD m => Query -> m [Song]
 find query = getResponse ("find" <$> query) >>= takeSongs
 
 -- | Search the database using case insensitive matching.
-search :: Query -> MPD [Song]
+search :: MonadMPD m => Query -> m [Song]
 search query = getResponse ("search" <$> query) >>= takeSongs
 
 -- | Count the number of entries matching a query.
-count :: Query -> MPD Count
+count :: MonadMPD m => Query -> m Count
 count query = getResponse ("count" <$>  query) >>= runParser parseCount
 
 --
@@ -241,24 +242,24 @@ count query = getResponse ("count" <$>  query) >>= runParser parseCount
 
 -- This might do better to throw an exception than silently return 0.
 -- | Like 'add', but returns a playlist id.
-addId :: Path -> MPD Integer
+addId :: MonadMPD m => Path -> m Integer
 addId p = liftM (parse parseNum id 0 . snd . head . toAssoc)
               $ getResponse1 ("addid" <$> p)
 
 -- | Like 'add_' but returns a list of the files added.
-add :: PlaylistName -> Path -> MPD [Path]
+add :: MonadMPD m => PlaylistName -> Path -> m [Path]
 add plname x = add_ plname x >> listAll x
 
 -- | Add a song (or a whole directory) to a playlist.
 -- Adds to current if no playlist is specified.
 -- Will create a new playlist if the one specified does not already exist.
-add_ :: PlaylistName -> Path -> MPD ()
+add_ :: MonadMPD m => PlaylistName -> Path -> m ()
 add_ "" path     = getResponse_ ("add" <$> path)
 add_ plname path = getResponse_ ("playlistadd" <$> plname <++> path)
 
 -- | Clear a playlist. Clears current playlist if no playlist is specified.
 -- If the specified playlist does not exist, it will be created.
-clear :: PlaylistName -> MPD ()
+clear :: MonadMPD m => PlaylistName -> m ()
 clear "" = getResponse_ "clear"
 clear pl = getResponse_ ("playlistclear" <$> pl)
 
@@ -266,20 +267,20 @@ clear pl = getResponse_ ("playlistclear" <$> pl)
 -- If no playlist is specified, current playlist is used.
 -- Note that a playlist position ('Pos') is required when operating on
 -- playlists other than the current.
-delete :: PlaylistName -> PLIndex -> MPD ()
+delete :: MonadMPD m => PlaylistName -> PLIndex -> m ()
 delete "" (Pos x) = getResponse_ ("delete" <$> x)
 delete "" (ID x)  = getResponse_ ("deleteid" <$> x)
 delete plname (Pos x) = getResponse_ ("playlistdelete" <$> plname <++> x)
 delete _ _ = fail "'delete' within a playlist doesn't accept a playlist ID"
 
 -- | Load an existing playlist.
-load :: PlaylistName -> MPD ()
+load :: MonadMPD m => PlaylistName -> m ()
 load plname = getResponse_ ("load" <$> plname)
 
 -- | Move a song to a given position.
 -- Note that a playlist position ('Pos') is required when operating on
 -- playlists other than the current.
-move :: PlaylistName -> PLIndex -> Integer -> MPD ()
+move :: MonadMPD m => PlaylistName -> PLIndex -> Integer -> m ()
 move "" (Pos from) to = getResponse_ ("move" <$> from <++> to)
 move "" (ID from) to = getResponse_ ("moveid" <$> from <++> to)
 move plname (Pos from) to =
@@ -287,33 +288,34 @@ move plname (Pos from) to =
 move _ _ _ = fail "'move' within a playlist doesn't accept a playlist ID"
 
 -- | Delete existing playlist.
-rm :: PlaylistName -> MPD ()
+rm :: MonadMPD m => PlaylistName -> m ()
 rm plname = getResponse_ ("rm" <$> plname)
 
 -- | Rename an existing playlist.
-rename :: PlaylistName -- ^ Original playlist
+rename :: MonadMPD m
+       => PlaylistName -- ^ Original playlist
        -> PlaylistName -- ^ New playlist name
-       -> MPD ()
+       -> m ()
 rename plname new = getResponse_ ("rename" <$> plname <++> new)
 
 -- | Save the current playlist.
-save :: PlaylistName -> MPD ()
+save :: MonadMPD m => PlaylistName -> m ()
 save plname = getResponse_ ("save" <$> plname)
 
 -- | Swap the positions of two songs.
 -- Note that the positions must be of the same type, i.e. mixing 'Pos' and 'ID'
 -- will result in a no-op.
-swap :: PLIndex -> PLIndex -> MPD ()
+swap :: MonadMPD m => PLIndex -> PLIndex -> m ()
 swap (Pos x) (Pos y) = getResponse_ ("swap" <$> x <++> y)
 swap (ID x)  (ID y)  = getResponse_ ("swapid" <$> x <++> y)
 swap _ _ = fail "'swap' cannot mix position and ID arguments"
 
 -- | Shuffle the playlist.
-shuffle :: MPD ()
+shuffle :: MonadMPD m => m ()
 shuffle = getResponse_ "shuffle"
 
 -- | Retrieve metadata for songs in the current playlist.
-playlistInfo :: Maybe PLIndex -> MPD [Song]
+playlistInfo :: MonadMPD m => Maybe PLIndex -> m [Song]
 playlistInfo x = getResponse cmd >>= takeSongs
     where cmd = case x of
                     Just (Pos x') -> "playlistinfo" <$> x'
@@ -321,12 +323,12 @@ playlistInfo x = getResponse cmd >>= takeSongs
                     Nothing       -> "playlistinfo"
 
 -- | Retrieve metadata for files in a given playlist.
-listPlaylistInfo :: PlaylistName -> MPD [Song]
+listPlaylistInfo :: MonadMPD m => PlaylistName -> m [Song]
 listPlaylistInfo plname =
     takeSongs =<< getResponse ("listplaylistinfo" <$> plname)
 
 -- | Retrieve a list of files in a given playlist.
-listPlaylist :: PlaylistName -> MPD [Path]
+listPlaylist :: MonadMPD m => PlaylistName -> m [Path]
 listPlaylist plname =
     liftM takeValues $ getResponse ("listplaylist" <$> plname)
 
@@ -334,7 +336,7 @@ listPlaylist plname =
 -- Note that this command is only included for completeness sake; it's
 -- deprecated and likely to disappear at any time, please use 'playlistInfo'
 -- instead.
-playlist :: MPD [(PLIndex, Path)]
+playlist :: MonadMPD m => m [(PLIndex, Path)]
 playlist = mapM f =<< getResponse "playlist"
     where f s | (pos, name) <- breakChar ':' s
               , Just pos'   <- parseNum pos
@@ -343,11 +345,11 @@ playlist = mapM f =<< getResponse "playlist"
 
 -- | Retrieve a list of changed songs currently in the playlist since
 -- a given playlist version.
-plChanges :: Integer -> MPD [Song]
+plChanges :: MonadMPD m => Integer -> m [Song]
 plChanges version = takeSongs =<< getResponse ("plchanges" <$> version)
 
 -- | Like 'plChanges' but only returns positions and ids.
-plChangesPosId :: Integer -> MPD [(PLIndex, PLIndex)]
+plChangesPosId :: MonadMPD m => Integer -> m [(PLIndex, PLIndex)]
 plChangesPosId plver =
     getResponse ("plchangesposid" <$> plver) >>=
     mapM f . splitGroups [("cpos",id)] . toAssoc
@@ -357,16 +359,16 @@ plChangesPosId plver =
                | otherwise = throwError . Unexpected $ show xs
 
 -- | Search for songs in the current playlist with strict matching.
-playlistFind :: Query -> MPD [Song]
+playlistFind :: MonadMPD m => Query -> m [Song]
 playlistFind q = takeSongs =<< getResponse ("playlistfind" <$> q)
 
 -- | Search case-insensitively with partial matches for songs in the
 -- current playlist.
-playlistSearch :: Query -> MPD [Song]
+playlistSearch :: MonadMPD m => Query -> m [Song]
 playlistSearch q = takeSongs =<< getResponse ("playlistsearch" <$> q)
 
 -- | Get the currently playing song.
-currentSong :: MPD (Maybe Song)
+currentSong :: (Functor m, MonadMPD m) => m (Maybe Song)
 currentSong = do
     cs <- status
     if stState cs == Stopped
@@ -379,34 +381,34 @@ currentSong = do
 --
 
 -- | Set crossfading between songs.
-crossfade :: Seconds -> MPD ()
+crossfade :: MonadMPD m => Seconds -> m ()
 crossfade secs = getResponse_ ("crossfade" <$> secs)
 
 -- | Begin\/continue playing.
-play :: Maybe PLIndex -> MPD ()
+play :: MonadMPD m => Maybe PLIndex -> m ()
 play Nothing        = getResponse_  "play"
 play (Just (Pos x)) = getResponse_ ("play"   <$> x)
 play (Just (ID x))  = getResponse_ ("playid" <$> x)
 
 -- | Pause playing.
-pause :: Bool -> MPD ()
+pause :: MonadMPD m => Bool -> m ()
 pause = getResponse_ . ("pause" <$>)
 
 -- | Stop playing.
-stop :: MPD ()
+stop :: MonadMPD m => m ()
 stop = getResponse_ "stop"
 
 -- | Play the next song.
-next :: MPD ()
+next :: MonadMPD m => m ()
 next = getResponse_ "next"
 
 -- | Play the previous song.
-previous :: MPD ()
+previous :: MonadMPD m => m ()
 previous = getResponse_ "previous"
 
 -- | Seek to some point in a song.
 -- Seeks in current song if no position is given.
-seek :: Maybe PLIndex -> Seconds -> MPD ()
+seek :: MonadMPD m => Maybe PLIndex -> Seconds -> m ()
 seek (Just (Pos x)) time = getResponse_ ("seek" <$> x <++> time)
 seek (Just (ID x)) time = getResponse_ ("seekid" <$> x <++> time)
 seek Nothing time = do
@@ -414,15 +416,15 @@ seek Nothing time = do
     unless (stState st == Stopped) (seek (stSongID st) time)
 
 -- | Set random playing.
-random :: Bool -> MPD ()
+random :: MonadMPD m => Bool -> m ()
 random = getResponse_ . ("random" <$>)
 
 -- | Set repeating.
-repeat :: Bool -> MPD ()
+repeat :: MonadMPD m => Bool -> m ()
 repeat = getResponse_ . ("repeat" <$>)
 
 -- | Set the volume (0-100 percent).
-setVolume :: Int -> MPD ()
+setVolume :: MonadMPD m => Int -> m ()
 setVolume = getResponse_ . ("setvol" <$>)
 
 -- | Increase or decrease volume by a given percent, e.g.
@@ -430,7 +432,7 @@ setVolume = getResponse_ . ("setvol" <$>)
 -- 'volume (-10)' will decrease it by the same amount.
 -- Note that this command is only included for completeness sake ; it's
 -- deprecated and may disappear at any time, please use 'setVolume' instead.
-volume :: Int -> MPD ()
+volume :: MonadMPD m => Int -> m ()
 volume = getResponse_ . ("volume" <$>)
 
 --
@@ -438,41 +440,42 @@ volume = getResponse_ . ("volume" <$>)
 --
 
 -- | Clear the current error message in status.
-clearError :: MPD ()
+clearError :: MonadMPD m => m ()
 clearError = getResponse_ "clearerror"
 
 -- | Retrieve a list of available commands.
-commands :: MPD [String]
+commands :: MonadMPD m => m [String]
 commands = liftM takeValues (getResponse "commands")
 
 -- | Retrieve a list of unavailable (due to access restrictions) commands.
-notCommands :: MPD [String]
+notCommands :: MonadMPD m => m [String]
 notCommands = liftM takeValues (getResponse "notcommands")
 
 -- | Retrieve a list of available song metadata.
-tagTypes :: MPD [String]
+tagTypes :: MonadMPD m => m [String]
 tagTypes = liftM takeValues (getResponse "tagtypes")
 
 -- | Retrieve a list of supported urlhandlers.
-urlHandlers :: MPD [String]
+urlHandlers :: MonadMPD m => m [String]
 urlHandlers = liftM takeValues (getResponse "urlhandlers")
 
--- XXX should the password be quoted? Change "++" to "<$>" if so.
+-- XXX should the password be quoted? Change "++" to "<$>" if so.  If
+--     it should, it also needs to be fixed in N.M.Core.
 -- | Send password to server to authenticate session.
 -- Password is sent as plain text.
-password :: String -> MPD ()
+password :: MonadMPD m => String -> m ()
 password = getResponse_ . ("password " ++)
 
 -- | Check that the server is still responding.
-ping :: MPD ()
+ping :: MonadMPD m => m ()
 ping = getResponse_ "ping"
 
 -- | Get server statistics.
-stats :: MPD Stats
+stats :: MonadMPD m => m Stats
 stats = getResponse "stats" >>= runParser parseStats
 
 -- | Get the server's status.
-status :: MPD Status
+status :: MonadMPD m => m Status
 status = getResponse "status" >>= runParser parseStatus
 
 --
@@ -480,7 +483,7 @@ status = getResponse "status" >>= runParser parseStatus
 --
 
 -- | Like 'update', but returns the update job id.
-updateId :: [Path] -> MPD Integer
+updateId :: MonadMPD m => [Path] -> m Integer
 updateId paths = liftM (read . head . takeValues) cmd
   where cmd = case paths of
                 []  -> getResponse  "update"
@@ -488,13 +491,13 @@ updateId paths = liftM (read . head . takeValues) cmd
                 xs  -> getResponses $ map ("update" <$>) xs
 
 -- | Toggles play\/pause. Plays if stopped.
-toggle :: MPD ()
+toggle :: MonadMPD m => m ()
 toggle = status >>= \st -> case stState st of Playing -> pause True
                                               _       -> play Nothing
 
 -- | Add a list of songs\/folders to a playlist.
 -- Should be more efficient than running 'add' many times.
-addMany :: PlaylistName -> [Path] -> MPD ()
+addMany :: MonadMPD m => PlaylistName -> [Path] -> m ()
 addMany _ [] = return ()
 addMany plname [x] = add_ plname x
 addMany plname xs = getResponses (map cmd xs) >> return ()
@@ -505,7 +508,7 @@ addMany plname xs = getResponses (map cmd xs) >> return ()
 -- | Delete a list of songs from a playlist.
 -- If there is a duplicate then no further songs will be deleted, so
 -- take care to avoid them (see 'prune' for this).
-deleteMany :: PlaylistName -> [PLIndex] -> MPD ()
+deleteMany :: MonadMPD m => PlaylistName -> [PLIndex] -> m ()
 deleteMany _ [] = return ()
 deleteMany plname [x] = delete plname x
 deleteMany "" xs = getResponses (map cmd xs) >> return ()
@@ -517,7 +520,7 @@ deleteMany plname xs = getResponses (map cmd xs) >> return ()
 
 -- | Returns all songs and directories that match the given partial
 -- path name.
-complete :: String -> MPD [Either Path Song]
+complete :: MonadMPD m => String -> m [Either Path Song]
 complete path = do
     xs <- liftM matches . lsInfo $ dropFileName path
     case xs of
@@ -531,7 +534,7 @@ complete path = do
 -- The bounds are inclusive.
 -- If 'Nothing' or 'ID' is passed the cropping will leave your playlist alone
 -- on that side.
-crop :: Maybe PLIndex -> Maybe PLIndex -> MPD ()
+crop :: MonadMPD m => Maybe PLIndex -> Maybe PLIndex -> m ()
 crop x y = do
     pl <- playlistInfo Nothing
     let x' = case x of Just (Pos p) -> fromInteger p
@@ -561,13 +564,13 @@ findDuplicates =
           mSong x = let m = sgFilePath x in any ((==) m . sgFilePath)
 
 -- | List directories non-recursively.
-lsDirs :: Path -> MPD [Path]
+lsDirs :: MonadMPD m => Path -> m [Path]
 lsDirs path =
     liftM (extractEntries (const Nothing,const Nothing, Just)) $
         takeEntries =<< getResponse ("lsinfo" <$> path)
 
 -- | List files non-recursively.
-lsFiles :: Path -> MPD [Path]
+lsFiles :: MonadMPD m => Path -> m [Path]
 lsFiles path =
     liftM (extractEntries (Just . sgFilePath, const Nothing, const Nothing)) $
         takeEntries =<< getResponse ("lsinfo" <$> path)
@@ -578,15 +581,15 @@ lsPlaylists = liftM (extractEntries (const Nothing, Just, const Nothing)) $
                     takeEntries =<< getResponse "lsinfo"
 
 -- | Search the database for songs relating to an artist.
-findArtist :: Artist -> MPD [Song]
+findArtist :: MonadMPD m => Artist -> m [Song]
 findArtist x = find (Artist =? x)
 
 -- | Search the database for songs relating to an album.
-findAlbum :: Album -> MPD [Song]
+findAlbum :: MonadMPD m => Album -> m [Song]
 findAlbum  x = find (Album =? x)
 
 -- | Search the database for songs relating to a song title.
-findTitle :: Title -> MPD [Song]
+findTitle :: MonadMPD m => Title -> m [Song]
 findTitle x = find (Title =? x)
 
 -- | List the artists in the database.
@@ -595,29 +598,29 @@ listArtists = liftM takeValues (getResponse "list artist")
 
 -- | List the albums in the database, optionally matching a given
 -- artist.
-listAlbums :: Maybe Artist -> MPD [Album]
+listAlbums :: MonadMPD m => Maybe Artist -> m [Album]
 listAlbums artist = liftM takeValues $
                     getResponse ("list album" <$> fmap ("artist" <++>) artist)
 
 -- | List the songs in an album of some artist.
-listAlbum :: Artist -> Album -> MPD [Song]
+listAlbum :: MonadMPD m => Artist -> Album -> m [Song]
 listAlbum artist album = find (Artist =? artist <&> Album =? album)
 
 -- | Search the database for songs relating to an artist using 'search'.
-searchArtist :: Artist -> MPD [Song]
+searchArtist :: MonadMPD m => Artist -> m [Song]
 searchArtist x = search (Artist =? x)
 
 -- | Search the database for songs relating to an album using 'search'.
-searchAlbum :: Album -> MPD [Song]
+searchAlbum :: MonadMPD m => Album -> m [Song]
 searchAlbum x = search (Album =? x)
 
 -- | Search the database for songs relating to a song title.
-searchTitle :: Title -> MPD [Song]
+searchTitle :: MonadMPD m => Title -> m [Song]
 searchTitle x = search (Title =? x)
 
 -- | Retrieve the current playlist.
 -- Equivalent to @playlistinfo Nothing@.
-getPlaylist :: MPD [Song]
+getPlaylist :: MonadMPD m => m [Song]
 getPlaylist = playlistInfo Nothing
 
 --
@@ -625,21 +628,21 @@ getPlaylist = playlistInfo Nothing
 --
 
 -- Run getResponse but discard the response.
-getResponse_ :: String -> MPD ()
+getResponse_ :: MonadMPD m => String -> m ()
 getResponse_ x = getResponse x >> return ()
 
 -- Get the lines of the daemon's response to a list of commands.
-getResponses :: [String] -> MPD [String]
+getResponses :: MonadMPD m => [String] -> m [String]
 getResponses cmds = getResponse . concat $ intersperse "\n" cmds'
     where cmds' = "command_list_begin" : cmds ++ ["command_list_end"]
 
 -- Helper that throws unexpected error if input is empty.
-failOnEmpty :: [String] -> MPD [String]
+failOnEmpty :: MonadMPD m => [String] -> m [String]
 failOnEmpty [] = throwError $ Unexpected "Non-empty response expected."
 failOnEmpty xs = return xs
 
 -- A wrapper for getResponse that fails on non-empty responses.
-getResponse1 :: String -> MPD [String]
+getResponse1 :: MonadMPD m => String -> m [String]
 getResponse1 x = getResponse x >>= failOnEmpty
 
 --
@@ -658,7 +661,7 @@ data EntryType
 
 -- Separate the result of an lsinfo\/listallinfo call into directories,
 -- playlists, and songs.
-takeEntries :: [String] -> MPD [EntryType]
+takeEntries :: MonadMPD m => [String] -> m [EntryType]
 takeEntries = mapM toEntry . splitGroups wrappers . toAssoc . reverse
     where
         toEntry xs@(("file",_):_)   = liftM SongEntry $ runParser parseSong xs
@@ -677,5 +680,5 @@ extractEntries (fSong,fPlayList,fDir) = catMaybes . map f
         f (DirEntry d)  = fDir d
 
 -- Build a list of song instances from a response.
-takeSongs :: [String] -> MPD [Song]
+takeSongs :: MonadMPD m => [String] -> m [Song]
 takeSongs = mapM (runParser parseSong) . splitGroups [("file",id)] . toAssoc

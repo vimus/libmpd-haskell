@@ -1,3 +1,5 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving, MultiParamTypeClasses #-}
+
 -- | Module    : StringConn
 -- Copyright   : (c) Ben Sinclair 2005-2008
 -- License     : LGPL (see LICENSE)
@@ -7,12 +9,34 @@
 --
 -- A testing scaffold for MPD commands
 
-module StringConn (Expect, Result(..), testMPD) where
+module StringConn (StringMPD(..), Expect, Result(..), testMPD) where
 
-import Control.Monad (liftM)
 import Prelude hiding (exp)
+import Control.Monad.Error
+import Control.Monad.Identity
+import Control.Monad.Reader
+import Control.Monad.State
 import Network.MPD.Core
-import Data.IORef
+
+newtype StringMPD a =
+    SMPD { runSMPD :: ErrorT MPDError
+                      (StateT [(Expect, Response String)]
+                       (ReaderT Password Identity)) a
+         } deriving (Functor, Monad, MonadError MPDError)
+
+instance MonadMPD StringMPD where
+    open  = return ()
+    close = return ()
+    getPassword = SMPD ask
+    send request =
+        SMPD $ do
+            ~pairs@((expected_request,response):rest) <- get
+            when (null pairs)
+                 (throwError $ strMsg "MPD action made too many calls")
+            when (expected_request /= request)
+                 (throwError $ strMsg "unexpected MPD request")
+            put rest
+            either throwError return response
 
 -- | An expected request.
 type Expect = String
@@ -29,33 +53,12 @@ testMPD :: (Eq a)
         => [(Expect, Response String)] -- ^ The expected requests and their
                                        -- ^ corresponding responses.
         -> Response a                  -- ^ The expected result.
-        -> IO (Maybe String)           -- ^ An action that supplies passwords.
-        -> MPD a                       -- ^ The MPD action to run.
-        -> IO (Result a)
-testMPD pairs expected getpw m = do
-    expectsRef    <- newIORef pairs
-    mismatchesRef <- newIORef ([] :: [(Expect, String)])
-    let open'  = return ()
-        close' = return ()
-        send'  = send expectsRef mismatchesRef
-    result <- runMPD m $ Conn open' close' send' getpw
-    mismatches <- liftM reverse $ readIORef mismatchesRef
-    return $ if null mismatches && result == expected
-             then Ok
-             else Failure result mismatches
-
-send :: IORef [(Expect, Response String)] -- Expected requests and their
-                                          -- responses.
-     -> IORef [(Expect, String)]          -- An initially empty list of
-                                          -- mismatches between expected and
-                                          -- actual requests.
-     -> String
-     -> IO (Response String)
-send expsR mmsR str = do
-    xs <- readIORef expsR
-    case xs of
-        ((exp,resp):_) | exp == str -> modifyIORef expsR (drop 1) >> return resp
-                       | otherwise  -> addMismatch exp
-        [] -> addMismatch ""
+        -> Password                    -- ^ A password to be supplied.
+        -> StringMPD a                 -- ^ The MPD action to run.
+        -> Result a
+testMPD pairs expected pw m
+    | result == expected = Ok
+    | otherwise          = Failure result (error "mismatches")
     where
-        addMismatch exp = modifyIORef mmsR ((exp,str):) >> return (Left NoMPD)
+        result = runIdentity $ runReaderT
+                     (evalStateT (runErrorT $ runSMPD m) pairs) pw

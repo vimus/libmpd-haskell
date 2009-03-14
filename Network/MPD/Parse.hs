@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 -- | Module    : Network.MPD.Parse
 -- Copyright   : (c) Ben Sinclair 2005-2008
 -- License     : LGPL (see LICENSE)
@@ -13,7 +15,7 @@ import Network.MPD.Types
 
 import Control.Monad.Error
 import Network.MPD.Utils
-import Network.MPD.Core (MPD, MPDError(Unexpected))
+import Network.MPD.Core (MonadMPD, MPDError(Unexpected))
 
 -- | Builds a 'Count' instance from an assoc. list.
 parseCount :: [String] -> Either String Count
@@ -157,7 +159,8 @@ parseStatus = foldM f empty . toAssoc
                   (0,0,0) 0 ""
 
 -- | Run a parser and lift the result into the 'MPD' monad
-runParser :: (input -> Either String a) -> input -> MPD a
+runParser :: (MonadMPD m, MonadError MPDError m)
+          => (input -> Either String a) -> input -> m a
 runParser f = either (throwError . Unexpected) return . f
 
 -- | A helper that runs a parser on a string and, depending on the

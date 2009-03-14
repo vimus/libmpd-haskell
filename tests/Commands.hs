@@ -16,11 +16,10 @@ import Network.MPD.Commands
 import Network.MPD.Core (Response, MPDError(..))
 import StringConn
 
-import Control.Monad
 import Prelude hiding (repeat)
 import Text.Printf
 
-main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
+main = mapM_ (\(n, f) -> f >>= (\x -> putStrLn $ printf "%-14s: %s" n x)) tests
     where tests = [("enableOutput", testEnableOutput)
                   ,("disableOutput", testDisableOutput)
                   ,("outputs", testOutputs)
@@ -102,7 +101,7 @@ main = mapM_ (\(n, f) -> f >>= \x -> printf "%-14s: %s\n" n x) tests
                   ,("deleteMany1", testDeleteMany1)
                   ]
 
-test a b c = liftM (showResult b) $ testMPD a b (return Nothing) c
+test a b c = return . showResult b $ testMPD a b "" c
 
 test_ a b = test a (Right ()) b
 

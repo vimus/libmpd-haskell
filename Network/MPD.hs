@@ -14,7 +14,8 @@
 
 module Network.MPD (
     -- * Basic data types
-    MPD, MPDError(..), ACKType(..), Response,
+    MonadMPD(..), MPD, MPDError(..), ACKType(..), Response,
+    Host, Port, Password,
     -- * Connections
     withMPD, withMPDEx,
     module Network.MPD.Commands,
@@ -22,7 +23,6 @@ module Network.MPD (
 
 import Network.MPD.Commands
 import Network.MPD.Core
-import Network.MPD.SocketConn
 
 import Control.Monad (liftM)
 import Data.Maybe (listToMaybe)
@@ -43,21 +43,10 @@ import System.IO.Error (isDoesNotExistError, ioError)
 withMPD :: MPD a -> IO (Response a)
 withMPD m = do
     port <- liftM read (getEnvDefault "MPD_PORT" "6600")
-    (pw,host) <- liftM (break (== '@')) (getEnvDefault "MPD_HOST" "localhost")
-    let (host',pw') = if null host then (pw,host) else (drop 1 host,pw)
-    pwGen <- mkPasswordGen [pw']
-    withMPDEx host' port pwGen m
+    (pw',host') <- liftM (break (== '@')) (getEnvDefault "MPD_HOST" "localhost")
+    let (host,pw) = if null host then (pw',host') else (drop 1 host',pw')
+    withMPDEx host port pw m
     where
         getEnvDefault x dflt =
             catch (getEnv x) (\e -> if isDoesNotExistError e
                                     then return dflt else ioError e)
-
--- | Create an action that produces passwords for a connection. You
--- can pass these to 'withMPDEx' and it will use them to get passwords
--- to send to the server until one works or it runs out of them.
---
--- > do gen <- mkPasswordGen ["password1", "password2"]
--- >    withMPDEx "localhost" 6600 gen (update [])
-mkPasswordGen :: [String] -> IO (IO (Maybe String))
-mkPasswordGen = liftM f . newIORef
-    where f = flip atomicModifyIORef $ \xs -> (drop 1 xs, listToMaybe xs)
