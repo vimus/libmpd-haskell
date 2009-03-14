@@ -25,8 +25,6 @@ import Network.MPD.Commands
 import Network.MPD.Core
 
 import Control.Monad (liftM)
-import Data.Maybe (listToMaybe)
-import Data.IORef (newIORef, atomicModifyIORef)
 import System.Environment (getEnv)
 import System.IO
 import System.IO.Error (isDoesNotExistError, ioError)
