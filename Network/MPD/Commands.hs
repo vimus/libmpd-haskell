@@ -11,8 +11,10 @@
 
 module Network.MPD.Commands (
     -- * Command related data types
-    Query, (=?), (<&>), anything,
     module Network.MPD.Types,
+
+    -- * Query interface
+    module Network.MPD.Query,
 
     -- * Admin commands
     disableOutput, enableOutput, kill, outputs, update,
@@ -45,61 +47,15 @@ import Network.MPD.Arg
 import Network.MPD.Core
 import Network.MPD.Utils
 import Network.MPD.Parse
+import Network.MPD.Query
 import Network.MPD.Types
 
 import Control.Monad (liftM, unless)
 import Control.Monad.Error (throwError)
-import Data.Monoid
 import Prelude hiding (repeat)
 import Data.List (findIndex, intersperse, isPrefixOf)
 import Data.Maybe
 import System.FilePath (dropFileName)
-
---
--- Data types
---
-
--- A single query clause, comprising a metadata key and a desired value.
-data Match = Match Meta String
-
-instance Show Match where
-    show (Match meta query) = show meta ++ " \"" ++ query ++ "\""
-    showList xs _ = unwords $ map show xs
-
--- | An interface for creating MPD queries.
---
--- For example, to match any song where the value of artist is \"Foo\", we
--- use:
---
--- > Artist =? "Foo"
---
--- We can also compose queries, thus narrowing the search. For example, to
--- match any song where the value of artist is \"Foo\" and the value of album
--- is \"Bar\", we use:
---
--- > Artist =? "Foo" <&> Album =? "Bar"
-newtype Query = Query [Match] deriving Show
-
-instance Monoid Query where
-    mempty  = Query []
-    Query a `mappend` Query b = Query (a ++ b)
-
-instance MPDArg Query where
-    prep = foldl (<++>) (Args []) . f
-        where f (Query ms) = map (\(Match m q) -> Args [show m] <++> q) ms
-
--- | An empty query. Matches anything.
-anything :: Query
-anything = mempty
-
--- | Create a query.
-(=?) :: Meta -> String -> Query
-m =? s = Query [Match m s]
-
--- | Combine queries.
-infixr 6 <&>
-(<&>) :: Query -> Query -> Query
-(<&>) = mappend
 
 --
 -- Admin commands

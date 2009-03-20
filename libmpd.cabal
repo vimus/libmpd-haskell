@@ -32,7 +32,8 @@ Library
     Exposed-Modules:    Network.MPD
     Other-Modules:      Network.MPD.Arg, Network.MPD.Core,
                         Network.MPD.Commands, Network.MPD.Parse,
-                        Network.MPD.Types, Network.MPD.Utils
+                        Network.MPD.Query, Network.MPD.Types,
+                        Network.MPD.Utils
     ghc-prof-options:   -auto-all -prof
 
     if flag(test)
