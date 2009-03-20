@@ -39,8 +39,7 @@ module Network.MPD.Commands (
 
     -- * Extensions\/shortcuts
     addMany, deleteMany, complete, crop, prune, lsDirs, lsFiles, lsPlaylists,
-    findArtist, findAlbum, findTitle, listArtists, listAlbums, listAlbum,
-    searchArtist, searchAlbum, searchTitle, getPlaylist, toggle, updateId
+    listArtists, listAlbums, listAlbum, getPlaylist, toggle, updateId
     ) where
 
 import Network.MPD.Arg
@@ -469,18 +468,6 @@ lsPlaylists :: MPD [PlaylistName]
 lsPlaylists = liftM (extractEntries (const Nothing, Just, const Nothing)) $
                     takeEntries =<< getResponse "lsinfo"
 
--- | Search the database for songs relating to an artist.
-findArtist :: MonadMPD m => Artist -> m [Song]
-findArtist x = find (Artist =? x)
-
--- | Search the database for songs relating to an album.
-findAlbum :: MonadMPD m => Album -> m [Song]
-findAlbum  x = find (Album =? x)
-
--- | Search the database for songs relating to a song title.
-findTitle :: MonadMPD m => Title -> m [Song]
-findTitle x = find (Title =? x)
-
 -- | List the artists in the database.
 listArtists :: MPD [Artist]
 listArtists = liftM takeValues (getResponse "list artist")
@@ -494,18 +481,6 @@ listAlbums artist = liftM takeValues $
 -- | List the songs in an album of some artist.
 listAlbum :: MonadMPD m => Artist -> Album -> m [Song]
 listAlbum artist album = find (Artist =? artist <&> Album =? album)
-
--- | Search the database for songs relating to an artist using 'search'.
-searchArtist :: MonadMPD m => Artist -> m [Song]
-searchArtist x = search (Artist =? x)
-
--- | Search the database for songs relating to an album using 'search'.
-searchAlbum :: MonadMPD m => Album -> m [Song]
-searchAlbum x = search (Album =? x)
-
--- | Search the database for songs relating to a song title.
-searchTitle :: MonadMPD m => Title -> m [Song]
-searchTitle x = search (Title =? x)
 
 -- | Retrieve the current playlist.
 -- Equivalent to @playlistinfo Nothing@.
