@@ -11,8 +11,7 @@
 
 module Network.MPD.Commands (
     -- * Command related data types
-    Artist, Album, Title, PlaylistName, Path,
-    Meta(..), Query, (=?), (<&>), anything,
+    Query, (=?), (<&>), anything,
     module Network.MPD.Types,
 
     -- * Admin commands
@@ -59,26 +58,6 @@ import System.FilePath (dropFileName)
 --
 -- Data types
 --
-
-type Artist       = String
-type Album        = String
-type Title        = String
-
--- | Used for commands which require a playlist name.
--- If empty, the current playlist is used.
-type PlaylistName = String
-
--- | Used for commands which require a path within the database.
--- If empty, the root path is used.
-type Path         = String
-
--- | Available metadata types\/scope modifiers, used for searching the
--- database for entries with certain metadata values.
-data Meta = Artist | Album | Title | Track | Name | Genre | Date
-    | Composer | Performer | Disc | Any | Filename
-      deriving Show
-
-instance MPDArg Meta
 
 -- A single query clause, comprising a metadata key and a desired value.
 data Match = Match Meta String

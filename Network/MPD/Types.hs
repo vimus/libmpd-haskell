@@ -9,6 +9,28 @@
 
 module Network.MPD.Types where
 
+import Network.MPD.Arg (MPDArg)
+
+type Artist       = String
+type Album        = String
+type Title        = String
+
+-- | Used for commands which require a playlist name.
+-- If empty, the current playlist is used.
+type PlaylistName = String
+
+-- | Used for commands which require a path within the database.
+-- If empty, the root path is used.
+type Path         = String
+
+-- | Available metadata types\/scope modifiers, used for searching the
+-- database for entries with certain metadata values.
+data Meta = Artist | Album | Title | Track | Name | Genre | Date
+    | Composer | Performer | Disc | Any | Filename
+      deriving Show
+
+instance MPDArg Meta
+
 type Seconds = Integer
 
 -- | Represents a song's playlist index.
