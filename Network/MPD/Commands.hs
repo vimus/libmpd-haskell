@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards #-}
 
 -- | Module    : Network.MPD.Commands
--- Copyright   : (c) Ben Sinclair 2005-2008
+-- Copyright   : (c) Ben Sinclair 2005-2009
 -- License     : LGPL (see LICENSE)
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
