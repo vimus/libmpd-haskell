@@ -1,7 +1,7 @@
 module Displayable (Displayable(..)) where
 
+import Network.MPD.Commands.Types
 import Network.MPD.Utils
-import Network.MPD.Types
 
 -- | A uniform interface for types that
 -- can be turned into raw responses

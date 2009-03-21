@@ -11,10 +11,10 @@
 
 module Network.MPD.Commands (
     -- * Command related data types
-    module Network.MPD.Types,
+    module Network.MPD.Commands.Types,
 
     -- * Query interface
-    module Network.MPD.Query,
+    module Network.MPD.Commands.Query,
 
     -- * Admin commands
     disableOutput, enableOutput, kill, outputs, update,
@@ -42,12 +42,12 @@ module Network.MPD.Commands (
     listArtists, listAlbums, listAlbum, getPlaylist, toggle, updateId
     ) where
 
-import Network.MPD.Arg
+import Network.MPD.Commands.Arg
+import Network.MPD.Commands.Parse
+import Network.MPD.Commands.Query
+import Network.MPD.Commands.Types
 import Network.MPD.Core
 import Network.MPD.Utils
-import Network.MPD.Parse
-import Network.MPD.Query
-import Network.MPD.Types
 
 import Control.Monad (liftM, unless)
 import Control.Monad.Error (throwError)

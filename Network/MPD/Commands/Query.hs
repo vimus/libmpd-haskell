@@ -1,4 +1,4 @@
--- | Module    : Network.MPD.Query
+-- | Module    : Network.MPD.Commands.Query
 -- Copyright   : (c) Ben Sinclair 2005-2009
 -- License     : LGPL (see LICENSE)
 -- Maintainer  : bsinclai@turing.une.edu.au
@@ -7,10 +7,10 @@
 --
 -- Query interface.
 
-module Network.MPD.Query (Query, (=?), (<&>), anything) where
+module Network.MPD.Commands.Query (Query, (=?), (<&>), anything) where
 
-import Network.MPD.Arg
-import Network.MPD.Types
+import Network.MPD.Commands.Arg
+import Network.MPD.Commands.Types
 
 import Data.Monoid
 

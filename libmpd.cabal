@@ -32,9 +32,12 @@ Library
                         mtl >= 1.1 && < 1.2, filepath >= 1.0 && < 1.2,
                         utf8-string >= 0.3.1 && < 0.4
     Exposed-Modules:    Network.MPD
-    Other-Modules:      Network.MPD.Arg, Network.MPD.Core,
-                        Network.MPD.Commands, Network.MPD.Parse,
-                        Network.MPD.Query, Network.MPD.Types,
+    Other-Modules:      Network.MPD.Core,
+                        Network.MPD.Commands,
+                        Network.MPD.Commands.Arg,
+                        Network.MPD.Commands.Parse,
+                        Network.MPD.Commands.Query,
+                        Network.MPD.Commands.Types,
                         Network.MPD.Utils
     ghc-prof-options:   -auto-all -prof
 

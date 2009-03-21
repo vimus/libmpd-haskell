@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 
--- | Module    : Network.MPD.Parse
+-- | Module    : Network.MPD.Commands.Parse
 -- Copyright   : (c) Ben Sinclair 2005-2009
 -- License     : LGPL (see LICENSE)
 -- Maintainer  : bsinclai@turing.une.edu.au
@@ -9,9 +9,9 @@
 --
 -- Various data types and parsing functions for them.
 
-module Network.MPD.Parse where
+module Network.MPD.Commands.Parse where
 
-import Network.MPD.Types
+import Network.MPD.Commands.Types
 
 import Control.Monad.Error
 import Network.MPD.Utils

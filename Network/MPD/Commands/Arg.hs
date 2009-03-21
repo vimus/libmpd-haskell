@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 
--- | Module    : Network.MPD.Arg
+-- | Module    : Network.MPD.Commands.Arg
 -- Copyright   : (c) Ben Sinclair 2005-2009
 -- License     : LGPL (see LICENSE)
 -- Maintainer  : bsinclai@turing.une.edu.au
@@ -9,7 +9,7 @@
 --
 -- Prepare command arguments.
 
-module Network.MPD.Arg (Args(..), MPDArg(..), (<++>), (<$>)) where
+module Network.MPD.Commands.Arg (Args(..), MPDArg(..), (<++>), (<$>)) where
 
 import Network.MPD.Utils (showBool)
 

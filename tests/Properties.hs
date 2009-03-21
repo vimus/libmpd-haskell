@@ -3,8 +3,8 @@ module Properties (main) where
 
 import Displayable
 
-import Network.MPD.Parse
-import Network.MPD.Types
+import Network.MPD.Commands.Parse
+import Network.MPD.Commands.Types
 import Network.MPD.Utils
 
 import Control.Monad

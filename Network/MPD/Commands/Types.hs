@@ -1,4 +1,4 @@
--- | Module    : Network.MPD.Types
+-- | Module    : Network.MPD.Commands.Types
 -- Copyright   : (c) Ben Sinclair 2005-2009
 -- License     : LGPL (see LICENSE)
 -- Maintainer  : bsinclai@turing.une.edu.au
@@ -7,9 +7,9 @@
 --
 -- Various MPD data structures and types
 
-module Network.MPD.Types where
+module Network.MPD.Commands.Types where
 
-import Network.MPD.Arg (MPDArg)
+import Network.MPD.Commands.Arg (MPDArg)
 
 type Artist       = String
 type Album        = String
