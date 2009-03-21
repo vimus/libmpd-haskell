@@ -165,17 +165,21 @@ mpdClose =
             | otherwise      = ioError err
 
 mpdSend :: String -> MPD String
-mpdSend str = MPD $ get >>= maybe (throwError NoMPD) go
+mpdSend str = send' `catchError` handler
     where
+        handler TimedOut = mpdOpen >> send'
+        handler err      = throwError err
+
+        send' = MPD $ get >>= maybe (throwError NoMPD) go
+
         go handle = do
             unless (null str) $
                 liftIO $ U.hPutStrLn handle str >> hFlush handle
-
-            r <- liftIO $ (Right <$> getLines handle []) `catch` (return . Left)
-            case r of
-                Right result -> return result
-                Left err | isEOFError err -> put Nothing >> throwError NoMPD
-                         | otherwise      -> liftIO $ ioError err
+            liftIO ((Right <$> getLines handle []) `catch` (return . Left))
+                >>= either (\err -> if isEOFError err then
+                                        put Nothing >> throwError TimedOut
+                                      else liftIO (ioError err))
+                           return
 
         getLines handle acc = do
             l <- U.hGetLine handle
