@@ -28,6 +28,7 @@ import Control.Monad.Error (Error(..), ErrorT(..), MonadError(..))
 import Control.Monad.Reader (ReaderT(..), ask)
 import Control.Monad.State (StateT, MonadIO(..), put, get, evalStateT)
 import Control.Monad.Trans (liftIO)
+import qualified Data.Foldable as F
 import Data.List (isPrefixOf)
 import Network (PortID(..), withSocketsDo, connectTo)
 import System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
@@ -139,9 +140,7 @@ mpdOpen = MPD $ do
     runMPD close
     handle <- liftIO (safeConnectTo host port)
     put handle
-    maybe (return ())
-          (\_ -> runMPD checkConn >>= flip unless (runMPD close))
-          handle
+    F.forM_ handle (const $ runMPD checkConn >>= flip unless (runMPD close))
     where
         safeConnectTo host port =
             (Just <$> connectTo host (PortNumber $ fromInteger port))
@@ -153,7 +152,7 @@ mpdOpen = MPD $ do
 
 mpdClose :: MPD ()
 mpdClose =
-    MPD $ get >>= maybe (return ()) (liftIO . sendClose) >> put Nothing
+    MPD $ get >>= F.mapM_ (liftIO . sendClose) >> put Nothing
     where
         sendClose handle =
             (hPutStrLn handle "close" >> hReady handle >> hClose handle)
