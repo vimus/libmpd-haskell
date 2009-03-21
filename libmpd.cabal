@@ -31,9 +31,8 @@ Library
     Build-Depends:      base >= 3 && < 4.1, network >= 2.1 && < 2.3,
                         mtl >= 1.1 && < 1.2, filepath >= 1.0 && < 1.2,
                         utf8-string >= 0.3.1 && < 0.4
-    Exposed-Modules:    Network.MPD
-    Other-Modules:      Network.MPD.Core,
-                        Network.MPD.Core.Class,
+    Exposed-Modules:    Network.MPD, Network.MPD.Core
+    Other-Modules:      Network.MPD.Core.Class,
                         Network.MPD.Core.Error,
                         Network.MPD.Commands,
                         Network.MPD.Commands.Arg,
