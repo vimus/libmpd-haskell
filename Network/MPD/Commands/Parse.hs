@@ -6,7 +6,7 @@
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
 --
--- Various data types and parsing functions for them.
+-- Parsers for MPD data types.
 
 module Network.MPD.Commands.Parse where
 
