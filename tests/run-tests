@@ -5,7 +5,7 @@
 runhaskell Setup configure -f test --disable-optimization \
     && runhaskell Setup build \
     && runhaskell Setup configure \
-    && runhaskell Setup haddock \
+    && runhaskell Setup haddock --hyperlink \
     && dist/build/test/test | tee test.log \
     || exit 1
 
