@@ -3,7 +3,6 @@
 -- License     : LGPL (see LICENSE)
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
--- Portability : Haskell 98
 --
 -- An MPD client library. MPD is a daemon for playing music that is
 -- controlled over a network socket. Its site is at <http://www.musicpd.org/>.

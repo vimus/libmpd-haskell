@@ -5,8 +5,6 @@
 -- License     : LGPL (see LICENSE)
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
--- Portability : not Haskell 98 (uses flexible contexts and cunning
---               generalised newtype deriving)
 --
 -- The core datatypes and operations are defined here, including the
 -- primary instance of the 'MonadMPD' class, 'MPD'.

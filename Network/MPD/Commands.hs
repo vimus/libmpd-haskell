@@ -5,7 +5,6 @@
 -- License     : LGPL (see LICENSE)
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
--- Portability : unportable (uses PatternGuards)
 --
 -- Interface to the user commands supported by MPD.
 

@@ -3,7 +3,6 @@
 -- License     : LGPL (see LICENSE)
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
--- Portability : Haskell 98
 --
 -- Various MPD data structures and types
 

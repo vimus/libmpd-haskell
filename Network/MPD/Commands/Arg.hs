@@ -5,7 +5,6 @@
 -- License     : LGPL (see LICENSE)
 -- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
--- Portability : unportable (uses TypeSynonymInstances)
 --
 -- Prepare command arguments.
 
