@@ -17,7 +17,7 @@ module Network.MPD.Core (
     -- * Running
     withMPDEx,
     -- * Interacting
-    getResponse, reconnect, kill,
+    getResponse, kill,
     ) where
 
 import Network.MPD.Core.Class
@@ -138,10 +138,6 @@ mpdSend str = send' `catchError` handler
 --
 -- Other operations.
 --
-
--- | Refresh a connection.
-reconnect :: MonadMPD m => m ()
-reconnect = open
 
 -- | Kill the server. Obviously, the connection is then invalid.
 kill :: (MonadMPD m) => m ()

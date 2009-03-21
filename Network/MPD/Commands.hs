@@ -33,8 +33,8 @@ module Network.MPD.Commands (
     volume, stop,
 
     -- * Miscellaneous commands
-    clearError, commands, notCommands, password, ping, reconnect, stats,
-    status, tagTypes, urlHandlers,
+    clearError, commands, notCommands, password, ping, stats, status,
+    tagTypes, urlHandlers,
 
     -- * Extensions\/shortcuts
     addMany, deleteMany, complete, crop, prune, lsDirs, lsFiles, lsPlaylists,
