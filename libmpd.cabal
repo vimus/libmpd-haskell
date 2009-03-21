@@ -6,7 +6,8 @@ Copyright:          Ben Sinclair 2005-2009
 Author:             Ben Sinclair
 Maintainer:         bsinclai@turing.une.edu.au
 Stability:          beta
-Homepage:           http://turing.une.edu.au/~bsinclai/code/libmpd-haskell.html
+Homepage:           http://projects.haskell.org/libmpd/
+Bug-reports:        http://trac.haskell.org/libmpd/newticket
 Synopsis:           An MPD client library.
 Description:        A client library for MPD, the Music Player Daemon
                     (<http://www.musicpd.org/>).
