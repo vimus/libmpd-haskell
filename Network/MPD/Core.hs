@@ -22,9 +22,12 @@ module Network.MPD.Core (
     getResponse, reconnect, kill,
     ) where
 
+import Network.MPD.Core.Class
+import Network.MPD.Core.Error
+
 import Control.Applicative (Applicative(..), (<$>))
 import Control.Monad (ap, unless)
-import Control.Monad.Error (Error(..), ErrorT(..), MonadError(..))
+import Control.Monad.Error (ErrorT(..), MonadError(..))
 import Control.Monad.Reader (ReaderT(..), ask)
 import Control.Monad.State (StateT, MonadIO(..), put, get, evalStateT)
 import Control.Monad.Trans (liftIO)
@@ -41,59 +44,6 @@ import qualified System.IO.UTF8 as U
 
 type Host = String
 type Port = Integer
-type Password = String
-
--- | The MPDError type is used to signal errors, both from the MPD and
--- otherwise.
-data MPDError = NoMPD              -- ^ MPD not responding
-              | TimedOut           -- ^ The connection timed out
-              | Unexpected String  -- ^ MPD returned an unexpected response.
-                                   --   This is a bug, either in the library or
-                                   --   in MPD itself.
-              | Custom String      -- ^ Used for misc. errors
-              | ACK ACKType String -- ^ ACK type and a message from the
-                                   --   server
-                deriving Eq
-
-instance Show MPDError where
-    show NoMPD          = "Could not connect to MPD"
-    show TimedOut       = "MPD connection timed out"
-    show (Unexpected s) = "MPD returned an unexpected response: " ++ s
-    show (Custom s)     = s
-    show (ACK _ s)      = s
-
-instance Error MPDError where
-    noMsg  = Custom "An error occurred"
-    strMsg = Custom
-
--- | Represents various MPD errors (aka. ACKs).
-data ACKType = InvalidArgument  -- ^ Invalid argument passed (ACK 2)
-             | InvalidPassword  -- ^ Invalid password supplied (ACK 3)
-             | Auth             -- ^ Authentication required (ACK 4)
-             | UnknownCommand   -- ^ Unknown command (ACK 5)
-             | FileNotFound     -- ^ File or directory not found ACK 50)
-             | PlaylistMax      -- ^ Playlist at maximum size (ACK 51)
-             | System           -- ^ A system error (ACK 52)
-             | PlaylistLoad     -- ^ Playlist loading failed (ACK 53)
-             | Busy             -- ^ Update already running (ACK 54)
-             | NotPlaying       -- ^ An operation requiring playback
-                                --   got interrupted (ACK 55)
-             | FileExists       -- ^ File already exists (ACK 56)
-             | UnknownACK       -- ^ An unknown ACK (aka. bug)
-               deriving (Eq)
-
--- | A typeclass to allow for multiple implementations of a connection
---   to an MPD server.
-class (Monad m, MonadError MPDError m) => MonadMPD m where
-    -- | Open (or re-open) a connection to the MPD server.
-    open  :: m ()
-    -- | Close the connection.
-    close :: m ()
-    -- | Send a string to the server and return its response.
-    send  :: String -> m String
-    -- | Produce a password to send to the server should it ask for
-    --   one.
-    getPassword :: m Password
 
 --
 -- IO based MPD client implementation.

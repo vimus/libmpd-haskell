@@ -33,6 +33,8 @@ Library
                         utf8-string >= 0.3.1 && < 0.4
     Exposed-Modules:    Network.MPD
     Other-Modules:      Network.MPD.Core,
+                        Network.MPD.Core.Class,
+                        Network.MPD.Core.Error,
                         Network.MPD.Commands,
                         Network.MPD.Commands.Arg,
                         Network.MPD.Commands.Parse,
