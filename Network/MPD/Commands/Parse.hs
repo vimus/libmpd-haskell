@@ -18,7 +18,7 @@ import Network.MPD.Core (MonadMPD, MPDError(Unexpected))
 
 -- | Builds a 'Count' instance from an assoc. list.
 parseCount :: [String] -> Either String Count
-parseCount = foldM f empty . toAssoc
+parseCount = foldM f empty . toAssocList
         where f :: Count -> (String, String) -> Either String Count
               f a ("songs", x)    = return $ parse parseNum
                                     (\x' -> a { cSongs = x'}) a x
@@ -29,7 +29,9 @@ parseCount = foldM f empty . toAssoc
 
 -- | Builds a list of 'Device' instances from an assoc. list
 parseOutputs :: [String] -> Either String [Device]
-parseOutputs = mapM (foldM f empty) . splitGroups [("outputid",id)] . toAssoc
+parseOutputs = mapM (foldM f empty)
+             . splitGroups [("outputid",id)]
+             . toAssocList
     where f a ("outputid", x)      = return $ parse parseNum
                                      (\x' -> a { dOutputID = x' }) a x
           f a ("outputname", x)    = return a { dOutputName = x }
@@ -40,7 +42,7 @@ parseOutputs = mapM (foldM f empty) . splitGroups [("outputid",id)] . toAssoc
 
 -- | Builds a 'Stats' instance from an assoc. list.
 parseStats :: [String] -> Either String Stats
-parseStats = foldM f defaultStats . toAssoc
+parseStats = foldM f defaultStats . toAssocList
     where
         f a ("artists", x)     = return $ parse parseNum
                                  (\x' -> a { stsArtists  = x' }) a x
@@ -109,7 +111,7 @@ parseSong xs = foldM f song xs
 
 -- | Builds a 'Status' instance from an assoc. list.
 parseStatus :: [String] -> Either String Status
-parseStatus = foldM f empty . toAssoc
+parseStatus = foldM f empty . toAssocList
     where f a ("state", x)
               = return $ parse state     (\x' -> a { stState = x' }) a x
           f a ("volume", x)

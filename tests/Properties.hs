@@ -29,8 +29,6 @@ main = do
                   ,("showBool", mytest prop_showBool)
                   ,("toAssoc / reversible",
                         mytest prop_toAssoc_rev)
-                  ,("toAssoc / integrity",
-                        mytest prop_toAssoc_integrity)
                   ,("parseNum", mytest prop_parseNum)
                   ,("parseDate / simple",
                         mytest prop_parseDate_simple)
@@ -47,15 +45,16 @@ mytest a n = check defaultConfig { configMaxTest = n } a
 instance Arbitrary Char where
     arbitrary     = choose ('\0', '\128')
 
--- an assoc. string is a string of the form "key: value".
-newtype AssocString = AS String
-    deriving Show
-
+-- an assoc. string is a string of the form "key: value", followed by
+-- the key and value separately.
+data AssocString = AS String String String
+instance Show AssocString where
+    show (AS str _ _) = str
 instance Arbitrary AssocString where
     arbitrary = do
-        key <- arbitrary
-        val <- arbitrary
-        return . AS $ key ++ ": " ++ val
+        key <- filter    (/= ':') `fmap` arbitrary
+        val <- dropWhile (== ' ') `fmap` arbitrary
+        return $ AS (key ++ ": " ++ val) key val
 
 newtype IntegralString = IS String
     deriving Show
@@ -101,16 +100,12 @@ prop_parseDate_simple (SDS x) = isJust $ parseDate x
 prop_parseDate_complex :: ComplexDateString -> Bool
 prop_parseDate_complex (CDS x) = isJust $ parseDate x
 
-prop_toAssoc_rev :: [AssocString] -> Bool
-prop_toAssoc_rev x = toAssoc (fromAssoc r) == r
-    where r = toAssoc (fromAS x)
-          fromAssoc = map (\(a, b) -> a ++ ": " ++ b)
-
-prop_toAssoc_integrity :: [AssocString] -> Bool
-prop_toAssoc_integrity x = length (toAssoc $ fromAS x) == length x
-
-fromAS :: [AssocString] -> [String]
-fromAS s = [x | AS x <- s]
+-- Conversion to an association list.
+prop_toAssoc_rev :: AssocString -> Bool
+prop_toAssoc_rev x = k == k' && v == v'
+    where
+        AS str k v = x
+        (k',v') = toAssoc str
 
 prop_parseBool_rev :: BoolString -> Bool
 prop_parseBool_rev (BS x) = showBool (fromJust $ parseBool x) == x
@@ -177,7 +172,7 @@ instance Arbitrary Song where
                       , sgIndex = idx }
 
 prop_parseSong :: Song -> Bool
-prop_parseSong s = Right s == (parseSong . toAssoc . lines $ display s)
+prop_parseSong s = Right s == (parseSong . toAssocList . lines $ display s)
 
 instance Arbitrary Stats where
     arbitrary = do

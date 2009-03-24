@@ -95,7 +95,7 @@ lsInfo = lsInfo' "lsinfo"
 
 -- | List the songs (without metadata) in a database directory recursively.
 listAll :: MonadMPD m => Path -> m [Path]
-listAll path = liftM (map snd . filter ((== "file") . fst) . toAssoc)
+listAll path = liftM (map snd . filter ((== "file") . fst) . toAssocList)
                      (getResponse $ "listall" <$> path)
 
 -- | Recursive 'lsInfo'.
@@ -130,7 +130,7 @@ count query = getResponse ("count" <$>  query) >>= runParser parseCount
 -- This might do better to throw an exception than silently return 0.
 -- | Like 'add', but returns a playlist id.
 addId :: MonadMPD m => Path -> m Integer
-addId p = liftM (parse parseNum id 0 . snd . head . toAssoc)
+addId p = liftM (parse parseNum id 0 . snd . head . toAssocList)
               $ getResponse1 ("addid" <$> p)
 
 -- | Like 'add_' but returns a list of the files added.
@@ -239,7 +239,7 @@ plChanges version = takeSongs =<< getResponse ("plchanges" <$> version)
 plChangesPosId :: MonadMPD m => Integer -> m [(PLIndex, PLIndex)]
 plChangesPosId plver =
     getResponse ("plchangesposid" <$> plver) >>=
-    mapM f . splitGroups [("cpos",id)] . toAssoc
+    mapM f . splitGroups [("cpos",id)] . toAssocList
     where f xs | [("cpos", x), ("Id", y)] <- xs
                , Just (x', y') <- pair parseNum (x, y)
                = return (Pos x', ID y')
@@ -261,7 +261,7 @@ currentSong = do
     if stState cs == Stopped
        then return Nothing
        else getResponse1 "currentsong" >>=
-            fmap Just . runParser parseSong . toAssoc
+            fmap Just . runParser parseSong . toAssocList
 
 --
 -- Playback commands
@@ -512,9 +512,9 @@ getResponse1 x = getResponse x >>= failOnEmpty
 -- Parsing.
 --
 
--- Run 'toAssoc' and return only the values.
+-- Run 'toAssocList' and return only the values.
 takeValues :: [String] -> [String]
-takeValues = snd . unzip . toAssoc
+takeValues = snd . unzip . toAssocList
 
 data EntryType
     = SongEntry Song
@@ -525,7 +525,7 @@ data EntryType
 -- Separate the result of an lsinfo\/listallinfo call into directories,
 -- playlists, and songs.
 takeEntries :: MonadMPD m => [String] -> m [EntryType]
-takeEntries = mapM toEntry . splitGroups wrappers . toAssoc . reverse
+takeEntries = mapM toEntry . splitGroups wrappers . toAssocList . reverse
     where
         toEntry xs@(("file",_):_)   = liftM SongEntry $ runParser parseSong xs
         toEntry (("directory",d):_) = return $ DirEntry d
@@ -544,4 +544,6 @@ extractEntries (fSong,fPlayList,fDir) = catMaybes . map f
 
 -- Build a list of song instances from a response.
 takeSongs :: MonadMPD m => [String] -> m [Song]
-takeSongs = mapM (runParser parseSong) . splitGroups [("file",id)] . toAssoc
+takeSongs = mapM (runParser parseSong)
+          . splitGroups [("file",id)]
+          . toAssocList

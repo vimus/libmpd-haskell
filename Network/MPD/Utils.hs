@@ -8,7 +8,7 @@
 
 module Network.MPD.Utils (
     parseDate, parseNum, parseBool, showBool,
-    breakChar, toAssoc, splitGroups
+    breakChar, toAssoc, toAssocList, splitGroups
     ) where
 
 import Data.Char (isDigit)
@@ -42,12 +42,14 @@ parseBool s = case take 1 s of
                   "0" -> Just False
                   _   -> Nothing
 
--- Break up a list of strings into an assoc. list, separating at
--- the first ':'.
-toAssoc :: [String] -> [(String, String)]
-toAssoc = map f
-    where f x = let (k,v) = break (== ':') x in
-                (k,dropWhile (== ' ') $ drop 1 v)
+-- Break a string into an key-value pair, separating at the first ':'.
+toAssoc :: String -> (String, String)
+toAssoc x = (k, dropWhile (== ' ') $ drop 1 v)
+    where
+        (k,v) = break (== ':') x
+
+toAssocList :: [String] -> [(String, String)]
+toAssocList = map toAssoc
 
 -- Takes an assoc. list with recurring keys and groups each cycle of
 -- keys with their values together. There can be several keys that
