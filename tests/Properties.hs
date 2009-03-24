@@ -181,7 +181,8 @@ prop_parseSong s = Right s == (parseSong . toAssoc . lines $ display s)
 
 instance Arbitrary Stats where
     arbitrary = do
-        [arts,albs,sngs,upt,plt,dbplt,dbupd] <- replicateM 7 (fmap abs $ arbitrary)
+        let posInt = abs `fmap` arbitrary
+        [arts,albs,sngs,upt,plt,dbplt,dbupd] <- replicateM 7 posInt
         return $ Stats arts albs sngs upt plt dbplt dbupd
 
 prop_parseStats :: Stats -> Bool
