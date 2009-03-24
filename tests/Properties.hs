@@ -43,13 +43,15 @@ mytest :: Testable a => a -> Int -> IO ()
 mytest a n = check defaultConfig { configMaxTest = n } a
 
 instance Arbitrary Char where
-    arbitrary     = choose ('\0', '\128')
+    arbitrary = choose ('\0', '\128')
 
 -- an assoc. string is a string of the form "key: value", followed by
 -- the key and value separately.
 data AssocString = AS String String String
+
 instance Show AssocString where
     show (AS str _ _) = str
+
 instance Arbitrary AssocString where
     arbitrary = do
         key <- filter    (/= ':') `fmap` arbitrary
