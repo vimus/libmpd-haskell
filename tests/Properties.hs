@@ -58,33 +58,18 @@ instance Arbitrary AssocString where
         val <- dropWhile (== ' ') `fmap` arbitrary
         return $ AS (key ++ ": " ++ val) key val
 
-newtype IntegralString = IS String
-    deriving Show
-
-instance Arbitrary IntegralString where
-    arbitrary = fmap (IS . show) (arbitrary :: Gen Integer)
-
 newtype BoolString = BS String
     deriving Show
 
 instance Arbitrary BoolString where
-    arbitrary = fmap BS $ elements ["1", "0"]
-
--- Positive integers.
-newtype PosInt = PI Integer
-
-instance Show PosInt where
-    show (PI x) = show x
-
-instance Arbitrary PosInt where
-    arbitrary = (PI . abs) `fmap` arbitrary
+    arbitrary = BS `fmap` elements ["1", "0"]
 
 -- Simple date representation, like "2004" and "1998".
 newtype SimpleDateString = SDS String
     deriving Show
 
 instance Arbitrary SimpleDateString where
-    arbitrary = (SDS . show) `fmap` (arbitrary :: Gen PosInt)
+    arbitrary = (SDS . show) `fmap` (positive :: Gen Integer)
 
 -- Complex date representations, like "2004-20-30".
 newtype ComplexDateString = CDS String
@@ -92,8 +77,7 @@ newtype ComplexDateString = CDS String
 
 instance Arbitrary ComplexDateString where
     arbitrary = do
-        -- eww...
-        [y,m,d] <- replicateM 3 (arbitrary :: Gen PosInt)
+        (y,m,d) <- three (positive :: Gen Integer)
         return . CDS . concat . intersperse "-" $ map show [y,m,d]
 
 prop_parseDate_simple :: SimpleDateString -> Bool
@@ -113,8 +97,11 @@ prop_parseBool_rev :: BoolString -> Bool
 prop_parseBool_rev (BS x) = showBool (fromJust $ parseBool x) == x
 
 prop_parseBool :: BoolString -> Bool
-prop_parseBool (BS "1") = fromJust $ parseBool "1"
-prop_parseBool (BS x)   = not (fromJust $ parseBool x)
+prop_parseBool (BS xs) =
+    case parseBool xs of
+        Nothing    -> False
+        Just True  -> xs == "1"
+        Just False -> xs == "0"
 
 prop_showBool :: Bool -> Bool
 prop_showBool True = showBool True == "1"
@@ -130,15 +117,21 @@ prop_splitGroups_integrity :: [(String, String)] -> Property
 prop_splitGroups_integrity xs = not (null xs) ==>
     sort (concat $ splitGroups [(fst $ head xs, id)] xs) == sort xs
 
-prop_parseNum :: IntegralString -> Bool
-prop_parseNum (IS xs@"")      = parseNum xs == Nothing
-prop_parseNum (IS xs@('-':_)) = fromMaybe 0 (parseNum xs) <= 0
-prop_parseNum (IS xs)         = fromMaybe 0 (parseNum xs) >= 0
+prop_parseNum :: Integer -> Bool
+prop_parseNum x =
+    case show x of
+        (xs@"")      -> parseNum xs == Nothing
+        (xs@('-':_)) -> fromMaybe 0 (parseNum xs) <= 0
+        (xs)         -> fromMaybe 0 (parseNum xs) >= 0
 
 
 --------------------------------------------------------------------------
 -- Parsers
 --------------------------------------------------------------------------
+
+-- Generate a positive number.
+positive :: (Arbitrary a, Num a) => Gen a
+positive = abs `fmap` arbitrary
 
 -- MPD fields can't contain newlines and the parser skips initial spaces.
 field :: Gen String
@@ -160,13 +153,13 @@ prop_parseOutputs ds =
 instance Arbitrary Song where
     arbitrary = do
         [file,artist,album,title,genre,name,cmpsr,prfmr] <- replicateM 8 field
-        date  <- abs `fmap` arbitrary
-        len   <- abs `fmap` arbitrary
-        track <- two $ abs `fmap` arbitrary
-        disc  <- two $ abs `fmap` arbitrary
+        date  <- positive
+        len   <- positive
+        track <- two positive
+        disc  <- two positive
         idx   <- oneof [return Nothing
-                       ,liftM (Just . Pos) $ abs `fmap` arbitrary
-                       ,liftM (Just . ID)  $ abs `fmap` arbitrary]
+                       ,(Just . Pos) `fmap` positive
+                       ,(Just . ID)  `fmap` positive]
         return $ Song { sgArtist = artist, sgAlbum = album, sgTitle = title
                       , sgFilePath = file, sgGenre = genre, sgName = name
                       , sgComposer = cmpsr, sgPerformer = prfmr, sgLength = len
@@ -177,10 +170,9 @@ prop_parseSong :: Song -> Bool
 prop_parseSong s = Right s == (parseSong . toAssocList . lines $ display s)
 
 instance Arbitrary Stats where
-    arbitrary = do
-        let posInt = abs `fmap` arbitrary
-        [arts,albs,sngs,upt,plt,dbplt,dbupd] <- replicateM 7 posInt
-        return $ Stats arts albs sngs upt plt dbplt dbupd
+    arbitrary =
+        return Stats `ap` positive `ap` positive `ap` positive
+                     `ap` positive `ap` positive `ap` positive `ap` positive
 
 prop_parseStats :: Stats -> Bool
 prop_parseStats s = Right s == (parseStats . lines $ display s)
