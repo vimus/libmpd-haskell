@@ -183,9 +183,12 @@ testListAll =
          (listAll "")
 
 testLsInfo =
-    test [("lsinfo \"\"", Right "directory: Foo\ndirectory: Bar\nOK")]
-         (Right [Left "Bar", Left "Foo"])
+    test [("lsinfo \"\"",
+           Right $ "directory: Foo\n" ++ display song ++ "playlist: Quux\nOK")]
+         (Right [Right song, Left "Foo"])
          (lsInfo "")
+    where
+        song = empty { sgFilePath = "Bar.ogg" }
 
 testListAllInfo =
     test [("listallinfo \"\"", Right "directory: Foo\ndirectory: Bar\nOK")]
