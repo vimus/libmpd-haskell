@@ -13,7 +13,7 @@ module Commands (main) where
 
 import Displayable
 import Network.MPD.Commands
-import Network.MPD.Core (Response, MPDError(..))
+import Network.MPD.Core (MPDError(..))
 import StringConn
 
 import Prelude hiding (repeat)
@@ -101,18 +101,24 @@ main = mapM_ (\(n, f) -> f >>= (\x -> putStrLn $ printf "%-14s: %s" n x)) tests
                   ,("deleteMany1", testDeleteMany1)
                   ]
 
-test a b c = return . showResult b $ testMPD a b "" c
+test a b c = return . showResult $ testMPD a b "" c
 
 test_ a b = test a (Right ()) b
 
-showResult :: (Show a) => Response a -> Result a -> String
-showResult _ Ok = "passed"
-showResult expectedResult (Failure result mms) =
-    "*** FAILURE ***" ++
-    concatMap (\(x,y) -> "\n  expected request: " ++ show x ++
-                         "\n  actual request: " ++ show y) mms ++
-    "\n    expected result: " ++ show expectedResult ++
-    "\n    actual result: " ++ show result
+showResult :: Show a => Result a -> String
+showResult Ok =
+    "passed"
+showResult (BadRequest TooManyRequests) = unlines
+    ["*** FAILURE ***"
+    ,"    more requests were made than expected."]
+showResult (BadRequest (UnexpectedRequest expected actual)) = unlines
+    ["*** FAILURE ***"
+    ,"    expected request: " ++ show expected
+    ,"    actual request: "   ++ show actual]
+showResult (BadResult expected actual) = unlines
+    ["*** FAILURE ***"
+    ,"    expected result: " ++ show expected
+    ,"    actual result: "   ++ show actual]
 
 --
 -- Admin commands

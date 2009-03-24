@@ -8,7 +8,7 @@
 --
 -- A testing scaffold for MPD commands
 
-module StringConn (StringMPD(..), Expect, Result(..), testMPD) where
+module StringConn where
 
 import Prelude hiding (exp)
 import Control.Monad.Error
@@ -17,11 +17,35 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Network.MPD.Core
 
+-- | An expected request.
+type Expect = String
+
+data StringMPDError
+    = TooManyRequests
+    | UnexpectedRequest Expect String
+      deriving Show
+
+data Result a
+    = Ok
+    | BadResult (Response a) (Response a)  -- expected, then actual
+    | BadRequest StringMPDError
+
+newtype MatchError = MErr (Either StringMPDError MPDError)
+instance Error MatchError where
+    strMsg = MErr . Right . strMsg
+
 newtype StringMPD a =
-    SMPD { runSMPD :: ErrorT MPDError
+    SMPD { runSMPD :: ErrorT MatchError
                       (StateT [(Expect, Response String)]
                        (ReaderT Password Identity)) a
-         } deriving (Functor, Monad, MonadError MPDError)
+         } deriving (Functor, Monad)
+
+instance MonadError MPDError StringMPD where
+    throwError = SMPD . throwError . MErr . Right
+    catchError m f = SMPD $ catchError (runSMPD m) handler
+        where
+            handler err@(MErr (Left _)) = throwError err
+            handler (MErr (Right err))  = runSMPD (f err)
 
 instance MonadMPD StringMPD where
     open  = return ()
@@ -31,17 +55,12 @@ instance MonadMPD StringMPD where
         SMPD $ do
             ~pairs@((expected_request,response):rest) <- get
             when (null pairs)
-                 (throwError $ strMsg "MPD action made too many calls")
+                 (throwError . MErr $ Left TooManyRequests)
             when (expected_request /= request)
-                 (throwError $ strMsg "unexpected MPD request")
+                 (throwError . MErr . Left
+                             $ UnexpectedRequest expected_request request)
             put rest
-            either throwError return response
-
--- | An expected request.
-type Expect = String
-
-data Result a = Ok | Failure (Response a) [(Expect,String)]
-                deriving Show
+            either (throwError . MErr . Right) return response
 
 -- | Run an action against a set of expected requests and responses,
 -- and an expected result. The result is Nothing if everything matched
@@ -51,13 +70,18 @@ data Result a = Ok | Failure (Response a) [(Expect,String)]
 testMPD :: (Eq a)
         => [(Expect, Response String)] -- ^ The expected requests and their
                                        -- ^ corresponding responses.
-        -> Response a                  -- ^ The expected result.
+        -> Response a                  -- ^ The expected final result.
         -> Password                    -- ^ A password to be supplied.
         -> StringMPD a                 -- ^ The MPD action to run.
         -> Result a
-testMPD pairs expected pw m
-    | result == expected = Ok
-    | otherwise          = Failure result (error "mismatches")
-    where
-        result = runIdentity $ runReaderT
-                     (evalStateT (runErrorT $ runSMPD m) pairs) pw
+testMPD pairs expected passwd m =
+    let result = runIdentity
+               $ runReaderT (evalStateT (runErrorT $ runSMPD m) pairs) passwd
+    in case result of
+           Right r
+               | Right r == expected -> Ok
+               | otherwise           -> BadResult expected (Right r)
+           Left (MErr (Right r))
+               | Left r == expected -> Ok
+               | otherwise          -> BadResult expected (Left r)
+           Left (MErr (Left e)) -> BadRequest e
