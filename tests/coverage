@@ -6,7 +6,7 @@
 exclude=`for x in Main Properties Displayable Commands StringConn; do \
     echo --exclude=$x ; done`
 
-rm -rf .hpc
+rm -rf .hpc test.tix
 runhaskell Setup clean
 runhaskell Setup configure -f test -f coverage --disable-optimization \
     && runhaskell Setup build && dist/build/test/test >/dev/null \
