@@ -16,8 +16,8 @@ Tested-With:        GHC == 6.8.2, GHC == 6.10.1
 Build-Type:         Simple
 Cabal-Version:      >= 1.2 && < 1.7
 Extra-Source-Files: TODO README ChangeLog tests/Properties.hs tests/Commands.hs
-                    tests/Main.hs tests/Displayable.hs tests/run-tests
-                    tests/coverage
+                    tests/Main.hs tests/Displayable.hs tests/run-tests.lhs
+                    tests/coverage.lhs
 
 flag test
     Description: Build test driver
