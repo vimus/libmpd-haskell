@@ -13,13 +13,13 @@ module Commands (main) where
 
 import Displayable
 import Network.MPD.Commands
-import Network.MPD.Core (MPDError(..))
+import Network.MPD.Core (MPDError(..), Response)
 import StringConn
 
 import Prelude hiding (repeat)
 import Text.Printf
 
-main = mapM_ (\(n, f) -> f >>= (\x -> putStrLn $ printf "%-14s: %s" n x)) tests
+main = mapM_ (\(n, x) -> (putStrLn $ printf "%-14s: %s" n x)) tests
     where tests = [("enableOutput", testEnableOutput)
                   ,("disableOutput", testDisableOutput)
                   ,("outputs", testOutputs)
@@ -101,8 +101,11 @@ main = mapM_ (\(n, f) -> f >>= (\x -> putStrLn $ printf "%-14s: %s" n x)) tests
                   ,("deleteMany1", testDeleteMany1)
                   ]
 
-test a b c = return . showResult $ testMPD a b "" c
+test :: (Show a, Eq a)
+     => [(Expect, Response String)] -> Response a -> StringMPD a -> String
+test a b c = showResult $ testMPD a b "" c
 
+test_ :: [(Expect, Response String)] -> StringMPD () -> String
 test_ a b = test a (Right ()) b
 
 showResult :: Show a => Result a -> String
