@@ -19,7 +19,7 @@ import StringConn
 import Prelude hiding (repeat)
 import Text.Printf
 
-main = mapM_ (\(n, x) -> (putStrLn $ printf "%-14s: %s" n x)) tests
+main = mapM_ (\(n, x) -> putStrLn (printf "%-26s: %s" n x)) tests
     where tests = [("enableOutput", testEnableOutput)
                   ,("disableOutput", testDisableOutput)
                   ,("outputs", testOutputs)
@@ -110,7 +110,7 @@ test_ a b = test a (Right ()) b
 
 showResult :: Show a => Result a -> String
 showResult Ok =
-    "passed"
+    "OK, passed."
 showResult (BadRequest TooManyRequests) = unlines
     ["*** FAILURE ***"
     ,"    more requests were made than expected."]
