@@ -4,4 +4,9 @@
 import qualified Commands
 import qualified Properties
 
-main = Properties.main >> Commands.main
+main = do
+    putStrLn "*** Properties ***"
+    Properties.main
+
+    putStrLn "\n*** Unit Tests ***"
+    Commands.main
