@@ -10,7 +10,8 @@ import System.Exit (ExitCode(..), exitWith)
 import System.FilePath ((</>))
 import System.Directory (doesDirectoryExist, getDirectoryContents, removeDirectory, removeFile)
 
-excludeModules = ["Main", "Properties", "Displayable", "Commands", "StringConn"]
+excludeModules =
+    ["Main", "Properties", "Displayable", "Commands", "StringConn"]
 
 main = do
     -- Cleanup from previous runs
@@ -32,5 +33,8 @@ main = do
     where
         exclude = unwords (map ("--exclude=" ++) excludeModules)
 
-run s = system s >>= \e -> case e of ExitFailure {} -> exitWith (ExitFailure 1) ; _ -> return ()
+run x = system x >>= catchFailure
+    where
+        catchFailure (ExitFailure _) = exitWith (ExitFailure 1)
+        catchFailure              _  = return ()
 \end{code}

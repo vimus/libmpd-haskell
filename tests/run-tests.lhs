@@ -32,7 +32,8 @@ main = do
 
     -- Detect failure
     let ws = concatMap words (lines result)
-    when ("Failure" `elem` ws || "*** FAILURE ***" `elem` ws) $ do
+        failStrings = ["Falsifiable", "*** FAILURE ***"]
+    when (any (`elem` ws) failStrings) $ do
         putStrLn "Failure detected: see test.log"
         exitWith (ExitFailure 1)
 
@@ -40,5 +41,9 @@ main = do
     removeFile "test.log"
 
 -- A wrapper for 'system' that halts the program if the command fails.
-run f = system f >>= \e -> case e of ExitFailure {} -> exitWith (ExitFailure 1); _ -> return ()
+run x = system x >>= catchFailure
+    where
+        catchFailure (ExitFailure _) = exitWith (ExitFailure 1)
+        catchFailure              _  = return ()
+
 \end{code}
