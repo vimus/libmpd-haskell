@@ -160,11 +160,11 @@ instance Arbitrary Song where
         idx   <- oneof [return Nothing
                        ,(Just . Pos) `fmap` positive
                        ,(Just . ID)  `fmap` positive]
-        return $ Song { sgArtist = artist, sgAlbum = album, sgTitle = title
-                      , sgFilePath = file, sgGenre = genre, sgName = name
-                      , sgComposer = cmpsr, sgPerformer = prfmr, sgLength = len
-                      , sgDate = date, sgTrack = track, sgDisc = Just disc
-                      , sgIndex = idx }
+        return Song { sgArtist = artist, sgAlbum = album, sgTitle = title
+                    , sgFilePath = file, sgGenre = genre, sgName = name
+                    , sgComposer = cmpsr, sgPerformer = prfmr, sgLength = len
+                    , sgDate = date, sgTrack = track, sgDisc = Just disc
+                    , sgIndex = idx }
 
 prop_parseSong :: Song -> Bool
 prop_parseSong s = Right s == (parseSong . toAssocList . lines $ display s)

@@ -12,13 +12,13 @@ class Displayable a where
 
 instance Displayable Count where
     empty = Count { cSongs = 0, cPlaytime = 0 }
-    display s = unlines $
+    display s = unlines
         ["songs: "    ++ show (cSongs s)
         ,"playtime: " ++ show (cPlaytime s)]
 
 instance Displayable Device where
     empty = Device 0 "" False
-    display d = unlines $
+    display d = unlines
         ["outputid: "      ++ show (dOutputID d)
         ,"outputname: "    ++ dOutputName d
         ,"outputenabled: " ++ showBool (dOutputEnabled d)]
@@ -47,7 +47,7 @@ instance Displayable Song where
 instance Displayable Stats where
     empty = Stats { stsArtists = 0, stsAlbums = 0, stsSongs = 0, stsUptime = 0
                   , stsPlaytime = 0, stsDbPlaytime = 0, stsDbUpdate = 0 }
-    display s = unlines $
+    display s = unlines
         ["artists: " ++ show (stsArtists s)
         ,"albums: " ++ show (stsAlbums s)
         ,"songs: " ++ show (stsSongs s)

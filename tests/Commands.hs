@@ -105,10 +105,10 @@ main = mapM_ (\(n, x) -> putStrLn (printf "%-26s: %s" n x)) tests
 
 test :: (Show a, Eq a)
      => [(Expect, Response String)] -> Response a -> StringMPD a -> String
-test a b c = showResult $ testMPD a b "" c
+test a b = showResult . testMPD a b ""
 
 test_ :: [(Expect, Response String)] -> StringMPD () -> String
-test_ a b = test a (Right ()) b
+test_ a = test a (Right ())
 
 showResult :: Show a => Result a -> String
 showResult Ok =
@@ -254,9 +254,8 @@ testPlChangesPosId_Wierd =
          (plChangesPosId 10)
 
 testCurrentSongStopped =
-    test [("status", Right resp)] (Right Nothing)
-         (currentSong)
-    where obj = empty { stState = Stopped, stPlaylistVersion = 253 }
+    test [("status", Right resp)] (Right Nothing) currentSong
+    where obj  = empty { stState = Stopped, stPlaylistVersion = 253 }
           resp = display obj ++ "OK"
 
 testCurrentSongPlaying =
