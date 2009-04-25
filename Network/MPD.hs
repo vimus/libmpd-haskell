@@ -25,7 +25,6 @@ import Network.MPD.Core
 
 import Control.Monad (liftM)
 import System.Environment (getEnv)
-import System.IO
 import System.IO.Error (isDoesNotExistError, ioError)
 
 -- | A wrapper for 'withMPDEx' that uses localhost:6600 as the default
