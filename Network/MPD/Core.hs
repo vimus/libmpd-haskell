@@ -150,10 +150,13 @@ kill = (send "kill" `catchError` cleanup) >> return ()
 getResponse :: (MonadMPD m) => String -> m [String]
 getResponse cmd = (send cmd >>= parseResponse) `catchError` sendpw
     where
-        sendpw (ACK Auth _) =
-            getPassword >>= (send . ("password "++)) >>= parseResponse
-        sendpw x =
-            throwError x
+        sendpw e@(ACK Auth _) = do
+            pw <- getPassword
+            if null pw then throwError e
+                else send ("password " ++ pw) >>= parseResponse
+                  >> send cmd >>= parseResponse
+        sendpw e =
+            throwError e
 
 -- Consume response and return a Response.
 parseResponse :: (MonadError MPDError m) => String -> m [String]

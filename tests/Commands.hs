@@ -13,7 +13,7 @@ module Commands (main) where
 
 import Displayable
 import Network.MPD.Commands
-import Network.MPD.Core (MPDError(..), Response)
+import Network.MPD.Core (MPDError(..), Response, ACKType(..))
 import StringConn
 
 import Prelude hiding (repeat)
@@ -89,6 +89,8 @@ main = mapM_ (\(n, x) -> putStrLn (printf "%-26s: %s" n x)) tests
                   ,("tagTypes", testTagTypes)
                   ,("urlHandlers", testUrlHandlers)
                   ,("password", testPassword)
+                  ,("passwordSucceeds", testPasswordSucceeds)
+                  ,("passwordFails", testPasswordFails)
                   ,("ping", testPing)
                   ,("stats", testStats)
                   ,("updateId0", testUpdateId0)
@@ -421,6 +423,27 @@ testUrlHandlers =
          urlHandlers
 
 testPassword = test_ [("password foo", Right "OK")] (password "foo")
+
+testPasswordSucceeds =
+    showResult $ testMPD convo expected_resp "foo" cmd
+    where
+        convo = [("lsinfo \"/\"", Right "ACK [4@0] {play} you don't have \
+                                        \permission for \"play\"")
+                ,("password foo", Right "OK")
+                ,("lsinfo \"/\"", Right "directory: /bar\nOK")]
+        expected_resp = Right [Left "/bar"]
+        cmd = lsInfo "/"
+
+testPasswordFails =
+    showResult $ testMPD convo expected_resp "foo" cmd
+    where
+        convo = [("play", Right "ACK [4@0] {play} you don't have \
+                                \permission for \"play\"")
+                ,("password foo",
+                  Right "ACK [3@0] {password} incorrect password")]
+        expected_resp =
+            Left $ ACK InvalidPassword " incorrect password"
+        cmd = play Nothing
 
 testPing = test_ [("ping", Right "OK")] ping
 
