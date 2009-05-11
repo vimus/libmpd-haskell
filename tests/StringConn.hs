@@ -23,12 +23,13 @@ type Expect = String
 data StringMPDError
     = TooManyRequests
     | UnexpectedRequest Expect String
-      deriving Show
+      deriving (Show, Eq)
 
 data Result a
     = Ok
     | BadResult (Response a) (Response a)  -- expected, then actual
     | BadRequest StringMPDError
+      deriving (Show, Eq)
 
 newtype MatchError = MErr (Either StringMPDError MPDError)
 instance Error MatchError where

@@ -11,23 +11,26 @@
 
 module Commands (main) where
 
+import Arbitrary ()
 import Displayable
 import Network.MPD.Commands
 import Network.MPD.Core (MPDError(..), Response, ACKType(..))
 import StringConn
 
 import Prelude hiding (repeat)
+import Data.Maybe (fromJust, isJust)
 import Text.Printf
+import qualified Test.QuickCheck as QC
+import Test.QuickCheck ((==>))
 
-main = mapM_ (\(n, x) -> putStrLn (printf "%-26s: %s" n x)) tests
+main = mapM_ (\(n, f) -> printf "%-25s : " n >> f) tests
     where tests = [("enableOutput", testEnableOutput)
                   ,("disableOutput", testDisableOutput)
                   ,("outputs", testOutputs)
                   ,("update0", testUpdate0)
                   ,("update1", testUpdate1)
                   ,("updateMany", testUpdateMany)
-                  ,("find", testFind)
-                  ,("find / complex query", testFindComplex)
+                  ,("prop_find", mycheck prop_find 100)
                   ,("list(Nothing)", testListNothing)
                   ,("list(Just)", testListJust)
                   ,("listAll", testListAll)
@@ -104,11 +107,14 @@ main = mapM_ (\(n, x) -> putStrLn (printf "%-26s: %s" n x)) tests
                   ]
 
 test :: (Show a, Eq a)
-     => [(Expect, Response String)] -> Response a -> StringMPD a -> String
-test a b = showResult . testMPD a b ""
+     => [(Expect, Response String)] -> Response a -> StringMPD a -> IO ()
+test a b c = putStrLn . showResult $ testMPD a b "" c
 
-test_ :: [(Expect, Response String)] -> StringMPD () -> String
-test_ a = test a (Right ())
+test_ :: [(Expect, Response String)] -> StringMPD () -> IO ()
+test_ a b = test a (Right ()) b
+
+mycheck :: QC.Testable a => a -> Int -> IO ()
+mycheck a n = QC.check QC.defaultConfig { QC.configMaxTest = n } a
 
 showResult :: Show a => Result a -> String
 showResult Ok =
@@ -154,19 +160,27 @@ testUpdateMany =
 -- Database commands
 --
 
-testFind =
-    test [("find Artist \"Foo\"", Right resp)] (Right [obj])
-    (find (Artist =? "Foo"))
-    where obj = empty { sgArtist = "Foo", sgTitle = "Bar"
-                      , sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60 }
-          resp = display obj ++ "OK"
-
-testFindComplex =
-    test [("find Artist \"Foo\" Album \"Bar\"", Right resp)] (Right [obj])
-    (find (Artist =? "Foo" <&> Album =? "Bar"))
-    where obj = empty { sgFilePath = "dir/Foo/Bar/Baz.ogg", sgArtist = "Foo"
-                      , sgAlbum = "Bar", sgTitle = "Baz" }
-          resp = display obj ++ "OK"
+prop_find :: Song -> Meta -> QC.Property
+prop_find song meta = isJust (sgDisc song) ==> result == Ok
+    where
+        result = testMPD [("find "++ show meta ++ " \"" ++ query ++ "\""
+                          ,Right (display song ++ "OK"))]
+                         (Right [song])
+                         ""
+                         (find (meta =? query))
+        query = case meta of
+            Artist    -> sgArtist    song
+            Album     -> sgAlbum     song
+            Title     -> sgTitle     song
+            Track     -> show $ fst $ sgTrack song
+            Name      -> sgName      song
+            Genre     -> sgGenre     song
+            Date      -> show $ sgDate song
+            Composer  -> sgComposer  song
+            Performer -> sgPerformer song
+            Disc      -> show $ fromJust $ sgDisc song
+            Filename  -> sgFilePath  song
+            Any       -> "Foo"
 
 testListNothing =
     test [("list Title", Right "Title: Foo\nTitle: Bar\nOK")]
@@ -424,7 +438,7 @@ testUrlHandlers =
 testPassword = test_ [("password foo", Right "OK")] (password "foo")
 
 testPasswordSucceeds =
-    showResult $ testMPD convo expected_resp "foo" cmd
+    putStrLn . showResult $ testMPD convo expected_resp "foo" cmd
     where
         convo = [("lsinfo \"/\"", Right "ACK [4@0] {play} you don't have \
                                         \permission for \"play\"")
@@ -434,7 +448,7 @@ testPasswordSucceeds =
         cmd = lsInfo "/"
 
 testPasswordFails =
-    showResult $ testMPD convo expected_resp "foo" cmd
+    putStrLn . showResult $ testMPD convo expected_resp "foo" cmd
     where
         convo = [("play", Right "ACK [4@0] {play} you don't have \
                                 \permission for \"play\"")
