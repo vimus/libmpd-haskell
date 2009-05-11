@@ -5,8 +5,8 @@
 module Arbitrary
     ( AssocString(..)
     , BoolString(..)
-    , SimpleDateString(..)
-    , ComplexDateString(..)
+    , YearString(..)
+    , DateString(..)
     , positive, field
     ) where
 
@@ -50,20 +50,20 @@ instance Arbitrary BoolString where
     arbitrary = BS `fmap` elements ["1", "0"]
 
 -- Simple date representation, like "2004" and "1998".
-newtype SimpleDateString = SDS String
+newtype YearString = YS String
     deriving Show
 
-instance Arbitrary SimpleDateString where
-    arbitrary = (SDS . show) `fmap` (positive :: Gen Integer)
+instance Arbitrary YearString where
+    arbitrary = (YS . show) `fmap` (positive :: Gen Integer)
 
 -- Complex date representations, like "2004-20-30".
-newtype ComplexDateString = CDS String
+newtype DateString = DS String
     deriving Show
 
-instance Arbitrary ComplexDateString where
+instance Arbitrary DateString where
     arbitrary = do
         (y,m,d) <- three (positive :: Gen Integer)
-        return . CDS . concat . intersperse "-" $ map show [y,m,d]
+        return . DS . concat . intersperse "-" $ map show [y,m,d]
 
 instance Arbitrary Count where
     arbitrary = liftM2 Count arbitrary arbitrary

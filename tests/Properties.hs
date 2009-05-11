@@ -43,11 +43,11 @@ main = do
 mytest :: Testable a => a -> Int -> IO ()
 mytest a n = check defaultConfig { configMaxTest = n } a
 
-prop_parseDate_simple :: SimpleDateString -> Bool
-prop_parseDate_simple (SDS x) = isJust $ parseDate x
+prop_parseDate_simple :: YearString -> Bool
+prop_parseDate_simple (YS x) = isJust $ parseDate x
 
-prop_parseDate_complex :: ComplexDateString -> Bool
-prop_parseDate_complex (CDS x) = isJust $ parseDate x
+prop_parseDate_complex :: DateString -> Bool
+prop_parseDate_complex (DS x) = isJust $ parseDate x
 
 -- Conversion to an association list.
 prop_toAssoc_rev :: AssocString -> Bool
