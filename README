@@ -12,6 +12,7 @@ Dependencies:
     network                                   http://hackage.haskell.org/cgi-bin/hackage-scripts/package/network
     mtl                                       http://hackage.haskell.org/cgi-bin/hackage-scripts/package/mtl
     filepath                                  http://hackage.haskell.org/cgi-bin/hackage-scripts/package/filepath
+    utf8-string                               http://hackage.haskell.org/cgi-bin/hackage-scripts/package/utf8-string
 
 Building:
     $ runhaskell Setup configure --prefix=$HOME
@@ -43,7 +44,7 @@ Latest Sources:
     darcs get http://turing.une.edu.au/~bsinclai/code/libmpd-haskell
 
 License:
-    LGPL
+    LGPL version 2.1
 
 Authors:
     Ben Sinclair <bsinclai@turing.une.edu.au>
