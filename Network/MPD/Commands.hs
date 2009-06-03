@@ -321,6 +321,7 @@ setVolume = getResponse_ . ("setvol" <$>)
 -- deprecated and may disappear at any time, please use 'setVolume' instead.
 volume :: MonadMPD m => Int -> m ()
 volume = getResponse_ . ("volume" <$>)
+{-# DEPRECATED volume "This command is deprecated, please use setVolume instead." #-}
 
 --
 -- Miscellaneous commands
