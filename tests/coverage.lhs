@@ -25,7 +25,7 @@ main = do
 
     -- Build and generate coverage report
     run "runhaskell Setup clean"
-    run "runhaskell Setup configure -f test -f coverage --disable-optimization"
+    run "runhaskell Setup configure -f test -f coverage --disable-optimization --user"
     run "runhaskell Setup build"
     run "dist/build/test/test"
     run ("hpc markup test.tix --destdir=report " ++ exclude)

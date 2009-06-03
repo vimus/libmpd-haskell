@@ -14,11 +14,11 @@ import System.Process
 
 main = do
     -- Build the test binary
-    run "runhaskell Setup configure -f test --disable-optimization"
+    run "runhaskell Setup configure -f test --disable-optimization --user"
     run "runhaskell Setup build"
 
     -- Generate library haddocks
-    run "runhaskell Setup configure"
+    run "runhaskell Setup configure --user"
     run "runhaskell Setup haddock --hyperlink"
 
     -- Run test suite and save output to test.log
