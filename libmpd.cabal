@@ -49,7 +49,7 @@ Executable test
     Hs-Source-Dirs:     . tests
     Main-Is:            tests/Main.hs
     Build-Depends:      base, network, mtl, filepath, utf8-string, QuickCheck < 2
-    ghc-options:        -Wall -Werror
+    ghc-options:        -Wall -Werror -fno-warn-warnings-deprecations
 
     if flag(coverage)
         ghc-options:    -fhpc
