@@ -525,7 +525,7 @@ data EntryType
 -- Separate the result of an lsinfo\/listallinfo call into directories,
 -- playlists, and songs.
 takeEntries :: MonadMPD m => [String] -> m [EntryType]
-takeEntries = mapM toEntry . splitGroups wrappers . toAssocList . reverse
+takeEntries = mapM toEntry . splitGroups wrappers . toAssocList
     where
         toEntry xs@(("file",_):_)   = liftM SongEntry $ runParser parseSong xs
         toEntry (("directory",d):_) = return $ DirEntry d
