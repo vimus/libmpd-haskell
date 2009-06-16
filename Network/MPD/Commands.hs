@@ -520,7 +520,7 @@ data EntryType
     = SongEntry Song
     | PLEntry   String
     | DirEntry  String
-      deriving Show
+      deriving (Eq, Show)
 
 -- Separate the result of an lsinfo\/listallinfo call into directories,
 -- playlists, and songs.

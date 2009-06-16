@@ -18,6 +18,7 @@ import Network.MPD.Core (MPDError(..), Response, ACKType(..))
 import StringConn
 
 import Prelude hiding (repeat)
+import Data.Char (isPrint)
 import Data.Maybe (fromJust, isJust)
 import Text.Printf
 import qualified Test.QuickCheck as QC
@@ -31,6 +32,8 @@ main = mapM_ (\(n, f) -> printf "%-25s : " n >> f) tests
                   ,("update1", testUpdate1)
                   ,("updateMany", testUpdateMany)
                   ,("prop_find", mycheck prop_find 100)
+                  ,("prop_lsFiles", mycheck prop_lsFiles 100)
+                  ,("prop_lsDirs", mycheck prop_lsDirs 100)
                   ,("list(Nothing)", testListNothing)
                   ,("list(Just)", testListJust)
                   ,("listAll", testListAll)
@@ -182,6 +185,26 @@ prop_find song meta = isJust (sgDisc song) ==> result == Ok
             Filename  -> sgFilePath  song
             Any       -> "Foo"
 
+prop_lsFiles :: [Song] -> Bool
+prop_lsFiles ss = result == Ok
+    where
+        result =
+            testMPD [("lsinfo \"\"", Right (concatMap display ss ++ "OK"))]
+                    (Right (map sgFilePath ss))
+                    ""
+                    (lsFiles "")
+
+prop_lsDirs :: [Path] -> QC.Property
+prop_lsDirs ds = all (all goodChar) ds ==> result == Ok
+    where
+        goodChar c = ('\n' /= c) && (isPrint c)
+        asDir d = "directory: " ++ d ++ "\n"
+        result =
+            testMPD [("lsinfo \"\"", Right (concatMap asDir ds ++ "OK"))]
+                    (Right ds)
+                    ""
+                    (lsDirs "")
+
 testListNothing =
     test [("list Title", Right "Title: Foo\nTitle: Bar\nOK")]
          (Right ["Foo", "Bar"])
@@ -204,14 +227,14 @@ testListAll =
 testLsInfo =
     test [("lsinfo \"\"",
            Right $ "directory: Foo\n" ++ display song ++ "playlist: Quux\nOK")]
-         (Right [Right song, Left "Foo"])
+         (Right [Left "Foo", Right song])
          (lsInfo "")
     where
         song = empty { sgFilePath = "Bar.ogg" }
 
 testListAllInfo =
     test [("listallinfo \"\"", Right "directory: Foo\ndirectory: Bar\nOK")]
-         (Right [Left "Bar", Left "Foo"])
+         (Right [Left "Foo", Left "Bar"])
          (listAllInfo "")
 
 testSearch =
