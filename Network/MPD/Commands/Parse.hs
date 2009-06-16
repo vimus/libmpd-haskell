@@ -18,18 +18,17 @@ import Network.MPD.Core (MonadMPD, MPDError(Unexpected))
 
 -- | Builds a 'Count' instance from an assoc. list.
 parseCount :: [String] -> Either String Count
-parseCount = foldM f empty . toAssocList
+parseCount = foldM f defaultCount . toAssocList
         where f :: Count -> (String, String) -> Either String Count
               f a ("songs", x)    = return $ parse parseNum
                                     (\x' -> a { cSongs = x'}) a x
               f a ("playtime", x) = return $ parse parseNum
                                     (\x' -> a { cPlaytime = x' }) a x
               f _ x               = Left $ show x
-              empty = Count { cSongs = 0, cPlaytime = 0 }
 
 -- | Builds a list of 'Device' instances from an assoc. list
 parseOutputs :: [String] -> Either String [Device]
-parseOutputs = mapM (foldM f empty)
+parseOutputs = mapM (foldM f defaultDevice)
              . splitGroups [("outputid",id)]
              . toAssocList
     where f a ("outputid", x)      = return $ parse parseNum
@@ -38,7 +37,6 @@ parseOutputs = mapM (foldM f empty)
           f a ("outputenabled", x) = return $ parse parseBool
                                      (\x' -> a { dOutputEnabled = x'}) a x
           f _ x                    = fail $ show x
-          empty = Device 0 "" False
 
 -- | Builds a 'Stats' instance from an assoc. list.
 parseStats :: [String] -> Either String Stats
@@ -59,14 +57,10 @@ parseStats = foldM f defaultStats . toAssocList
         f a ("db_update", x)   = return $ parse parseNum
                                  (\x' -> a { stsDbUpdate = x' }) a x
         f _ x = fail $ show x
-        defaultStats =
-            Stats { stsArtists = 0, stsAlbums = 0, stsSongs = 0, stsUptime = 0
-                  , stsPlaytime = 0, stsDbPlaytime = 0, stsDbUpdate = 0 }
-
 
 -- | Builds a 'Song' instance from an assoc. list.
 parseSong :: [(String, String)] -> Either String Song
-parseSong xs = foldM f song xs
+parseSong xs = foldM f defaultSong xs
     where f a ("Artist", x)    = return a { sgArtist = x }
           f a ("Album", x)     = return a { sgAlbum  = x }
           f a ("Title", x)     = return a { sgTitle = x }
@@ -103,15 +97,9 @@ parseSong xs = foldM f song xs
                              (Just x', Just y') -> Just (x', y')
                              _                  -> Nothing
 
-          song = Song { sgArtist = "", sgAlbum = "", sgTitle = ""
-                      , sgGenre = "", sgName = "", sgComposer = ""
-                      , sgPerformer = "", sgDate = 0, sgTrack = (0,0)
-                      , sgDisc = Nothing, sgFilePath = "", sgLength = 0
-                      , sgIndex = Nothing }
-
 -- | Builds a 'Status' instance from an assoc. list.
 parseStatus :: [String] -> Either String Status
-parseStatus = foldM f empty . toAssocList
+parseStatus = foldM f defaultStatus . toAssocList
     where f a ("state", x)
               = return $ parse state     (\x' -> a { stState = x' }) a x
           f a ("volume", x)
@@ -155,9 +143,6 @@ parseStatus = foldM f empty . toAssocList
                     case (parseNum u, parseNum v, parseNum w) of
                         (Just a, Just b, Just c) -> Just (a, b, c)
                         _                        -> Nothing
-
-          empty = Status Stopped 0 False False 0 0 Nothing Nothing (0,0) 0 0
-                  (0,0,0) 0 ""
 
 -- | Run a parser and lift the result into the 'MPD' monad
 runParser :: (MonadMPD m, MonadError MPDError m)

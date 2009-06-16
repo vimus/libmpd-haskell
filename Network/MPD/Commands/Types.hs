@@ -51,6 +51,9 @@ data Count =
           }
     deriving (Eq, Show)
 
+defaultCount :: Count
+defaultCount = Count { cSongs = 0, cPlaytime = 0 }
+
 -- | Represents an output device.
 data Device =
     Device { dOutputID      :: Int    -- ^ Output's ID number
@@ -58,6 +61,10 @@ data Device =
                                       --   configuration file
            , dOutputEnabled :: Bool }
     deriving (Eq, Show)
+
+defaultDevice :: Device
+defaultDevice =
+    Device { dOutputID = 0, dOutputName = "", dOutputEnabled = False }
 
 -- | Container for database statistics.
 data Stats =
@@ -72,6 +79,11 @@ data Stats =
           }
     deriving (Eq, Show)
 
+defaultStats :: Stats
+defaultStats =
+     Stats { stsArtists = 0, stsAlbums = 0, stsSongs = 0, stsUptime = 0
+           , stsPlaytime = 0, stsDbPlaytime = 0, stsDbUpdate = 0 }
+
 -- | Represents a single song item.
 data Song =
     Song { sgArtist, sgAlbum, sgTitle, sgFilePath, sgGenre, sgName, sgComposer
@@ -82,6 +94,14 @@ data Song =
          , sgDisc      :: Maybe (Int, Int) -- ^ Position in set\/total in set
          , sgIndex     :: Maybe PLIndex }
     deriving (Eq, Show)
+
+defaultSong :: Song
+defaultSong =
+    Song { sgArtist = "", sgAlbum = "", sgTitle = ""
+         , sgGenre = "", sgName = "", sgComposer = ""
+         , sgPerformer = "", sgDate = 0, sgTrack = (0,0)
+         , sgDisc = Nothing, sgFilePath = "", sgLength = 0
+         , sgIndex = Nothing }
 
 -- | Container for MPD status.
 data Status =
@@ -113,3 +133,11 @@ data Status =
              -- | Last error message (if any).
            , stError           :: String }
     deriving (Eq, Show)
+
+defaultStatus :: Status
+defaultStatus =
+    Status { stState = Stopped, stVolume = 0, stRepeat = False
+           , stRandom = False, stPlaylistVersion = 0, stPlaylistLength = 0
+           , stSongPos = Nothing, stSongID = Nothing, stTime = (0,0)
+           , stBitrate = 0, stXFadeWidth = 0, stAudio = (0,0,0)
+           , stUpdatingDb = 0, stError = "" }
