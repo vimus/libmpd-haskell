@@ -119,6 +119,10 @@ data Status =
            , stSongPos         :: Maybe PLIndex
              -- | Current song's playlist ID.
            , stSongID          :: Maybe PLIndex
+             -- | Next song's position in the playlist.
+           , stNextSongPos     :: Maybe PLIndex
+             -- | Next song's playlist ID.
+           , stNextSongID      :: Maybe PLIndex
              -- | Time elapsed\/total time.
            , stTime            :: (Seconds, Seconds)
              -- | Bitrate (in kilobytes per second) of playing song (if any).
@@ -130,6 +134,10 @@ data Status =
            , stAudio           :: (Int, Int, Int)
              -- | Job ID of currently running update (if any).
            , stUpdatingDb      :: Integer
+             -- | If True, MPD will play only one song and stop after finishing it.
+           , stSingle          :: Bool
+             -- | If True, a song will be removed after it has been played.
+           , stConsume         :: Bool
              -- | Last error message (if any).
            , stError           :: String }
     deriving (Eq, Show)
@@ -139,5 +147,7 @@ defaultStatus =
     Status { stState = Stopped, stVolume = 0, stRepeat = False
            , stRandom = False, stPlaylistVersion = 0, stPlaylistLength = 0
            , stSongPos = Nothing, stSongID = Nothing, stTime = (0,0)
+           , stNextSongPos = Nothing, stNextSongID = Nothing
            , stBitrate = 0, stXFadeWidth = 0, stAudio = (0,0,0)
-           , stUpdatingDb = 0, stError = "" }
+           , stUpdatingDb = 0, stSingle = False, stConsume = False
+           , stError = "" }

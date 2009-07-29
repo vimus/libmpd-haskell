@@ -128,6 +128,14 @@ parseStatus = foldM f defaultStatus . toAssocList
               = return $ parse parseNum  (\x' -> a { stUpdatingDb = x' }) a x
           f a ("error", x)
               = return a { stError = x }
+          f a ("single", x)
+              = return $ parse parseBool (\x' -> a { stSingle = x' }) a x
+          f a ("consume", x)
+              = return $ parse parseBool (\x' -> a { stConsume = x' }) a x
+          f a ("nextsong", x)
+              = return $ parse parseNum  (\x' -> a { stNextSongPos = Just (Pos x') }) a x
+          f a ("nextsongid", x)
+              = return $ parse parseNum  (\x' -> a { stNextSongID = Just (ID x') }) a x
           f _ x
               = fail $ show x
 

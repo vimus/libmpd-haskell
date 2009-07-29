@@ -29,8 +29,8 @@ module Network.MPD.Commands (
     swap,
 
     -- * Playback commands
-    crossfade, next, pause, play, previous, random, repeat, seek, setVolume,
-    volume, stop,
+    crossfade, next, pause, play, previous, random, repeat, single, consume,
+    seek, setVolume, volume, stop,
 
     -- * Miscellaneous commands
     clearError, commands, notCommands, password, ping, stats, status,
@@ -309,6 +309,14 @@ random = getResponse_ . ("random" <$>)
 -- | Set repeating.
 repeat :: MonadMPD m => Bool -> m ()
 repeat = getResponse_ . ("repeat" <$>)
+
+-- | Set single mode
+single :: MonadMPD m => Bool -> m ()
+single = getResponse_ . ("single" <$>)
+
+-- | Set consume mode
+consume :: MonadMPD m => Bool -> m ()
+consume = getResponse_ . ("consume" <$>)
 
 -- | Set the volume (0-100 percent).
 setVolume :: MonadMPD m => Int -> m ()

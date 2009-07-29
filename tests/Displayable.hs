@@ -58,9 +58,11 @@ instance Displayable Stats where
 
 instance Displayable Status where
     empty = Status { stState = Stopped, stVolume = 0, stRepeat = False
-                   , stRandom = False, stPlaylistVersion = 0
-                   , stPlaylistLength = 0, stSongPos = Nothing
-                   , stSongID = Nothing, stTime = (0, 0), stBitrate = 0
+                   , stRandom = False, stSingle = False, stConsume = False
+                   , stPlaylistVersion = 0, stPlaylistLength = 0
+                   , stSongPos = Nothing, stSongID = Nothing
+                   , stNextSongPos = Nothing, stNextSongID = Nothing
+                   , stTime = (0, 0), stBitrate = 0
                    , stXFadeWidth = 0, stAudio = (0, 0, 0)
                    , stUpdatingDb = 0, stError = "" }
     display s = unlines $
