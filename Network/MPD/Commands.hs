@@ -445,11 +445,11 @@ crop x y = do
     where findByID i = findIndex ((==) i . (\(ID j) -> j) . fromJust . sgIndex)
 
 -- | Remove duplicate playlist entries.
-prune :: MPD ()
+prune :: MonadMPD m => m ()
 prune = findDuplicates >>= deleteMany ""
 
 -- Find duplicate playlist entries.
-findDuplicates :: MPD [PLIndex]
+findDuplicates :: MonadMPD m => m [PLIndex]
 findDuplicates =
     liftM (map ((\(ID x) -> ID x) . fromJust . sgIndex) . flip dups ([],[])) $
         playlistInfo Nothing
@@ -472,12 +472,12 @@ lsFiles path =
         takeEntries =<< getResponse ("lsinfo" <$> path)
 
 -- | List all playlists.
-lsPlaylists :: MPD [PlaylistName]
+lsPlaylists :: MonadMPD m => m [PlaylistName]
 lsPlaylists = liftM (extractEntries (const Nothing, Just, const Nothing)) $
                     takeEntries =<< getResponse "lsinfo"
 
 -- | List the artists in the database.
-listArtists :: MPD [Artist]
+listArtists :: MonadMPD m => m [Artist]
 listArtists = liftM takeValues (getResponse "list artist")
 
 -- | List the albums in the database, optionally matching a given
