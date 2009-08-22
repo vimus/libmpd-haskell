@@ -84,8 +84,8 @@ parseSong xs = foldM f defaultSong xs
                            (\x' -> a { sgIndex = Just (Pos x') }) a x)
                     (const $ return a)
                     (sgIndex a)
-          -- Ignore unrecognised keys
-          f a _                = return a
+          -- Collect auxiliary keys
+          f a (k, v)           = return a { sgAux = (k, v) : sgAux a }
 
           parseTuple s = let (x, y) = breakChar '/' s in
                          -- Handle incomplete values. For example, songs might

@@ -85,7 +85,7 @@ instance Arbitrary Song where
                       , sgFilePath = file, sgGenre = genre, sgName = name
                       , sgComposer = cmpsr, sgPerformer = prfmr, sgLength = len
                       , sgDate = date, sgTrack = track, sgDisc = Just disc
-                      , sgIndex = idx }
+                      , sgIndex = idx, sgAux = [] }
 
 instance Arbitrary Stats where
     arbitrary =

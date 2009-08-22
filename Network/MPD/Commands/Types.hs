@@ -92,7 +92,8 @@ data Song =
          , sgDate      :: Int              -- ^ Year
          , sgTrack     :: (Int, Int)       -- ^ Track number\/total tracks
          , sgDisc      :: Maybe (Int, Int) -- ^ Position in set\/total in set
-         , sgIndex     :: Maybe PLIndex }
+         , sgIndex     :: Maybe PLIndex
+         , sgAux       :: [(String, String)] } -- ^ Auxiliary song fields
     deriving (Eq, Show)
 
 defaultSong :: Song
@@ -101,7 +102,7 @@ defaultSong =
          , sgGenre = "", sgName = "", sgComposer = ""
          , sgPerformer = "", sgDate = 0, sgTrack = (0,0)
          , sgDisc = Nothing, sgFilePath = "", sgLength = 0
-         , sgIndex = Nothing }
+         , sgIndex = Nothing, sgAux = [] }
 
 -- | Container for MPD status.
 data Status =

@@ -27,7 +27,8 @@ instance Displayable Song where
     empty = Song { sgArtist = "", sgAlbum = "", sgTitle = "", sgFilePath = ""
                  , sgGenre  = "", sgName  = "", sgComposer = ""
                  , sgPerformer = "", sgLength = 0, sgDate = 0
-                 , sgTrack = (0,0), sgDisc = Nothing, sgIndex = Nothing }
+                 , sgTrack = (0,0), sgDisc = Nothing, sgIndex = Nothing
+                 , sgAux = [] }
     display s = unlines $
         ["file: "      ++ sgFilePath s
         ,"Artist: "    ++ sgArtist s
