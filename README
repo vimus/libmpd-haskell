@@ -1,4 +1,3 @@
-
               libmpd : An MPD client library for Haskell
              --------------------------------------------
 
@@ -6,21 +5,14 @@ About MPD:
     MPD is a daemon for playing music that is controlled over network
     sockets. Its website is at http://www.musicpd.org/.
 
-Dependencies:
-    The Glasgow Haskell Compiler >= 6.6       http://haskell.org/ghc
-    Cabal >= 1.2                              http://haskell.org/cabal
-    network                                   http://hackage.haskell.org/cgi-bin/hackage-scripts/package/network
-    mtl                                       http://hackage.haskell.org/cgi-bin/hackage-scripts/package/mtl
-    filepath                                  http://hackage.haskell.org/cgi-bin/hackage-scripts/package/filepath
-    utf8-string                               http://hackage.haskell.org/cgi-bin/hackage-scripts/package/utf8-string
-
 Building:
-    $ runhaskell Setup configure --prefix=$HOME
-    $ runhaskell Setup build
-    $ runhaskell Setup install --user
+    $ cd libmpd-haskell
+    $ cabal configure --user
+    $ cabal build
+    $ cabal install --user
 
-    This assumes you have Cabal installed. Cabal is installed by
-    default with newer GHCs.
+    This assumes you have cabal-install, which is available at
+    http://hackage.haskell.org/package/cabal-install
 
 API compatibility:
     This library covers all the functionality provided by MPD version 0.13.0.
@@ -41,7 +33,7 @@ Platforms:
     Seems to work (as in compile) on Windows XP as well.
 
 Latest Sources:
-    darcs get http://turing.une.edu.au/~bsinclai/code/libmpd-haskell
+    darcs get http://code.haskell.org/libmpd/libmpd-head
 
 License:
     LGPL version 2.1
