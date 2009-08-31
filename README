@@ -33,11 +33,12 @@ Platforms:
     Seems to work (as in compile) on Windows XP as well.
 
 Latest Sources:
-    darcs get http://code.haskell.org/libmpd/libmpd-head
+    git clone git://github.com/bens/libmpd-haskell.git
 
 License:
     LGPL version 2.1
 
 Authors:
-    Ben Sinclair <bsinclai@turing.une.edu.au>
+    Ben Sinclair <ben.d.sinclair@gmail.com>
     Joachim Fasting <joachim.fasting@gmail.com>
+    Daniel Schoepe <daniel.schoepe@googlemail.com>

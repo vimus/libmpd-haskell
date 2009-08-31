@@ -28,8 +28,8 @@ flag coverage
     Default: False
 
 Source-Repository head
-    type:       darcs
-    location:   http://code.haskell.org/libmpd/libmpd-head
+    type:       git
+    location:   git://github.com/bens/libmpd-haskell.git
 
 Library
     Build-Depends:      base >= 3 && < 4.1, network >= 2.1 && < 2.3,
