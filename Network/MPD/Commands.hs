@@ -545,7 +545,7 @@ takeEntries = mapM toEntry . splitGroups wrappers . toAssocList
 -- Extract a subset of songs, directories, and playlists.
 extractEntries :: (Song -> Maybe a, String -> Maybe a, String -> Maybe a)
                -> [EntryType] -> [a]
-extractEntries (fSong,fPlayList,fDir) = catMaybes . map f
+extractEntries (fSong,fPlayList,fDir) = mapMaybe f
     where
         f (SongEntry s) = fSong s
         f (PLEntry pl)  = fPlayList pl

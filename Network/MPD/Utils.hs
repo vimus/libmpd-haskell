@@ -68,4 +68,4 @@ splitGroups wrappers (x@(k,_):xs) =
     fromMaybe (splitGroups wrappers xs) $ do
         f <- k `lookup` wrappers
         let (us,vs) = break (\(k',_) -> k' `elem` map fst wrappers) xs
-        return $ (f $ x:us) : splitGroups wrappers vs
+        return $ f (x:us) : splitGroups wrappers vs

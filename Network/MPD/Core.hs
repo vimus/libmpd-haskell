@@ -74,7 +74,7 @@ instance MonadMPD MPD where
     getPassword = MPD $ ask >>= \(_,_,pw) -> return pw
 
 -- | A response is either an 'MPDError' or some result.
-type Response a = Either MPDError a
+type Response = Either MPDError
 
 -- | The most configurable API for running an MPD action.
 withMPDEx :: Host -> Port -> Password -> MPD a -> IO (Response a)
@@ -92,8 +92,7 @@ mpdOpen = MPD $ do
     where
         safeConnectTo host port =
             (Just <$> connectTo host (PortNumber $ fromInteger port))
-            `catch`
-            (const $ return Nothing)
+            `catch` const (return Nothing)
 
         checkConn =
             isPrefixOf "OK MPD" <$> send ""
@@ -104,8 +103,7 @@ mpdClose =
     where
         sendClose handle =
             (hPutStrLn handle "close" >> hReady handle >> hClose handle)
-            `catch`
-            (whenEOF $ return ())
+            `catch` whenEOF (return ())
 
         whenEOF result err
             | isEOFError err = result
@@ -139,12 +137,14 @@ mpdSend str = send' `catchError` handler
 -- Other operations.
 --
 
+ignore :: (Monad m) => m a -> m ()
+ignore x = x >> return ()
+
 -- | Kill the server. Obviously, the connection is then invalid.
 kill :: (MonadMPD m) => m ()
-kill = (send "kill" `catchError` cleanup) >> return ()
+kill = ignore (send "kill") `catchError` cleanup
     where
-        cleanup TimedOut = close >> return ""
-        cleanup x = throwError x
+        cleanup e = if e == TimedOut then close else throwError e
 
 -- | Send a command to the MPD server and return the result.
 getResponse :: (MonadMPD m) => String -> m [String]
