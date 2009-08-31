@@ -430,8 +430,6 @@ testRepeat = test_ [("repeat 0", Right "OK")] (repeat False)
 
 testSetVolume = test_ [("setvol 10", Right "OK")] (setVolume 10)
 
-testVolume = test_ [("volume 10", Right "OK")] (volume 10)
-
 --
 -- Miscellaneous commands
 --
@@ -527,3 +525,6 @@ testAddMany1 = test_ [("playlistadd \"foo\" \"bar\"", Right "OK")]
 
 testDeleteMany1 = test_ [("playlistdelete \"foo\" 1", Right "OK")]
                   (deleteMany "foo" [Pos 1])
+
+testVolume = test_ [("status", Right st), ("setvol 90", Right "OK")] (volume (-10))
+    where st = display empty { stVolume = 100 }

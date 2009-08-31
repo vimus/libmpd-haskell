@@ -30,7 +30,7 @@ module Network.MPD.Commands (
 
     -- * Playback commands
     crossfade, next, pause, play, previous, random, repeat, single, consume,
-    seek, setVolume, volume, stop,
+    seek, setVolume, stop,
 
     -- * Miscellaneous commands
     clearError, commands, notCommands, password, ping, stats, status,
@@ -38,7 +38,7 @@ module Network.MPD.Commands (
 
     -- * Extensions\/shortcuts
     addMany, deleteMany, complete, crop, prune, lsDirs, lsFiles, lsPlaylists,
-    listArtists, listAlbums, listAlbum, getPlaylist, toggle, updateId
+    listArtists, listAlbums, listAlbum, getPlaylist, toggle, updateId, volume
     ) where
 
 import Network.MPD.Commands.Arg
@@ -322,15 +322,6 @@ consume = getResponse_ . ("consume" <$>)
 setVolume :: MonadMPD m => Int -> m ()
 setVolume = getResponse_ . ("setvol" <$>)
 
--- | Increase or decrease volume by a given percent, e.g.
--- 'volume 10' will increase the volume by 10 percent, while
--- 'volume (-10)' will decrease it by the same amount.
--- Note that this command is only included for completeness sake ; it's
--- deprecated and may disappear at any time, please use 'setVolume' instead.
-volume :: MonadMPD m => Int -> m ()
-volume = getResponse_ . ("volume" <$>)
-{-# DEPRECATED volume "This command is deprecated, please use setVolume instead." #-}
-
 --
 -- Miscellaneous commands
 --
@@ -494,6 +485,14 @@ listAlbum artist album = find (Artist =? artist <&> Album =? album)
 -- Equivalent to @playlistinfo Nothing@.
 getPlaylist :: MonadMPD m => m [Song]
 getPlaylist = playlistInfo Nothing
+
+-- | Increase or decrease volume by a given percent, e.g.
+-- 'volume 10' will increase the volume by 10 percent, while
+-- 'volume (-10)' will decrease it by the same amount.
+volume :: MonadMPD m => Int -> m ()
+volume n = do
+    current <- (fromIntegral . stVolume) `liftM` status
+    setVolume . round $ (fromIntegral n / 100) * current + current
 
 --
 -- Miscellaneous functions.
