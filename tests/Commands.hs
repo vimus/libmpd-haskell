@@ -18,7 +18,7 @@ import Network.MPD.Core (MPDError(..), Response, ACKType(..))
 import StringConn
 
 import Prelude hiding (repeat)
-import Data.Char (isPrint)
+import Data.Char (isPrint, isSpace)
 import Data.Maybe (fromJust, isJust)
 import Text.Printf
 import qualified Test.QuickCheck as QC
@@ -201,7 +201,7 @@ prop_lsDirs ds = all (all goodChar) ds ==> result == Ok
         asDir d = "directory: " ++ d ++ "\n"
         result =
             testMPD [("lsinfo \"\"", Right (concatMap asDir ds ++ "OK"))]
-                    (Right ds)
+                    (Right $ map (dropWhile isSpace) ds)
                     ""
                     (lsDirs "")
 
