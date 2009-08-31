@@ -49,7 +49,7 @@ main = mapM_ (\(n, f) -> printf "%-25s : " n >> f) tests
                   ,("clear / current", testClearCurrent)
                   ,("plChangesPosId 0", testPlChangesPosId_0)
                   ,("plChangesPosId 1", testPlChangesPosId_1)
-                  ,("plChangesPosId wierd", testPlChangesPosId_Wierd)
+                  ,("plChangesPosId weird", testPlChangesPosId_Weird)
                   ,("currentSong(_)", testCurrentSongStopped)
                   ,("currentSong(>)", testCurrentSongPlaying)
                   ,("delete0", testDelete0)
@@ -285,7 +285,7 @@ testPlChangesPosId_1 =
          (Right [(Pos 0, ID 20)])
          (plChangesPosId 10)
 
-testPlChangesPosId_Wierd =
+testPlChangesPosId_Weird =
     test [("plchangesposid 10", Right "cpos: foo\nId: bar\nOK")]
          (Left $ Unexpected "[(\"cpos\",\"foo\"),(\"Id\",\"bar\")]")
          (plChangesPosId 10)
