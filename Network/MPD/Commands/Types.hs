@@ -8,7 +8,7 @@
 
 module Network.MPD.Commands.Types where
 
-import Network.MPD.Commands.Arg (MPDArg)
+import Network.MPD.Commands.Arg (MPDArg(prep), Args(Args))
 
 type Artist       = String
 type Album        = String
@@ -43,6 +43,28 @@ data State = Playing
            | Stopped
            | Paused
     deriving (Show, Eq)
+
+-- | Represents the various MPD subsystems.
+data Subsystem
+    = Database          -- ^ The song database
+    | Update            -- ^ Database updates
+    | StoredPlaylist    -- ^ Stored playlists
+    | Playlist          -- ^ The current playlist
+    | Player            -- ^ The player
+    | Mixer             -- ^ The volume mixer
+    | Output            -- ^ Audio outputs
+    | Options           -- ^ Playback options
+      deriving (Eq, Show)
+
+instance MPDArg Subsystem where
+    prep Database = Args ["database"]
+    prep Update = Args ["update"]
+    prep StoredPlaylist = Args ["stored_playlist"]
+    prep Playlist = Args ["playlist"]
+    prep Player = Args ["player"]
+    prep Mixer = Args ["mixer"]
+    prep Output = Args ["output"]
+    prep Options = Args ["options"]
 
 -- | Represents the result of running 'count'.
 data Count =
