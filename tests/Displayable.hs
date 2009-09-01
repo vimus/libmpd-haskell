@@ -11,24 +11,20 @@ class Displayable a where
                              --   string
 
 instance Displayable Count where
-    empty = Count { cSongs = 0, cPlaytime = 0 }
+    empty = defaultCount
     display s = unlines
         ["songs: "    ++ show (cSongs s)
         ,"playtime: " ++ show (cPlaytime s)]
 
 instance Displayable Device where
-    empty = Device 0 "" False
+    empty = defaultDevice
     display d = unlines
         ["outputid: "      ++ show (dOutputID d)
         ,"outputname: "    ++ dOutputName d
         ,"outputenabled: " ++ showBool (dOutputEnabled d)]
 
 instance Displayable Song where
-    empty = Song { sgArtist = "", sgAlbum = "", sgTitle = "", sgFilePath = ""
-                 , sgGenre  = "", sgName  = "", sgComposer = ""
-                 , sgPerformer = "", sgLength = 0, sgDate = 0
-                 , sgTrack = (0,0), sgDisc = Nothing, sgIndex = Nothing
-                 , sgAux = [] }
+    empty = defaultSong
     display s = unlines $
         ["file: "      ++ sgFilePath s
         ,"Artist: "    ++ sgArtist s
@@ -46,8 +42,7 @@ instance Displayable Song where
                                       ID  n -> "Id: "  ++ show n]) (sgIndex s)
 
 instance Displayable Stats where
-    empty = Stats { stsArtists = 0, stsAlbums = 0, stsSongs = 0, stsUptime = 0
-                  , stsPlaytime = 0, stsDbPlaytime = 0, stsDbUpdate = 0 }
+    empty = defaultStats
     display s = unlines
         ["artists: " ++ show (stsArtists s)
         ,"albums: " ++ show (stsAlbums s)
@@ -58,14 +53,7 @@ instance Displayable Stats where
         ,"db_update: " ++ show (stsDbUpdate s)]
 
 instance Displayable Status where
-    empty = Status { stState = Stopped, stVolume = 0, stRepeat = False
-                   , stRandom = False, stSingle = False, stConsume = False
-                   , stPlaylistVersion = 0, stPlaylistLength = 0
-                   , stSongPos = Nothing, stSongID = Nothing
-                   , stNextSongPos = Nothing, stNextSongID = Nothing
-                   , stTime = (0, 0), stBitrate = 0
-                   , stXFadeWidth = 0, stAudio = (0, 0, 0)
-                   , stUpdatingDb = 0, stError = "" }
+    empty = defaultStatus
     display s = unlines $
         ["state: " ++ (case stState s of Playing -> "play"
                                          Paused  -> "pause"
