@@ -419,8 +419,10 @@ complete path = do
 
 -- | Crop playlist.
 -- The bounds are inclusive.
--- If 'Nothing' or 'ID' is passed the cropping will leave your playlist alone
+-- If 'Nothing' is passed the cropping will leave your playlist alone
 -- on that side.
+-- Using 'ID' will automatically find the absolute playlist position and use
+-- that as the cropping boundary.
 crop :: MonadMPD m => Maybe PLIndex -> Maybe PLIndex -> m ()
 crop x y = do
     pl <- playlistInfo Nothing
