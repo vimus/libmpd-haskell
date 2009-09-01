@@ -89,6 +89,8 @@ main = mapM_ (\(n, f) -> printf "%-25s : " n >> f) tests
                   ,("repeat", testRepeat)
                   ,("setVolume", testSetVolume)
                   ,("volume", testVolume)
+                  ,("consume", testConsume)
+                  ,("single", testSingle)
                   ,("clearError", testClearError)
                   ,("commands", testCommands)
                   ,("notCommands", testNotCommands)
@@ -430,6 +432,10 @@ testRepeat = test_ [("repeat 0", Right "OK")] (repeat False)
 
 testSetVolume = test_ [("setvol 10", Right "OK")] (setVolume 10)
 
+testConsume = test_ [("consume 1", Right "OK")] (consume True)
+
+testSingle = test_ [("single 1", Right "OK")] (single True)
+
 --
 -- Miscellaneous commands
 --
@@ -528,3 +534,5 @@ testDeleteMany1 = test_ [("playlistdelete \"foo\" 1", Right "OK")]
 
 testVolume = test_ [("status", Right st), ("setvol 90", Right "OK")] (volume (-10))
     where st = display empty { stVolume = 100 }
+
+

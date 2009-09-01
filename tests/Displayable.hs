@@ -83,7 +83,9 @@ instance Displayable Status where
         ,"audio: " ++ (let (x, y, z) = stAudio s in show x ++ ":" ++ show y ++
                                        ":" ++ show z)
         ,"updating_db: " ++ show (stUpdatingDb s)
-        ,"error: " ++ show (stError s)]
+        ,"error: " ++ show (stError s)
+        ,"single: " ++ showBool (stSingle s)
+        ,"consume: " ++ showBool (stConsume s)]
         ++ maybe [] (\x -> [case x of Pos n -> "song: " ++ show n
                                       _     -> undefined]) (stSongPos s)
         ++ maybe [] (\x -> [case x of ID n  -> "songid: " ++ show n
