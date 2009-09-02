@@ -5,11 +5,13 @@ Usage: runhaskell run-tests.lhs [arguments]
 
 \begin{code}
 import Control.Monad (when)
+import Data.Maybe (isJust)
 import System.Directory (removeFile)
 import System.Environment (getArgs)
 import System.Exit (ExitCode(..), exitWith)
 import System.IO (hGetContents)
 import System.Process
+import Text.Regex (matchRegex, mkRegex)
 
 
 main = do
@@ -31,9 +33,8 @@ main = do
     writeFile "test.log" result
 
     -- Detect failure
-    let ws = concatMap words (lines result)
-        failStrings = ["Falsifiable", "*** FAILURE ***"]
-    when (any (`elem` ws) failStrings) $ do
+    let re = mkRegex "Falsifiable|\\*\\*\\* FAILURE \\*\\*\\*"
+    when (isJust $ matchRegex re result) $ do
         putStrLn "Failure detected: see test.log"
         exitWith (ExitFailure 1)
 
