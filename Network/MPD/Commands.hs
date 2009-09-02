@@ -17,6 +17,7 @@ module Network.MPD.Commands (
 
     -- * Admin commands
     disableOutput, enableOutput, kill, outputs, update,
+    idle, noidle,
 
     -- * Database commands
     find, list, listAll, listAllInfo, lsInfo, search, count,
@@ -82,6 +83,26 @@ update xs  = getResponses (map ("update" <$>) xs) >> return ()
 --
 -- Database commands
 --
+
+-- | Wait until there is a noteworthy change in one or more of MPD's
+-- susbystems. Note that running this command will block until either 'idle'
+-- returns or is cancelled by 'noidle'.
+idle :: MonadMPD m => m [Subsystem]
+idle = do
+    mapM (\("changed", system) -> case system of "database" -> return Database
+                                                 "update"   -> return Update
+                                                 "stored_playlist" -> return StoredPlaylist
+                                                 "playlist" -> return Playlist
+                                                 "player" -> return Player
+                                                 "mixer" -> return Mixer
+                                                 "output" -> return Output
+                                                 "options" -> return Options
+                                                 k -> fail ("Unknown subsystem: " ++ k))
+         =<< toAssocList `liftM` getResponse "idle"
+
+-- | Cancel 'idle'.
+noidle :: MonadMPD m => m ()
+noidle = getResponse_ "noidle"
 
 -- | List all metadata of metadata (sic).
 list :: MonadMPD m
