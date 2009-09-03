@@ -1,0 +1,3 @@
+GIT hooks.
+To enable them, change to the repository top level and run
+    $ cp hooks/{pre,post}-* .git/hooks
