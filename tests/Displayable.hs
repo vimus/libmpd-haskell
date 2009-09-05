@@ -38,10 +38,8 @@ instance Displayable Song where
         ,"Track: "     ++ (let (x,y) = sgTrack s in show x++"/"++show y)
         ,"Disc: "      ++ (case sgDisc s of Just (x,y) -> show x++"/"++show y; _ -> "")
         ,"Time: "      ++ show (sgLength s)]
-        ++ maybe [] (\x -> [case x of Pos (Absolute n) -> "Pos: " ++ show n
-                                      ID  n -> "Id: "  ++ show n
-                                      _  -> undefined]) (sgIndex s)
-        ++ map (\(k, v) -> k ++ ": " ++ v) (sgAux s)
+        ++ maybe [] (\x -> [case x of Pos n -> "Pos: " ++ show n
+                                      ID  n -> "Id: "  ++ show n]) (sgIndex s)
 
 instance Displayable Stats where
     empty = defaultStats
