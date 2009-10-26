@@ -11,7 +11,7 @@ import System.FilePath ((</>))
 import System.Directory (doesDirectoryExist, getDirectoryContents, removeDirectory, removeFile)
 
 excludeModules =
-    ["Main", "Properties", "Displayable", "Commands", "StringConn"]
+    ["Main", "Arbitrary", "Properties", "Displayable", "Commands", "StringConn"]
 
 main = do
     -- Cleanup from previous runs
