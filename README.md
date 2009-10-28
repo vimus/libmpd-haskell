@@ -26,6 +26,16 @@ To install libmpd-haskell, simply run:
 
 [cabal-install]: http://hackage.haskell.org/package/cabal-install
 
+## Usage
+
+With GHCi:
+
+    > import Network.MPD
+    > withMPD $ lsInfo ""
+    Right [Left "Tool", Left "Tom Waits",...]
+    > withMPD $ add "" "Tom Waits/Big Time"
+    Right ["Tom Waits/Big Time/01 - 16 Shells from a Thirty-Ough-Six.mp3",...]
+
 ## Development
 
 To start developing libmpd-haskell you'll first need a clone of the
