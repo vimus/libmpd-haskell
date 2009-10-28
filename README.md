@@ -64,14 +64,14 @@ See our [bug tracker].
 [API documentation]: http://projects.haskell.org/libmpd/doc/
 [Code coverage]: http://projects.haskell.org/libmpd/coverage/hpc_index.html
 [Protocol reference]: http://www.musicpd.org/doc/protocol/
-[Using GitHub]: http://www.help.github.com
+[Using GitHub]: http://help.github.com
 
 <h2 id="license">License</h2>
 LGPL version 2.1
 
 <h2 id="authors">Authors</h2>
-Ben Sinclair <ben.d.sinclair@gmail.com>
+Ben Sinclair \<ben.d.sinclair@gmail.com\>
 
-Joachim Fasting <joachim.fasting@gmail.com>
+Joachim Fasting \<joachim.fasting@gmail.com\>
 
-Daniel Schoepe <daniel.schoepe@googlemail.com>
+Daniel Schoepe \<daniel.schoepe@googlemail.com\>
