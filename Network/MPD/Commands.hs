@@ -24,7 +24,7 @@ module Network.MPD.Commands (
 
     -- * Playlist commands
     -- $playlist
-    add, add_, addId, clear, currentSong, delete, load, move,
+    add, add_, addId, findAdd, clear, currentSong, delete, load, move,
     playlistInfo, listPlaylist, listPlaylistInfo, playlist, plChanges,
     plChangesPosId, playlistFind, playlistSearch, rm, rename, save, shuffle,
     swap,
@@ -164,6 +164,10 @@ add plname x = add_ plname x >> listAll x
 add_ :: MonadMPD m => PlaylistName -> Path -> m ()
 add_ "" path     = getResponse_ ("add" <$> path)
 add_ plname path = getResponse_ ("playlistadd" <$> plname <++> path)
+
+-- | Adds songs matching a query to the current playlist.
+findAdd :: MonadMPD m => Query -> m ()
+findAdd q = getResponse_ ("findAdd" <$> q)
 
 -- | Clear a playlist. Clears current playlist if no playlist is specified.
 -- If the specified playlist does not exist, it will be created.
