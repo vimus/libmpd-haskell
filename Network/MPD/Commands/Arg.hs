@@ -55,6 +55,9 @@ instance (MPDArg a) => MPDArg (Maybe a) where
     prep Nothing = Args []
     prep (Just x) = prep x
 
+instance (MPDArg a, MPDArg b) => MPDArg (a, b) where
+    prep (x, y) = Args $ [show x ++ ":" ++ show y]
+
 instance MPDArg Int
 instance MPDArg Integer
 instance MPDArg Bool where prep = Args . return . showBool

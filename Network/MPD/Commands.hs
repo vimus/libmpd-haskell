@@ -219,8 +219,9 @@ swap (ID x)  (ID y)  = getResponse_ ("swapid" <$> x <++> y)
 swap _ _ = fail "'swap' cannot mix position and ID arguments"
 
 -- | Shuffle the playlist.
-shuffle :: MonadMPD m => m ()
-shuffle = getResponse_ "shuffle"
+shuffle :: MonadMPD m => Maybe (Int, Int) -- ^ Optional range (start, end)
+        -> m ()
+shuffle range = getResponse_ ("shuffle" <$> range)
 
 -- | Retrieve metadata for songs in the current playlist.
 playlistInfo :: MonadMPD m => Maybe PLIndex -> m [Song]
