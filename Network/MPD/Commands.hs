@@ -25,9 +25,9 @@ module Network.MPD.Commands (
     -- * Playlist commands
     -- $playlist
     add, add_, addId, findAdd, clear, currentSong, delete, load, move,
-    playlistInfo, listPlaylist, listPlaylistInfo, playlist, plChanges,
-    plChangesPosId, playlistFind, playlistSearch, rm, rename, save, shuffle,
-    swap,
+    playlistInfo, listPlaylist, listPlaylists, listPlaylistInfo, playlist,
+    plChanges, plChangesPosId, playlistFind, playlistSearch, rm, rename,
+    save, shuffle, swap,
 
     -- * Playback commands
     crossfade, next, pause, play, previous, random, repeat, single, consume,
@@ -245,6 +245,15 @@ listPlaylistInfo plname =
 listPlaylist :: MonadMPD m => PlaylistName -> m [Path]
 listPlaylist plname =
     liftM takeValues $ getResponse ("listplaylist" <$> plname)
+
+-- | Retreive a list of stored playlists.
+listPlaylists :: MonadMPD m => m [PlaylistName]
+listPlaylists = (go [] . toAssocList) `liftM` getResponse "listplaylists"
+    where
+        -- After each playlist name we get a timestamp
+        go acc [] = acc
+        go acc ((_, b):_:xs) = go (b : acc) xs
+        go _ _ = error "listPlaylists: bug"
 
 -- | Retrieve file paths and positions of songs in the current playlist.
 -- Note that this command is only included for completeness sake; it's
