@@ -228,13 +228,14 @@ shuffle :: MonadMPD m => Maybe (Int, Int) -- ^ Optional range (start, end)
         -> m ()
 shuffle range = getResponse_ ("shuffle" <$> range)
 
+-- XXX: takes a position OR a range
 -- | Retrieve metadata for songs in the current playlist.
-playlistInfo :: MonadMPD m => Maybe PLIndex -> m [Song]
-playlistInfo x = getResponse cmd >>= takeSongs
-    where cmd = case x of
+playlistInfo :: MonadMPD m => Maybe PLIndex -> Maybe (Int, Int) -> m [Song]
+playlistInfo pos range = getResponse cmd >>= takeSongs
+    where cmd = case pos of
                     Just (Pos x') -> "playlistinfo" <$> x'
                     Just (ID x')  -> "playlistid"   <$> x'
-                    Nothing       -> "playlistinfo"
+                    Nothing       -> "playlistinfo" <$> range
 
 -- | Retrieve metadata for files in a given playlist.
 listPlaylistInfo :: MonadMPD m => PlaylistName -> m [Song]
@@ -469,7 +470,7 @@ complete path = do
 -- that as the cropping boundary.
 crop :: MonadMPD m => Maybe PLIndex -> Maybe PLIndex -> m ()
 crop x y = do
-    pl <- playlistInfo Nothing
+    pl <- playlistInfo Nothing Nothing
     let x' = case x of Just (Pos p) -> fromInteger p
                        Just (ID i)  -> fromMaybe 0 (findByID i pl)
                        Nothing      -> 0
@@ -489,7 +490,7 @@ prune = findDuplicates >>= deleteMany ""
 findDuplicates :: MonadMPD m => m [PLIndex]
 findDuplicates =
     liftM (map ((\(ID x) -> ID x) . fromJust . sgIndex) . flip dups ([],[])) $
-        playlistInfo Nothing
+        playlistInfo Nothing Nothing
     where dups [] (_, dup) = dup
           dups (x:xs) (ys, dup)
               | x `mSong` xs && not (x `mSong` ys) = dups xs (ys, x:dup)
@@ -530,7 +531,7 @@ listAlbum artist album = find (Artist =? artist <&> Album =? album)
 -- | Retrieve the current playlist.
 -- Equivalent to @playlistinfo Nothing@.
 getPlaylist :: MonadMPD m => m [Song]
-getPlaylist = playlistInfo Nothing
+getPlaylist = playlistInfo Nothing Nothing
 
 -- | Increase or decrease volume by a given percent, e.g.
 -- 'volume 10' will increase the volume by 10 percent, while
