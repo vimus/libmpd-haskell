@@ -16,7 +16,7 @@ module Network.MPD.Commands (
     module Network.MPD.Commands.Query,
 
     -- * Admin commands
-    disableOutput, enableOutput, kill, outputs, update,
+    disableOutput, enableOutput, kill, outputs, update, rescan,
     idle, noidle,
 
     -- * Database commands
@@ -79,6 +79,12 @@ update :: MonadMPD m => [Path] -> m ()
 update  [] = getResponse_ "update"
 update [x] = getResponse_ ("update" <$> x)
 update xs  = getResponses (map ("update" <$>) xs) >> return ()
+
+-- | Like 'update' but also rescans unmodified files.
+rescan :: MonadMPD m => [Path] -> m ()
+rescan []  = getResponse_ "rescan"
+rescan [x] = getResponse_ ("rescan" <$> x)
+rescan xs  = getResponses (map ("rescan" <$>) xs) >> return ()
 
 --
 -- Database commands
