@@ -260,12 +260,12 @@ testAdd =
     test [("add \"foo\"", Right "OK"),
           ("listall \"foo\"", Right "file: Foo\nfile: Bar\nOK")]
          (Right ["Foo", "Bar"])
-         (add "" "foo")
+         (add "foo")
 
-testAdd_ = test_ [("add \"foo\"", Right "OK")] (add_ "" "foo")
+testAdd_ = test_ [("add \"foo\"", Right "OK")] (add_ "foo")
 
 testAdd_pl = test_ [("playlistadd \"foo\" \"bar\"", Right "OK")]
-             (add_ "foo" "bar")
+             (playlistAdd_ "foo" "bar")
 
 testAddId =
     test [("addid \"dir/Foo-Bar.ogg\"", Right "Id: 20\nOK")]
@@ -273,9 +273,9 @@ testAddId =
          (addId "dir/Foo-Bar.ogg" Nothing)
 
 testClearPlaylist = test_ [("playlistclear \"foo\"", Right "OK")]
-                    (clear "foo")
+                    (playlistClear "foo")
 
-testClearCurrent = test_ [("clear", Right "OK")] (clear "")
+testClearCurrent = test_ [("clear", Right "OK")] clear
 
 testPlChangesPosId_0 =
     test [("plchangesposid 10", Right "OK")]
@@ -313,19 +313,19 @@ testCurrentSongPlaying =
                           , stState = Playing }
           resp2 = display estatus ++ "OK"
 
-testDelete0 = test_ [("delete 1", Right "OK")] (delete "" (Pos 1))
+testDelete0 = test_ [("delete 1", Right "OK")] (delete (Pos 1))
 
-testDelete1 = test_ [("deleteid 1", Right "OK")] (delete "" (ID 1))
+testDelete1 = test_ [("deleteid 1", Right "OK")] (delete (ID 1))
 
-testDelete2 = test_ [("playlistdelete \"foo\" 1", Right "OK")] (delete "foo" (Pos 1))
+testDelete2 = test_ [("playlistdelete \"foo\" 1", Right "OK")] (playlistDelete "foo" 1)
 
 testLoad = test_ [("load \"foo\"", Right "OK")] (load "foo")
 
-testMove0 = test_ [("move 1 2", Right "OK")] (move "" (Pos 1) 2)
+testMove0 = test_ [("move 1 2", Right "OK")] (move (Pos 1) 2)
 
-testMove1 = test_ [("moveid 1 2", Right "OK")] (move "" (ID 1) 2)
+testMove1 = test_ [("moveid 1 2", Right "OK")] (move (ID 1) 2)
 
-testMove2 = test_ [("playlistmove \"foo\" 1 2", Right "OK")] (move "foo" (Pos 1) 2)
+testMove2 = test_ [("playlistmove \"foo\" 1 2", Right "OK")] (playlistMove "foo" 1 2)
 
 testRm = test_ [("rm \"foo\"", Right "OK")] (rm "foo")
 

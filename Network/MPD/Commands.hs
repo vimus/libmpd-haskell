@@ -24,10 +24,11 @@ module Network.MPD.Commands (
 
     -- * Playlist commands
     -- $playlist
-    add, add_, addId, findAdd, clear, currentSong, delete, load, move,
-    playlistInfo, listPlaylist, listPlaylists, listPlaylistInfo, playlist,
-    plChanges, plChangesPosId, playlistFind, playlistSearch, rm, rename,
-    save, shuffle, swap,
+    add, add_, addId, findAdd, playlistAdd_, playlistAdd, clear,
+    playlistClear, currentSong, delete, playlistDelete, load, move,
+    playlistMove, playlistInfo, listPlaylist, listPlaylists, listPlaylistInfo,
+    playlist, plChanges, plChangesPosId, playlistFind, playlistSearch, rm,
+    rename, save, shuffle, swap,
 
     -- * Playback commands
     crossfade, next, pause, play, previous, random, repeat, single, consume,
@@ -156,55 +157,65 @@ count query = getResponse ("count" <$>  query) >>= runParser parseCount
 
 -- This might do better to throw an exception than silently return 0.
 -- | Like 'add', but returns a playlist id.
-addId :: MonadMPD m => Path -> Maybe Int -- ^ Optional playlist position
+addId :: MonadMPD m => Path -> Maybe Integer -- ^ Optional playlist position
       -> m Integer
 addId p pos = liftM (parse parseNum id 0 . snd . head . toAssocList)
               $ getResponse1 ("addid" <$> p <++> pos)
 
 -- | Like 'add_' but returns a list of the files added.
-add :: MonadMPD m => PlaylistName -> Path -> m [Path]
-add plname x = add_ plname x >> listAll x
+add :: MonadMPD m => Path -> m [Path]
+add x = add_ x >> listAll x
 
--- | Add a song (or a whole directory) to a playlist.
--- Adds to current if no playlist is specified.
+-- | Add a song (or a whole directory) to the current playlist.
+add_ :: MonadMPD m => Path -> m ()
+add_ path = getResponse_ ("add" <$> path)
+
+-- | Like 'playlistAdd' but returns a list of the files added.
+playlistAdd :: MonadMPD m => PlaylistName -> Path -> m [Path]
+playlistAdd plname path = playlistAdd_ plname path >> listAll path
+
+-- | Add a song (or a whole directory) to a stored playlist.
 -- Will create a new playlist if the one specified does not already exist.
-add_ :: MonadMPD m => PlaylistName -> Path -> m ()
-add_ "" path     = getResponse_ ("add" <$> path)
-add_ plname path = getResponse_ ("playlistadd" <$> plname <++> path)
+playlistAdd_ :: MonadMPD m => PlaylistName -> Path -> m ()
+playlistAdd_ plname path = getResponse_ ("playlistadd" <$> plname <++> path)
 
 -- | Adds songs matching a query to the current playlist.
 findAdd :: MonadMPD m => Query -> m ()
-findAdd q = getResponse_ ("findAdd" <$> q)
+findAdd q = getResponse_ ("findadd" <$> q)
 
--- | Clear a playlist. Clears current playlist if no playlist is specified.
--- If the specified playlist does not exist, it will be created.
-clear :: MonadMPD m => PlaylistName -> m ()
-clear "" = getResponse_ "clear"
-clear pl = getResponse_ ("playlistclear" <$> pl)
+-- | Clear the current playlist.
+clear :: MonadMPD m => m ()
+clear = getResponse_ "clear"
+
+-- | Clear a playlist. If the specified playlist does not exist, it will be
+-- created.
+playlistClear :: MonadMPD m => PlaylistName -> m ()
+playlistClear = getResponse_ . ("playlistclear" <$>)
+
+-- | Remove a song from the current playlist.
+delete :: MonadMPD m => PLIndex -> m ()
+delete (Pos x) = getResponse_ ("delete" <$> x)
+delete (ID x)  = getResponse_ ("deleteid" <$> x)
 
 -- | Remove a song from a playlist.
--- If no playlist is specified, current playlist is used.
--- Note that a playlist position ('Pos') is required when operating on
--- playlists other than the current.
-delete :: MonadMPD m => PlaylistName -> PLIndex -> m ()
-delete "" (Pos x) = getResponse_ ("delete" <$> x)
-delete "" (ID x)  = getResponse_ ("deleteid" <$> x)
-delete plname (Pos x) = getResponse_ ("playlistdelete" <$> plname <++> x)
-delete _ _ = fail "'delete' within a playlist doesn't accept a playlist ID"
+playlistDelete :: MonadMPD m => PlaylistName
+               -> Integer -- ^ Playlist position
+               -> m ()
+playlistDelete name pos = getResponse_ ("playlistdelete" <$> name <++> pos)
 
 -- | Load an existing playlist.
 load :: MonadMPD m => PlaylistName -> m ()
 load plname = getResponse_ ("load" <$> plname)
 
--- | Move a song to a given position.
--- Note that a playlist position ('Pos') is required when operating on
--- playlists other than the current.
-move :: MonadMPD m => PlaylistName -> PLIndex -> Integer -> m ()
-move "" (Pos from) to = getResponse_ ("move" <$> from <++> to)
-move "" (ID from) to = getResponse_ ("moveid" <$> from <++> to)
-move plname (Pos from) to =
-    getResponse_ ("playlistmove" <$> plname <++> from <++> to)
-move _ _ _ = fail "'move' within a playlist doesn't accept a playlist ID"
+-- | Move a song to a given position in the current playlist.
+move :: MonadMPD m => PLIndex -> Integer -> m ()
+move (Pos from) to = getResponse_ ("move" <$> from <++> to)
+move (ID from) to = getResponse_ ("moveid" <$> from <++> to)
+
+-- | Move a song to a given position in the playlist specified.
+playlistMove :: MonadMPD m => PlaylistName -> Integer -> Integer -> m ()
+playlistMove name from to =
+    getResponse_ ("playlistmove" <$> name <++> from <++> to)
 
 -- | Delete existing playlist.
 rm :: MonadMPD m => PlaylistName -> m ()
@@ -437,7 +448,8 @@ toggle = status >>= \st -> case stState st of Playing -> pause True
 -- Should be more efficient than running 'add' many times.
 addMany :: MonadMPD m => PlaylistName -> [Path] -> m ()
 addMany _ [] = return ()
-addMany plname [x] = add_ plname x
+addMany "" [x] = add_ x
+addMany plname [x] = playlistAdd_ plname x
 addMany plname xs = getResponses (map cmd xs) >> return ()
     where cmd x = case plname of
                       "" -> "add" <$> x
@@ -448,7 +460,7 @@ addMany plname xs = getResponses (map cmd xs) >> return ()
 -- take care to avoid them (see 'prune' for this).
 deleteMany :: MonadMPD m => PlaylistName -> [PLIndex] -> m ()
 deleteMany _ [] = return ()
-deleteMany plname [x] = delete plname x
+deleteMany plname [(Pos x)] = playlistDelete plname x
 deleteMany "" xs = getResponses (map cmd xs) >> return ()
     where cmd (Pos x) = "delete"   <$> x
           cmd (ID x)  = "deleteid" <$> x
