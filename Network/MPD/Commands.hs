@@ -31,7 +31,7 @@ module Network.MPD.Commands (
 
     -- * Playback commands
     crossfade, next, pause, play, previous, random, repeat, single, consume,
-    seek, setVolume, stop,
+    seek, setVolume, stop, replayGainMode, replayGainStatus,
 
     -- * Miscellaneous commands
     clearError, commands, notCommands, password, ping, stats, status,
@@ -357,6 +357,14 @@ consume = getResponse_ . ("consume" <$>)
 -- | Set the volume (0-100 percent).
 setVolume :: MonadMPD m => Int -> m ()
 setVolume = getResponse_ . ("setvol" <$>)
+
+-- | Set the replay gain mode.
+replayGainMode :: MonadMPD m => ReplayGainMode -> m ()
+replayGainMode = getResponse_ . ("replay_gain_mode" <$>)
+
+-- | Get the replay gain options.
+replayGainStatus :: MonadMPD m => m [String]
+replayGainStatus = getResponse "replay_gain_status"
 
 --
 -- Miscellaneous commands

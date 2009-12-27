@@ -66,6 +66,17 @@ instance MPDArg Subsystem where
     prep Output = Args ["output"]
     prep Options = Args ["options"]
 
+data ReplayGainMode
+    = Off       -- ^ Disable replay gain
+    | TrackMode -- ^ Per track mode
+    | AlbumMode -- ^ Per album mode
+      deriving (Eq, Show)
+
+instance MPDArg ReplayGainMode where
+    prep Off = Args ["off"]
+    prep TrackMode = Args ["track"]
+    prep AlbumMode = Args ["album"]
+
 -- | Represents the result of running 'count'.
 data Count =
     Count { cSongs    :: Integer -- ^ Number of songs matching the query
