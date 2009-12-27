@@ -270,7 +270,7 @@ testAdd_pl = test_ [("playlistadd \"foo\" \"bar\"", Right "OK")]
 testAddId =
     test [("addid \"dir/Foo-Bar.ogg\"", Right "Id: 20\nOK")]
          (Right 20)
-         (addId "dir/Foo-Bar.ogg")
+         (addId "dir/Foo-Bar.ogg" Nothing)
 
 testClearPlaylist = test_ [("playlistclear \"foo\"", Right "OK")]
                     (clear "foo")
@@ -337,7 +337,7 @@ testSwap0 = test_ [("swap 1 2", Right "OK")] (swap (Pos 1) (Pos 2))
 
 testSwap1 = test_ [("swapid 1 2", Right "OK")] (swap (ID 1) (ID 2))
 
-testShuffle = test_ [("shuffle", Right "OK")] shuffle
+testShuffle = test_ [("shuffle", Right "OK")] (shuffle Nothing)
 
 testPlaylistInfo0 = test [("playlistinfo", Right resp)] (Right [obj])
                     (playlistInfo Nothing Nothing)
