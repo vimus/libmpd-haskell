@@ -36,7 +36,7 @@ module Network.MPD.Commands (
 
     -- * Miscellaneous commands
     clearError, commands, notCommands, password, ping, stats, status,
-    tagTypes, urlHandlers,
+    tagTypes, urlHandlers, decoders,
 
     -- * Extensions\/shortcuts
     addMany, deleteMany, complete, crop, prune, lsDirs, lsFiles, lsPlaylists,
@@ -407,6 +407,15 @@ tagTypes = liftM takeValues (getResponse "tagtypes")
 -- | Retrieve a list of supported urlhandlers.
 urlHandlers :: MonadMPD m => m [String]
 urlHandlers = liftM takeValues (getResponse "urlhandlers")
+
+-- | Retreive a list of decoder plugins with associated suffix and mime types.
+decoders :: MonadMPD m => m [(String, [(String, String)])]
+decoders = (takeDecoders . toAssocList) `liftM` getResponse "decoders"
+    where
+        takeDecoders [] = []
+        takeDecoders ((_, p):xs) =
+            let (info, rest) = break (((==) "plugin") . fst) xs
+            in (p, info) : takeDecoders rest
 
 -- XXX should the password be quoted? Change "++" to "<$>" if so.  If
 --     it should, it also needs to be fixed in N.M.Core.
