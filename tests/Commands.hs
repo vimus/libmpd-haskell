@@ -340,19 +340,19 @@ testSwap1 = test_ [("swapid 1 2", Right "OK")] (swap (ID 1) (ID 2))
 testShuffle = test_ [("shuffle", Right "OK")] (shuffle Nothing)
 
 testPlaylistInfo0 = test [("playlistinfo", Right resp)] (Right [obj])
-                    (playlistInfo Nothing Nothing)
+                    (playlistInfo Nothing)
     where obj = empty { sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60
                       , sgArtist = "Foo", sgTitle = "Bar" }
           resp = display obj ++ "OK"
 
 testPlaylistInfoPos = test [("playlistinfo 1", Right resp)] (Right [obj])
-                      (playlistInfo (Just $ Pos 1) Nothing)
+                      (playlistInfo (Just (Left (Pos 1))))
     where obj = empty { sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60
                       , sgArtist = "Foo", sgTitle = "Bar" }
           resp = display obj ++ "OK"
 
 testPlaylistInfoId = test [("playlistid 1", Right resp)] (Right [obj])
-                     (playlistInfo (Just $ ID 1) Nothing)
+                     (playlistInfo (Just (Left (ID 1))))
     where obj = empty { sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60
                       , sgArtist = "Foo", sgTitle = "Bar" }
           resp = display obj ++ "OK"
