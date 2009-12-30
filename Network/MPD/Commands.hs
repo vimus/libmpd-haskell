@@ -95,7 +95,7 @@ rescan xs  = getResponses (map ("rescan" <$>) xs) >> return ()
 -- susbystems. Note that running this command will block until either 'idle'
 -- returns or is cancelled by 'noidle'.
 idle :: MonadMPD m => m [Subsystem]
-idle = do
+idle =
     mapM (\("changed", system) -> case system of "database" -> return Database
                                                  "update"   -> return Update
                                                  "stored_playlist" -> return StoredPlaylist
@@ -414,7 +414,7 @@ decoders = (takeDecoders . toAssocList) `liftM` getResponse "decoders"
     where
         takeDecoders [] = []
         takeDecoders ((_, p):xs) =
-            let (info, rest) = break (((==) "plugin") . fst) xs
+            let (info, rest) = break ((==) "plugin" . fst) xs
             in (p, info) : takeDecoders rest
 
 -- XXX should the password be quoted? Change "++" to "<$>" if so.  If
