@@ -30,6 +30,13 @@ data Meta = Artist | Album | Title | Track | Name | Genre | Date
 
 instance MPDArg Meta
 
+-- | Object types.
+data ObjectType = SongObj
+    deriving (Eq, Show)
+
+instance MPDArg ObjectType where
+    prep SongObj = Args ["song"]
+
 type Seconds = Integer
 
 -- | Represents a song's playlist index.
