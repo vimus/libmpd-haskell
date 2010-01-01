@@ -36,7 +36,7 @@ import System.IO.Error (isDoesNotExistError, ioError)
 -- Examples:
 --
 -- > withMPD $ play Nothing
--- > withMPD $ add_ "" "tool" >> play Nothing >> currentSong
+-- > withMPD $ add_ "tool" >> play Nothing >> currentSong
 withMPD :: MPD a -> IO (Response a)
 withMPD m = do
     port       <- read `liftM` getEnvDefault "MPD_PORT" "6600"
