@@ -28,7 +28,6 @@ import Control.Monad (ap, unless)
 import Control.Monad.Error (ErrorT(..), MonadError(..))
 import Control.Monad.Reader (ReaderT(..), ask)
 import Control.Monad.State (StateT, MonadIO(..), put, get, evalStateT)
-import Control.Monad.Trans (liftIO)
 import qualified Data.Foldable as F
 import Data.List (isPrefixOf)
 import Network (PortID(..), withSocketsDo, connectTo)
