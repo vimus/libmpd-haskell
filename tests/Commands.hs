@@ -119,7 +119,7 @@ test_ :: [(Expect, Response String)] -> StringMPD () -> IO ()
 test_ a b = test a (Right ()) b
 
 mycheck :: QC.Testable a => a -> Int -> IO ()
-mycheck a n = QC.check QC.defaultConfig { QC.configMaxTest = n } a
+mycheck a n = QC.quickCheckWith QC.stdArgs { QC.maxSize = n } a
 
 showResult :: Show a => Result a -> String
 showResult Ok =

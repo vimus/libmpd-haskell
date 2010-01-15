@@ -9,7 +9,6 @@ import Network.MPD.Commands.Types
 import Network.MPD.Utils
 
 import Control.Monad
-import Data.Char
 import Data.List
 import Data.Maybe
 import System.Environment
@@ -41,7 +40,7 @@ main = do
                   ,("parseStats", mytest prop_parseStats)]
 
 mytest :: Testable a => a -> Int -> IO ()
-mytest a n = check defaultConfig { configMaxTest = n } a
+mytest a n = quickCheckWith stdArgs { maxSize = n } a
 
 prop_parseDate_simple :: YearString -> Bool
 prop_parseDate_simple (YS x) = isJust $ parseDate x

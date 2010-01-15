@@ -17,6 +17,12 @@ import Test.QuickCheck
 
 import Network.MPD.Commands.Types
 
+-- No longer provided by QuickCheck 2
+two :: Monad m => m a -> m (a, a)
+two m = liftM2 (,) m m
+
+three :: Monad m => m a -> m (a, a, a)
+three m = liftM3 (,,) m m m
 
 -- Generate a positive number.
 positive :: (Arbitrary a, Num a) => Gen a
@@ -25,10 +31,6 @@ positive = abs `fmap` arbitrary
 -- MPD fields can't contain newlines and the parser skips initial spaces.
 field :: Gen String
 field = (filter (/= '\n') . dropWhile isSpace) `fmap` arbitrary
-
-
-instance Arbitrary Char where
-    arbitrary = choose ('\0', '\128')
 
 -- an assoc. string is a string of the form "key: value", followed by
 -- the key and value separately.
