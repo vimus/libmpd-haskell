@@ -52,7 +52,7 @@ With GHCi:
 To start developing libmpd-haskell you'll first need a clone of the
 source code repository:
 
-`git clone git://github.com/joachifm/libmpd-haskell`
+`git clone git://github.com/joachifm/libmpd-haskell.git`
 
 To pull in new changes from upstream, use:
 
