@@ -1,3 +1,13 @@
+* v0.4.0, 2010-03-26
+	- New maintainer: Joachim Fasting <joachim.fasting@gmail.com>
+	- Support QuickCheck 2
+	- Better MPD api support
+	Should be mostly compatible with mpd 0.16
+	- Separated operations on current playlist from those on specific
+	playlists
+	- Fixed password sending
+	- Several minor fixes and cleanups
+
 * v0.3.1, 2008-09-14
 	- Now reconnects if MPD closes the connection.
 
