@@ -1,3 +1,6 @@
+* v0.4.1, 2010-03-26
+	- Fix building test and coverage targets
+
 * v0.4.0, 2010-03-26
 	- New maintainer: Joachim Fasting <joachim.fasting@gmail.com>
 	- Support QuickCheck 2
