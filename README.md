@@ -30,6 +30,14 @@ To use the deprecated base 3, run:
 
 [cabal-install]: http://hackage.haskell.org/package/cabal-install
 
+## Compiler support
+We try to support the two last major versions of GHC, but only the latest
+version is actually tested for.
+
+## MPD API compliance
+We try to comply with the latest version of the MPD protocol specification;
+any deviation from this is a bug.
+
 ## Usage
 
 With GHCi:
