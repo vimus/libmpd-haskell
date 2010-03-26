@@ -24,6 +24,10 @@ To install libmpd-haskell, simply run:
 
 `cd libmpd-haskell && cabal install`
 
+To use the deprecated base 3, run:
+
+`cabal install -f old_base`
+
 [cabal-install]: http://hackage.haskell.org/package/cabal-install
 
 ## Usage
