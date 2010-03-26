@@ -11,10 +11,9 @@ interface to MPD's external API.
 
 ## Getting
 * [Latest release]
-* `git clone git://github.com/bens/libmpd-haskell.git`
+* `git clone git://github.com/joachifm/libmpd-haskell.git`
 
 [Latest release]: http://hackage.haskell.org/package/libmpd
-[GIT repository]: git://github.com/bens/libmpd-haskell.git
 
 ## Building
 The preferred method of building libmpd-haskell is using [cabal-install], which
