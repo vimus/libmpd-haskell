@@ -1,7 +1,7 @@
 -- | Module    : Network.MPD.Core.Error
--- Copyright   : (c) Ben Sinclair 2005-2009
+-- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
 -- License     : LGPL (see LICENSE)
--- Maintainer  : bsinclai@turing.une.edu.au
+-- Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
 -- Stability   : alpha
 --
 -- MPD errors.

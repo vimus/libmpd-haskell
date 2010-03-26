@@ -1,9 +1,9 @@
 {-# LANGUAGE FlexibleContexts, GeneralizedNewtypeDeriving #-}
 
 -- | Module    : Network.MPD.Core
--- Copyright   : (c) Ben Sinclair 2005-2009
+-- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
 -- License     : LGPL (see LICENSE)
--- Maintainer  : bsinclai@turing.une.edu.au
+-- Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
 -- Stability   : alpha
 --
 -- The core datatypes and operations are defined here, including the

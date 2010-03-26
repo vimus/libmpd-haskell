@@ -2,9 +2,9 @@ Name:               libmpd
 Version:            0.3.1
 License:            LGPL
 License-file:       LICENSE
-Copyright:          Ben Sinclair 2005-2009
+Copyright:          Ben Sinclair 2005-2009, Joachim Fasting 2010
 Author:             Ben Sinclair
-Maintainer:         bsinclai@turing.une.edu.au
+Maintainer:         Joachim Fasting <joachim.fasting@gmail.com>
 Stability:          beta
 Homepage:           http://projects.haskell.org/libmpd/
 Bug-reports:        http://trac.haskell.org/libmpd/newticket
@@ -29,7 +29,7 @@ flag coverage
 
 Source-Repository head
     type:       git
-    location:   git://github.com/bens/libmpd-haskell.git
+    location:   git://github.com/joachifm/libmpd-haskell.git
 
 Library
     Build-Depends:      base >= 3 && < 4.1, network >= 2.1 && < 2.3,
