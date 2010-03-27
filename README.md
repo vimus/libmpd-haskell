@@ -29,6 +29,11 @@ To use the deprecated base 3, run:
 
 [cabal-install]: http://hackage.haskell.org/package/cabal-install
 
+## Running tests
+To run the libmpd testsuite, do:
+
+`./tests/run-tests.lhs`
+
 ## Compiler support
 We try to support the two last major versions of GHC, but only the latest
 version is actually tested for.
@@ -62,6 +67,8 @@ When writing or modifying code, please try to conform to the
 surrounding style. If you introduce new functionality, please include
 a test case or at least document the expected behavior.
 
+To set up GIT hooks, see `hooks/README` in the source distribution.
+
 ### Submitting patches
 To submit a patch, use `git format-patch` and email the resulting
 file to one of the developers or upload it to the [bug tracker].
@@ -81,14 +88,14 @@ See our [bug tracker].
 
 [bug tracker]: http://trac.haskell.org/libmpd/
 [GitHub]: http://www.github.com
-[repository]: http://www.github.com/bens/libmpd-haskell
+[repository]: http://www.github.com/joachifm/libmpd-haskell
 [API documentation]: http://projects.haskell.org/libmpd/doc/
 [Code coverage]: http://projects.haskell.org/libmpd/coverage/hpc_index.html
 [Protocol reference]: http://www.musicpd.org/doc/protocol/
 [Using GitHub]: http://help.github.com
 
 ## License
-LGPL version 2.1
+LGPL version 2.1 (see LICENSE)
 
 ## Authors
 Ben Sinclair \<ben.d.sinclair@gmail.com\>
