@@ -7,8 +7,7 @@ Author:             Ben Sinclair
 Maintainer:         Joachim Fasting <joachim.fasting@gmail.com>
 Stability:          beta
 Homepage:           http://github.com/joachifm/libmpd-haskell
--- Full of spam
---Bug-reports:        http://trac.haskell.org/libmpd/newticket
+Bug-reports:        http://trac.haskell.org/libmpd/newticket
 Synopsis:           An MPD client library.
 Description:        A client library for MPD, the Music Player Daemon
                     (<http://www.musicpd.org/>).
