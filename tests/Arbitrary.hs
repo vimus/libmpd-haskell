@@ -10,7 +10,8 @@ module Arbitrary
     , positive, field
     ) where
 
-import Control.Monad (ap, liftM2, liftM3, replicateM)
+import Control.Applicative ((<$>), (<*>))
+import Control.Monad (liftM2, liftM3, replicateM)
 import Data.Char (isSpace)
 import Data.List (intersperse)
 import Test.QuickCheck
@@ -26,11 +27,11 @@ three m = liftM3 (,,) m m m
 
 -- Generate a positive number.
 positive :: (Arbitrary a, Num a) => Gen a
-positive = abs `fmap` arbitrary
+positive = abs <$> arbitrary
 
 -- MPD fields can't contain newlines and the parser skips initial spaces.
 field :: Gen String
-field = (filter (/= '\n') . dropWhile isSpace) `fmap` arbitrary
+field = (filter (/= '\n') . dropWhile isSpace) <$> arbitrary
 
 -- an assoc. string is a string of the form "key: value", followed by
 -- the key and value separately.
@@ -41,8 +42,8 @@ instance Show AssocString where
 
 instance Arbitrary AssocString where
     arbitrary = do
-        key <- filter    (/= ':') `fmap` arbitrary
-        val <- dropWhile (== ' ') `fmap` arbitrary
+        key <- filter    (/= ':') <$> arbitrary
+        val <- dropWhile (== ' ') <$> arbitrary
         return $ AS (key ++ ": " ++ val) key val
 
 newtype BoolString = BS String
@@ -56,7 +57,7 @@ newtype YearString = YS String
     deriving Show
 
 instance Arbitrary YearString where
-    arbitrary = (YS . show) `fmap` (positive :: Gen Integer)
+    arbitrary = YS . show <$> (positive :: Gen Integer)
 
 -- Complex date representations, like "2004-20-30".
 newtype DateString = DS String
@@ -81,8 +82,8 @@ instance Arbitrary Song where
         track <- two positive
         disc  <- two positive
         idx   <- oneof [return Nothing
-                       ,(Just . Pos) `fmap` positive
-                       ,(Just . ID)  `fmap` positive]
+                       ,Just . Pos <$> positive
+                       ,Just . ID <$> positive]
         return $ Song { sgArtist = artist, sgAlbum = album, sgTitle = title
                       , sgFilePath = file, sgGenre = genre, sgName = name
                       , sgComposer = cmpsr, sgPerformer = prfmr, sgLength = len
@@ -90,13 +91,11 @@ instance Arbitrary Song where
                       , sgIndex = idx, sgAux = [] }
 
 instance Arbitrary Stats where
-    arbitrary =
-        return Stats `ap` positive `ap` positive `ap` positive
-                     `ap` positive `ap` positive `ap` positive `ap` positive
+    arbitrary = Stats <$> positive <*> positive <*> positive <*> positive
+                      <*> positive <*> positive <*> positive
 
 instance Arbitrary Meta where
-    arbitrary =
-        oneof $ map return [Artist, Album, Title, Track, Disc
-                           ,Name, Genre, Date
-                           ,Composer, Performer, Filename, Any
-                           ]
+    arbitrary = elements [Artist, Album, Title, Track, Disc
+                         ,Name, Genre, Date
+                         ,Composer, Performer, Filename, Any
+                         ]
