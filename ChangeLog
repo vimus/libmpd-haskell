@@ -1,3 +1,6 @@
+* v0.4.1, 2010-08-31
+	- Only depend on QuickCheck when building the test target
+
 * v0.4.1, 2010-03-26
 	- Fix building test and coverage targets
 
