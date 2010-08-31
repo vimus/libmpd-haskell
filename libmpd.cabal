@@ -61,8 +61,9 @@ Library
 Executable test
     Hs-Source-Dirs:     . tests
     Main-Is:            tests/Main.hs
-    Build-Depends:      base ==4.*, network, mtl, filepath, utf8-string,
-                        QuickCheck ==2.1.*
+    Build-Depends:      base ==4.*, network, mtl, filepath, utf8-string
+    if flag(test)
+        Build-Depends: QuickCheck ==2.1.*
     ghc-options:        -Wall -Werror -fno-warn-warnings-deprecations
                         -fno-warn-type-defaults
 
