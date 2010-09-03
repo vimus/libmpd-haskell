@@ -89,6 +89,9 @@ mpdOpen = MPD $ do
     put handle
     F.forM_ handle (const $ runMPD checkConn >>= flip unless (runMPD close))
     where
+        safeConnectTo host@('/':_) _ =
+            (Just <$> connectTo "" (UnixSocket host))
+            `catch` const (return Nothing)
         safeConnectTo host port =
             (Just <$> connectTo host (PortNumber $ fromInteger port))
             `catch` const (return Nothing)
