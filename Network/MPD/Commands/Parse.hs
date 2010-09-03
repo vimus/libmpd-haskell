@@ -12,6 +12,7 @@ module Network.MPD.Commands.Parse where
 
 import Network.MPD.Commands.Types
 
+import Control.Arrow ((***))
 import Control.Monad.Error
 import Network.MPD.Utils
 import Network.MPD.Core (MonadMPD, MPDError(Unexpected))
@@ -124,6 +125,8 @@ parseStatus = foldM f defaultStatus . toAssocList
               = return $ parse parseNum  (\x' -> a { stSongID = Just (ID x') }) a x
           f a ("time", x)
               = return $ parse time      (\x' -> a { stTime = x' }) a x
+          f a ("elapsed", x)
+              = return $ parse parseFrac (\x' -> a { stTime = (x', snd $ stTime a) }) a x
           f a ("bitrate", x)
               = return $ parse parseNum  (\x' -> a { stBitrate = x' }) a x
           f a ("audio", x)
@@ -148,7 +151,9 @@ parseStatus = foldM f defaultStatus . toAssocList
           state "stop"  = Just Stopped
           state _       = Nothing
 
-          time = pair parseNum . breakChar ':'
+          time s = case parseFrac *** parseNum $ breakChar ':' s of
+                       (Just a, Just b) -> Just (a, b)
+                       _                -> Nothing
 
           audio s = let (u, u') = breakChar ':' s
                         (v, w)  = breakChar ':' u' in
