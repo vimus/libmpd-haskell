@@ -114,6 +114,10 @@ parseStatus = foldM f defaultStatus . toAssocList
               = return $ parse parseNum  (\x' -> a { stPlaylistLength = x' }) a x
           f a ("xfade", x)
               = return $ parse parseNum  (\x' -> a { stXFadeWidth = x' }) a x
+          f a ("mixrampdb", x)
+              = return $ parse parseFrac (\x' -> a { stMixRampdB = x' }) a x
+          f a ("mixrampdelay", x)
+              = return $ parse parseFrac (\x' -> a { stMixRampDelay = x' }) a x
           f a ("song", x)
               = return $ parse parseNum  (\x' -> a { stSongPos = Just (Pos x') }) a x
           f a ("songid", x)
