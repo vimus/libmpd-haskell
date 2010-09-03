@@ -7,7 +7,7 @@
 -- Utilities.
 
 module Network.MPD.Utils (
-    parseDate, parseNum, parseBool, showBool,
+    parseDate, parseNum, parseFrac, parseBool, showBool,
     breakChar, toAssoc, toAssocList, splitGroups
     ) where
 
@@ -30,6 +30,16 @@ parseNum :: (Read a, Integral a) => String -> Maybe a
 parseNum s = do
     [(x, "")] <- return (reads s)
     return x
+
+-- Parse C style floating point value, returning 'Nothing' on failure.
+parseFrac :: (Fractional a, Read a) => String -> Maybe a
+parseFrac s =
+    case s of
+        "nan"  -> return $ read "NaN"
+        "inf"  -> return $ read "Infinity"
+        "-inf" -> return $ read "-Infinity"
+        _      -> do [(x, "")] <- return $ reads s
+                     return x
 
 -- Inverts 'parseBool'.
 showBool :: Bool -> String

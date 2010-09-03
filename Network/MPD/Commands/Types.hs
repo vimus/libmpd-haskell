@@ -170,6 +170,10 @@ data Status =
            , stBitrate         :: Int
              -- | Crossfade time.
            , stXFadeWidth      :: Seconds
+             -- | MixRamp threshold in dB
+           , stMixRampdB       :: Float
+             -- | MixRamp extra delay in seconds
+           , stMixRampDelay    :: Float
              -- | Samplerate\/bits\/channels for the chosen output device
              --   (see mpd.conf).
            , stAudio           :: (Int, Int, Int)
@@ -189,6 +193,6 @@ defaultStatus =
            , stRandom = False, stPlaylistVersion = 0, stPlaylistLength = 0
            , stSongPos = Nothing, stSongID = Nothing, stTime = (0,0)
            , stNextSongPos = Nothing, stNextSongID = Nothing
-           , stBitrate = 0, stXFadeWidth = 0, stAudio = (0,0,0)
-           , stUpdatingDb = 0, stSingle = False, stConsume = False
-           , stError = "" }
+           , stBitrate = 0, stXFadeWidth = 0, stMixRampdB = 0
+           , stMixRampDelay = 0, stAudio = (0,0,0), stUpdatingDb = 0
+           , stSingle = False, stConsume = False, stError = "" }
