@@ -165,7 +165,7 @@ data Status =
              -- | Next song's playlist ID.
            , stNextSongID      :: Maybe PLIndex
              -- | Time elapsed\/total time.
-           , stTime            :: (Seconds, Seconds)
+           , stTime            :: (Float, Seconds)
              -- | Bitrate (in kilobytes per second) of playing song (if any).
            , stBitrate         :: Int
              -- | Crossfade time.
