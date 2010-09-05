@@ -70,6 +70,7 @@ instance MonadMPD MPD where
     open  = mpdOpen
     close = mpdClose
     send  = mpdSend
+    receive = mpdReceive
     getHandle = MPD $ get
     getPassword = MPD $ ask >>= \(_,_,pw) -> return pw
 
@@ -98,7 +99,7 @@ mpdOpen = MPD $ do
             `catch` const (return Nothing)
 
         checkConn =
-            isPrefixOf "OK MPD" <$> send ""
+            isPrefixOf "OK MPD" . unlines <$> mpdReceive
 
 mpdClose :: MPD ()
 mpdClose =
@@ -112,17 +113,17 @@ mpdClose =
             | isEOFError err = result
             | otherwise      = ioError err
 
-mpdSend :: String -> MPD String
-mpdSend str = send' `catchError` handler
+mpdSend :: String -> MPD ()
+mpdSend str = MPD $ get >>= maybe (throwError NoMPD) go
     where
-        handler TimedOut = mpdOpen >> send'
-        handler err      = throwError err
-
-        send' = MPD $ get >>= maybe (throwError NoMPD) go
-
-        go handle = do
+        go handle =
             unless (null str) $
                 liftIO $ U.hPutStrLn handle str >> hFlush handle
+
+mpdReceive :: MPD [String]
+mpdReceive = getHandle >>= maybe (throwError NoMPD) recv
+    where
+        recv handle = MPD $
             liftIO ((Right <$> getLines handle []) `catch` (return . Left))
                 >>= either (\err -> if isEOFError err then
                                         put Nothing >> throwError TimedOut
@@ -132,9 +133,8 @@ mpdSend str = send' `catchError` handler
         getLines handle acc = do
             l <- U.hGetLine handle
             if "OK" `isPrefixOf` l || "ACK" `isPrefixOf` l
-                then return . unlines $ reverse (l:acc)
+                then return $ reverse (l:acc)
                 else getLines handle (l:acc)
-
 
 --
 -- Other operations.
@@ -151,24 +151,23 @@ kill = ignore (send "kill") `catchError` cleanup
 
 -- | Send a command to the MPD server and return the result.
 getResponse :: (MonadMPD m) => String -> m [String]
-getResponse cmd = (send cmd >>= parseResponse) `catchError` sendpw
+getResponse cmd = (send cmd >> receive >>= parseResponse) `catchError` sendpw
     where
         sendpw e@(ACK Auth _) = do
             pw <- getPassword
-            if null pw then throwError e
-                else send ("password " ++ pw) >>= parseResponse
-                  >> send cmd >>= parseResponse
+            if null pw
+                then throwError e
+                else do send ("password " ++ pw) >> receive >>= parseResponse
+                        send cmd                 >> receive >>= parseResponse
         sendpw e =
             throwError e
 
 -- Consume response and return a Response.
-parseResponse :: (MonadError MPDError m) => String -> m [String]
-parseResponse s
+parseResponse :: (MonadError MPDError m) => [String] -> m [String]
+parseResponse xs
     | null xs                    = throwError $ NoMPD
-    | isPrefixOf "ACK" (head xs) = throwError $ parseAck s
+    | isPrefixOf "ACK" (head xs) = throwError $ parseAck (head xs)
     | otherwise                  = return $ Prelude.takeWhile ("OK" /=) xs
-    where
-        xs = lines s
 
 -- Turn MPD ACK into the corresponding 'MPDError'
 parseAck :: String -> MPDError
