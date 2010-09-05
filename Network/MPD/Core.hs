@@ -70,6 +70,7 @@ instance MonadMPD MPD where
     open  = mpdOpen
     close = mpdClose
     send  = mpdSend
+    getHandle = MPD $ get
     getPassword = MPD $ ask >>= \(_,_,pw) -> return pw
 
 -- | A response is either an 'MPDError' or some result.
