@@ -34,3 +34,5 @@ class (Monad m, MonadError MPDError m) => MonadMPD m where
     -- | Produce a password to send to the server should it ask for
     --   one.
     getPassword :: m Password
+    -- | Alters password to be sent to the server.
+    setPassword :: String -> m ()

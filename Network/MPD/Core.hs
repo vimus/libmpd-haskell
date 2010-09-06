@@ -27,7 +27,7 @@ import Control.Applicative (Applicative(..), (<$>))
 import Control.Monad (ap, unless)
 import Control.Monad.Error (ErrorT(..), MonadError(..))
 import Control.Monad.Reader (ReaderT(..), ask)
-import Control.Monad.State (StateT, MonadIO(..), put, get, evalStateT)
+import Control.Monad.State (StateT, MonadIO(..), modify, get, evalStateT)
 import qualified Data.Foldable as F
 import Data.List (isPrefixOf)
 import Network (PortID(..), withSocketsDo, connectTo)
@@ -56,10 +56,11 @@ type Port = Integer
 -- To run IO actions within the MPD monad:
 --
 -- > import Control.Monad.Trans (liftIO)
+
 newtype MPD a =
     MPD { runMPD :: ErrorT MPDError
-                    (StateT (Maybe Handle)
-                     (ReaderT (Host, Port, Password) IO)) a
+                    (StateT MPDState
+                     (ReaderT (Host, Port) IO)) a
         } deriving (Functor, Monad, MonadIO, MonadError MPDError)
 
 instance Applicative MPD where
@@ -71,8 +72,15 @@ instance MonadMPD MPD where
     close = mpdClose
     send  = mpdSend
     receive = mpdReceive
-    getHandle = MPD $ get
-    getPassword = MPD $ ask >>= \(_,_,pw) -> return pw
+    getHandle = MPD $ get >>= return . stHandle
+    getPassword = MPD $ get >>= return . stPassword
+    setPassword pw = MPD $ modify (\st -> st { stPassword = pw })
+
+-- | Inner state for MPD
+data MPDState =
+    MPDState { stHandle   :: Maybe Handle
+             , stPassword :: String
+             }
 
 -- | A response is either an 'MPDError' or some result.
 type Response = Either MPDError
@@ -80,15 +88,16 @@ type Response = Either MPDError
 -- | The most configurable API for running an MPD action.
 withMPDEx :: Host -> Port -> Password -> MPD a -> IO (Response a)
 withMPDEx host port pw x = withSocketsDo $
-    runReaderT (evalStateT (runErrorT . runMPD $ open >> x) Nothing)
-               (host, port, pw)
+    runReaderT (evalStateT (runErrorT . runMPD $ open >> x) initState)
+               (host, port)
+                   where initState = MPDState Nothing pw
 
 mpdOpen :: MPD ()
 mpdOpen = MPD $ do
-    (host, port, _) <- ask
+    (host, port) <- ask
     runMPD close
     handle <- liftIO (safeConnectTo host port)
-    put handle
+    modify (\st -> st { stHandle = handle })
     F.forM_ handle (const $ runMPD checkConn >>= flip unless (runMPD close))
     where
         safeConnectTo host@('/':_) _ =
@@ -103,7 +112,9 @@ mpdOpen = MPD $ do
 
 mpdClose :: MPD ()
 mpdClose =
-    MPD $ get >>= F.mapM_ (liftIO . sendClose) >> put Nothing
+    MPD $ do
+        get >>= F.mapM_ (liftIO . sendClose) . stHandle
+        modify (\st -> st { stHandle = Nothing })
     where
         sendClose handle =
             (hPutStrLn handle "close" >> hReady handle >> hClose handle)
@@ -114,7 +125,7 @@ mpdClose =
             | otherwise      = ioError err
 
 mpdSend :: String -> MPD ()
-mpdSend str = MPD $ get >>= maybe (throwError NoMPD) go
+mpdSend str = MPD $ get >>= maybe (throwError NoMPD) go . stHandle
     where
         go handle =
             unless (null str) $
@@ -126,7 +137,8 @@ mpdReceive = getHandle >>= maybe (throwError NoMPD) recv
         recv handle = MPD $
             liftIO ((Right <$> getLines handle []) `catch` (return . Left))
                 >>= either (\err -> if isEOFError err then
-                                        put Nothing >> throwError TimedOut
+                                        modify (\st -> st { stHandle = Nothing })
+                                        >> throwError TimedOut
                                       else liftIO (ioError err))
                            return
 
