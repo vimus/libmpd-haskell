@@ -20,9 +20,11 @@ module Network.MPD.Core (
     getResponse, kill,
     ) where
 
+import Network.MPD.Utils
 import Network.MPD.Core.Class
 import Network.MPD.Core.Error
 
+import Char (isDigit)
 import Control.Applicative (Applicative(..), (<$>))
 import Control.Monad (ap, unless)
 import Control.Monad.Error (ErrorT(..), MonadError(..))
@@ -75,11 +77,13 @@ instance MonadMPD MPD where
     getHandle = MPD $ get >>= return . stHandle
     getPassword = MPD $ get >>= return . stPassword
     setPassword pw = MPD $ modify (\st -> st { stPassword = pw })
+    getVersion = MPD $ get >>= return . stVersion
 
 -- | Inner state for MPD
 data MPDState =
     MPDState { stHandle   :: Maybe Handle
              , stPassword :: String
+             , stVersion  :: (Int, Int, Int)
              }
 
 -- | A response is either an 'MPDError' or some result.
@@ -90,7 +94,7 @@ withMPDEx :: Host -> Port -> Password -> MPD a -> IO (Response a)
 withMPDEx host port pw x = withSocketsDo $
     runReaderT (evalStateT (runErrorT . runMPD $ open >> x) initState)
                (host, port)
-                   where initState = MPDState Nothing pw
+                   where initState = MPDState Nothing pw (0, 0, 0)
 
 mpdOpen :: MPD ()
 mpdOpen = MPD $ do
@@ -107,8 +111,28 @@ mpdOpen = MPD $ do
             (Just <$> connectTo host (PortNumber $ fromInteger port))
             `catch` const (return Nothing)
 
-        checkConn =
-            isPrefixOf "OK MPD" . unlines <$> mpdReceive
+        checkConn = do
+            msg <- mpdReceive >>= checkMsg
+            if isPrefixOf "OK MPD" msg
+               then do
+                   MPD $ maybe (throwError $ Custom "Couldn't determine MPD version")
+                               (\v -> modify (\st -> st { stVersion = v }))
+                               (parseVersion msg)
+                   return True
+               else return False
+
+        checkMsg ls =
+            if null ls
+               then throwError $ Custom "No welcome message"
+               else return $ head ls
+
+        parseVersion s =
+            case (parseNum v1, parseNum v2, parseNum v3) of
+                 (Just v1', Just v2', Just v3') -> Just (v1', v2', v3')
+                 _                              -> Nothing
+            where (v1, s2) = breakChar '.' s1
+                  (v2, v3) = breakChar '.' s2
+                  s1       = dropWhile (not . isDigit) s
 
 mpdClose :: MPD ()
 mpdClose =
