@@ -103,3 +103,5 @@ Ben Sinclair \<ben.d.sinclair@gmail.com\>
 Joachim Fasting \<joachim.fasting@gmail.com\>
 
 Daniel Schoepe \<daniel.schoepe@googlemail.com\>
+
+Andrzej Rybczak \<electricityispower@gmail.com\>
