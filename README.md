@@ -81,7 +81,6 @@ See our [bug tracker].
 
 ### Resources
 * [API documentation]
-* [Code coverage]
 * [Protocol reference]
 * [Using GitHub]
 * \#libmpd-haskell @ irc.freenode.net
@@ -89,8 +88,7 @@ See our [bug tracker].
 [bug tracker]: http://trac.haskell.org/libmpd/
 [GitHub]: http://www.github.com
 [repository]: http://www.github.com/joachifm/libmpd-haskell
-[API documentation]: http://projects.haskell.org/libmpd/doc/
-[Code coverage]: http://projects.haskell.org/libmpd/coverage/hpc_index.html
+[API documentation]: http://hackage.haskell.org/packages/archive/libmpd/0.4.2/doc/html/Network-MPD.html
 [Protocol reference]: http://www.musicpd.org/doc/protocol/
 [Using GitHub]: http://help.github.com
 
