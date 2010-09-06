@@ -35,6 +35,7 @@ import Data.List (isPrefixOf)
 import Network (PortID(..), withSocketsDo, connectTo)
 import System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
 import System.IO.Error (isEOFError)
+import System.IO.Unsafe (unsafeInterleaveIO)
 import qualified System.IO.UTF8 as U
 
 --
@@ -159,18 +160,19 @@ mpdReceive :: MPD [String]
 mpdReceive = getHandle >>= maybe (throwError NoMPD) recv
     where
         recv handle = MPD $
-            liftIO ((Right <$> getLines handle []) `catch` (return . Left))
+            liftIO ((Right <$> getLines handle) `catch` (return . Left))
                 >>= either (\err -> if isEOFError err then
                                         modify (\st -> st { stHandle = Nothing })
                                         >> throwError TimedOut
                                       else liftIO (ioError err))
                            return
 
-        getLines handle acc = do
+        getLines handle = do
             l <- U.hGetLine handle
             if "OK" `isPrefixOf` l || "ACK" `isPrefixOf` l
-                then return $ reverse (l:acc)
-                else getLines handle (l:acc)
+                then return [l]
+                else do ls <- unsafeInterleaveIO $ getLines handle
+                        return (l:ls)
 
 --
 -- Other operations.
