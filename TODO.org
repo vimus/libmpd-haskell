@@ -1,0 +1,17 @@
+#+Startup: overview logdone lognotrepeat indent
+#+TODO: TODO(t) ACTIVE(a) CANCELLED(c) DEFERRED DONE(d)
+#+TAGS: enhancement defect api
+
+* TODO Make the MPD version available in MonadMPD :enhancement:
+  When connecting, an MPD server responds with its version number.
+  The library should record this and make it available as in a Reader monad.
+  The StringMPD monad can also support this with an extra version parameter
+  to `testMPD'
+* TODO Proper position handling :defect:api:
+  Some commands take either positions or identifiers, while some take only
+  one, yet others can consume either ranges or positions. The current way of
+  handling this is clearly not expressive enough and requires ugly run-time
+  checks. Find a better way to deal with this.
+* TODO Supoprt bytestrings as well as strings in the interface :defect:api:
+  Bytestrings can be much faster for lots of text data but seems to be more of
+  a pain for casual use. It'd be nice to support both them and ordinary Strings.
