@@ -26,7 +26,7 @@ module Network.MPD.Commands (
     next, pause, play, previous, seek, stop,
 
     -- * The current playlist
-    add, add_, addId, clear, delete, move, {-playlist,-} playlistFind,
+    add, add_, addId, clear, delete, move, playlist, playlistFind,
     playlistInfo, playlistSearch, plChanges, plChangesPosId, shuffle, swap,
 
     -- * Stored playlist
@@ -51,7 +51,7 @@ module Network.MPD.Commands (
     commands, notCommands, tagTypes, urlHandlers, decoders,
 
     -- * Extensions\/shortcuts
-    addMany, {-deleteMany,-} complete, {-crop, prune,-} lsDirs, lsFiles, lsPlaylists,
+    addMany, {-deleteMany, complete, crop, prune, lsDirs, lsFiles, lsPlaylists,-}
     listArtists, listAlbums, listAlbum, getPlaylist, toggle, updateId, volume
     ) where
 
@@ -77,14 +77,9 @@ import System.FilePath (dropFileName)
 clearError :: MonadMPD m => m ()
 clearError = getResponse_ "clearerror"
 
--- | Get the currently playing song.
-currentSong :: (Functor m, MonadMPD m) => m (Maybe Song)
-currentSong = do
-    cs <- status
-    if stState cs == Stopped
-       then return Nothing
-       else getResponse1 "currentsong" >>=
-            fmap Just . runParser parseSong . toAssocList
+-- | Get the current song.
+currentSong :: MonadMPD m => m (Maybe Song)
+currentSong = getResponse "currentsong" >>= takeSongs >>= return . listToMaybe
 
 -- | Wait until there is a noteworthy change in one or more of MPD's
 -- susbystems. Note that running this command will block until either 'idle'
@@ -108,11 +103,11 @@ noidle = getResponse_ "noidle"
 
 -- | Get server statistics.
 stats :: MonadMPD m => m Stats
-stats = getResponse "stats" >>= runParser parseStats
+stats = getResponse "stats" >>= return . parseStats . toAssocList
 
 -- | Get the server's status.
 status :: MonadMPD m => m Status
-status = getResponse "status" >>= runParser parseStatus
+status = getResponse "status" >>= return . parseStatus . toAssocList
 
 --
 -- Playback options
@@ -231,12 +226,12 @@ moveId id' to = getResponse_ ("moveid" <$> id' <++> to)
 -- Note that this command is only included for completeness sake; it's
 -- deprecated and likely to disappear at any time, please use 'playlistInfo'
 -- instead.
-{- playlist :: MonadMPD m => m [(PLIndex, Path)]
+playlist :: MonadMPD m => m [(Int, Path)]
 playlist = mapM f =<< getResponse "playlist"
     where f s | (pos, name) <- breakChar ':' s
               , Just pos'   <- parseNum pos
-              = return (Pos pos', name)
-              | otherwise = throwError . Unexpected $ show s -}
+              = return (pos', name)
+              | otherwise = throwError . Unexpected $ show s
 
 -- | Search for songs in the current playlist with strict matching.
 playlistFind :: MonadMPD m => Query -> m [Song]
@@ -357,7 +352,7 @@ save plname = getResponse_ ("save" <$> plname)
 
 -- | Count the number of entries matching a query.
 count :: MonadMPD m => Query -> m Count
-count query = getResponse ("count" <$>  query) >>= runParser parseCount
+count query = getResponse ("count" <$>  query) >>= return . parseCount . toAssocList
 
 -- | Search the database for entries exactly matching a query.
 find :: MonadMPD m => Query -> m [Song]
@@ -378,23 +373,17 @@ listAll :: MonadMPD m => Path -> m [Path]
 listAll path = liftM (map snd . filter ((== "file") . fst) . toAssocList)
                      (getResponse $ "listall" <$> path)
 
--- Helper for lsInfo and listAllInfo.
-lsInfo' :: MonadMPD m => String -> Path -> m [Either Path Song]
-lsInfo' cmd path =
-    liftM (extractEntries (Just . Right, const Nothing, Just . Left)) $
-         takeEntries =<< getResponse (cmd <$> path)
-
 -- | Recursive 'lsInfo'.
-listAllInfo :: MonadMPD m => Path -> m [Either Path Song]
-listAllInfo = lsInfo' "listallinfo"
+listAllInfo :: MonadMPD m => Path -> m [Song]
+listAllInfo path = takeSongs =<< getResponse ("listallinfo" <$> path)
 
 -- | Non-recursively list the contents of a database directory.
-lsInfo :: MonadMPD m => Path -> m [Either Path Song]
-lsInfo = lsInfo' "lsinfo"
+lsInfo :: MonadMPD m => Path -> m [Entry]
+lsInfo path = takeEntries =<< getResponse ("lsinfo" <$> path)
 
 -- | Search the database using case insensitive matching.
 search :: MonadMPD m => Query -> m [Song]
-search query = getResponse ("search" <$> query) >>= takeSongs
+search query = takeSongs =<< getResponse ("search" <$> query)
 
 -- | Update the server's database.
 -- If no paths are given, all paths will be scanned.
@@ -483,8 +472,8 @@ enableOutput :: MonadMPD m => Int -> m ()
 enableOutput = getResponse_ . ("enableoutput" <$>)
 
 -- | Retrieve information for all output devices.
-outputs :: MonadMPD m => m [Device]
-outputs = getResponse "outputs" >>= runParser parseOutputs
+outputs :: MonadMPD m => m [Output]
+outputs = getResponse "outputs" >>= return . parseOutputs . toAssocList
 
 --
 -- Reflection
@@ -554,7 +543,7 @@ deleteMany "" xs = getResponses (map cmd xs) >> return ()
           cmd (ID x)  = "deleteid" <$> x
 deleteMany plname xs = getResponses (map cmd xs) >> return ()
     where cmd (Pos x) = "playlistdelete" <$> plname <++> x
-          cmd _       = "" -}
+          cmd _       = ""
 
 -- | Returns all songs and directories that match the given partial
 -- path name.
@@ -574,7 +563,7 @@ complete path = do
 -- on that side.
 -- Using 'ID' will automatically find the absolute playlist position and use
 -- that as the cropping boundary.
-{- crop :: MonadMPD m => Maybe PLIndex -> Maybe PLIndex -> m ()
+crop :: MonadMPD m => Maybe PLIndex -> Maybe PLIndex -> m ()
 crop x y = do
     pl <- playlistInfo Nothing
     let x' = case x of Just (Pos p) -> fromInteger p
@@ -586,14 +575,14 @@ crop x y = do
                                       (findByID i pl)
                        Nothing      -> []
     deleteMany "" . mapMaybe sgIndex $ take x' pl ++ ys
-    where findByID i = findIndex ((==) i . (\(ID j) -> j) . fromJust . sgIndex) -}
+    where findByID i = findIndex ((==) i . (\(ID j) -> j) . fromJust . sgIndex)
 
 -- | Remove duplicate playlist entries.
-{- prune :: MonadMPD m => m ()
-prune = findDuplicates >>= deleteMany "" -}
+prune :: MonadMPD m => m ()
+prune = findDuplicates >>= deleteMany ""
 
 -- Find duplicate playlist entries.
-{- findDuplicates :: MonadMPD m => m [PLIndex]
+findDuplicates :: MonadMPD m => m [PLIndex]
 findDuplicates =
     liftM (map ((\(ID x) -> ID x) . fromJust . sgIndex) . flip dups ([],[])) $
         playlistInfo Nothing
@@ -601,7 +590,7 @@ findDuplicates =
           dups (x:xs) (ys, dup)
               | x `mSong` xs && not (x `mSong` ys) = dups xs (ys, x:dup)
               | otherwise                          = dups xs (x:ys, dup)
-          mSong x = let m = sgFilePath x in any ((==) m . sgFilePath) -}
+          mSong x = let m = sgFilePath x in any ((==) m . sgFilePath)
 
 -- | List directories non-recursively.
 lsDirs :: MonadMPD m => Path -> m [Path]
@@ -618,7 +607,7 @@ lsFiles path =
 -- | List all playlists.
 lsPlaylists :: MonadMPD m => m [PlaylistName]
 lsPlaylists = liftM (extractEntries (const Nothing, Just, const Nothing)) $
-                    takeEntries =<< getResponse "lsinfo"
+                    takeEntries =<< getResponse "lsinfo" -}
 
 -- | List the artists in the database.
 listArtists :: MonadMPD m => m [Artist]
@@ -675,36 +664,12 @@ getResponse1 x = getResponse x >>= failOnEmpty
 
 -- Run 'toAssocList' and return only the values.
 takeValues :: [String] -> [String]
-takeValues = snd . unzip . toAssocList
+takeValues = map snd . toAssocList
 
-data EntryType
-    = SongEntry Song
-    | PLEntry   String
-    | DirEntry  String
-      deriving (Eq, Show)
-
--- Separate the result of an lsinfo\/listallinfo call into directories,
--- playlists, and songs.
-takeEntries :: MonadMPD m => [String] -> m [EntryType]
-takeEntries = mapM toEntry . splitGroups wrappers . toAssocList
-    where
-        toEntry xs@(("file",_):_)   = liftM SongEntry $ runParser parseSong xs
-        toEntry (("directory",d):_) = return $ DirEntry d
-        toEntry (("playlist",pl):_) = return $ PLEntry  pl
-        toEntry _ = error "takeEntries: splitGroups is broken"
-        wrappers = [("file",id), ("directory",id), ("playlist",id)]
-
--- Extract a subset of songs, directories, and playlists.
-extractEntries :: (Song -> Maybe a, String -> Maybe a, String -> Maybe a)
-               -> [EntryType] -> [a]
-extractEntries (fSong,fPlayList,fDir) = mapMaybe f
-    where
-        f (SongEntry s) = fSong s
-        f (PLEntry pl)  = fPlayList pl
-        f (DirEntry d)  = fDir d
-
--- Build a list of song instances from a response.
+-- Build a list of Song instances from a response.
 takeSongs :: MonadMPD m => [String] -> m [Song]
-takeSongs = mapM (runParser parseSong)
-          . splitGroups [("file",id)]
-          . toAssocList
+takeSongs = return . parseSongs . toAssocList
+
+-- Build a list of Entry instances from a response.
+takeEntries :: MonadMPD m => [String] -> m [Entry]
+takeEntries = return . parseEntries . toAssocList

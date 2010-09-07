@@ -10,6 +10,9 @@ module Network.MPD.Commands.Types where
 
 import Network.MPD.Commands.Arg (MPDArg(prep), Args(Args))
 
+import qualified Data.Map as M
+import Data.Time.Clock (UTCTime)
+
 type Artist       = String
 type Album        = String
 type Title        = String
@@ -81,6 +84,8 @@ instance MPDArg ReplayGainMode where
     prep TrackMode = Args ["track"]
     prep AlbumMode = Args ["album"]
 
+------------------------------------------------------------------
+
 -- | Represents the result of running 'count'.
 data Count =
     Count { cSongs    :: Integer -- ^ Number of songs matching the query
@@ -88,20 +93,44 @@ data Count =
           }
     deriving (Eq, Show)
 
-defaultCount :: Count
-defaultCount = Count { cSongs = 0, cPlaytime = 0 }
-
 -- | Represents an output device.
-data Device =
-    Device { dOutputID      :: Int    -- ^ Output's ID number
-           , dOutputName    :: String -- ^ Output's name as defined in the MPD
-                                      --   configuration file
-           , dOutputEnabled :: Bool }
-    deriving (Eq, Show)
+data Output =
+    Output { outID      :: Int    -- ^ Output's ID number
+           , outName    :: String -- ^ Output's name as defined in
+                                  --   the MPD configuration file
+           , outEnabled :: Bool
+           } deriving (Eq, Show)
 
-defaultDevice :: Device
-defaultDevice =
-    Device { dOutputID = 0, dOutputName = "", dOutputEnabled = False }
+-- | Represents a single song item.
+data Song = Song
+         { sgFilePath     :: String
+         -- | Map of available tags (multiple occurences of one tag type allowed)
+         , sgTags         :: M.Map Metadata [String]
+         -- | Last modification date
+         , sgLastModified :: Maybe UTCTime
+         -- | Length of the song in seconds
+         , sgLength       :: Seconds
+         -- | Position/ID in playlist
+         , sgIndex        :: Maybe (Int, Int)
+         } deriving (Eq, Show)
+
+-- | Get list of specific tag type
+sgGet :: Metadata -> Song -> Maybe [String]
+sgGet meta s = M.lookup meta $ sgTags s
+
+-- | Represents a single playlist item.
+data Playlist = Playlist {
+               plName         :: String
+             , plLastModified :: Maybe UTCTime
+             } deriving (Eq, Show)
+
+-- | Represents a single item in database.
+data Entry = SongE Song
+           | PlaylistE Playlist
+           | DirectoryE String
+           deriving (Eq, Show)
+
+------------------------------------------------------------------
 
 -- | Container for database statistics.
 data Stats =
@@ -116,31 +145,6 @@ data Stats =
           }
     deriving (Eq, Show)
 
-defaultStats :: Stats
-defaultStats =
-     Stats { stsArtists = 0, stsAlbums = 0, stsSongs = 0, stsUptime = 0
-           , stsPlaytime = 0, stsDbPlaytime = 0, stsDbUpdate = 0 }
-
--- | Represents a single song item.
-data Song =
-    Song { sgArtist, sgAlbum, sgTitle, sgFilePath, sgGenre, sgName, sgComposer
-         , sgPerformer :: String
-         , sgLength    :: Seconds          -- ^ Length in seconds
-         , sgDate      :: Int              -- ^ Year
-         , sgTrack     :: (Int, Int)       -- ^ Track number\/total tracks
-         , sgDisc      :: Maybe (Int, Int) -- ^ Position in set\/total in set
-         , sgIndex     :: Maybe Int
-         , sgAux       :: [(String, String)] } -- ^ Auxiliary song fields
-    deriving (Eq, Show)
-
-defaultSong :: Song
-defaultSong =
-    Song { sgArtist = "", sgAlbum = "", sgTitle = ""
-         , sgGenre = "", sgName = "", sgComposer = ""
-         , sgPerformer = "", sgDate = 0, sgTrack = (0,0)
-         , sgDisc = Nothing, sgFilePath = "", sgLength = 0
-         , sgIndex = Nothing, sgAux = [] }
-
 -- | Container for MPD status.
 data Status =
     Status { stState :: State
@@ -150,7 +154,7 @@ data Status =
            , stRandom          :: Bool
              -- | A value that is incremented by the server every time the
              --   playlist changes.
-           , stPlaylistVersion :: Integer
+           , stPlaylistID      :: Integer
              -- | The number of items in the current playlist.
            , stPlaylistLength  :: Integer
              -- | Current song's position in the playlist.
@@ -162,15 +166,15 @@ data Status =
              -- | Next song's playlist ID.
            , stNextSongID      :: Maybe Int
              -- | Time elapsed\/total time.
-           , stTime            :: (Float, Seconds)
+           , stTime            :: (Double, Seconds)
              -- | Bitrate (in kilobytes per second) of playing song (if any).
            , stBitrate         :: Int
              -- | Crossfade time.
            , stXFadeWidth      :: Seconds
              -- | MixRamp threshold in dB
-           , stMixRampdB       :: Float
+           , stMixRampdB       :: Double
              -- | MixRamp extra delay in seconds
-           , stMixRampDelay    :: Float
+           , stMixRampDelay    :: Double
              -- | Samplerate\/bits\/channels for the chosen output device
              --   (see mpd.conf).
            , stAudio           :: (Int, Int, Int)
@@ -181,15 +185,6 @@ data Status =
              -- | If True, a song will be removed after it has been played.
            , stConsume         :: Bool
              -- | Last error message (if any).
-           , stError           :: String }
+           , stError           :: Maybe String }
     deriving (Eq, Show)
 
-defaultStatus :: Status
-defaultStatus =
-    Status { stState = Stopped, stVolume = 0, stRepeat = False
-           , stRandom = False, stPlaylistVersion = 0, stPlaylistLength = 0
-           , stSongPos = Nothing, stSongID = Nothing, stTime = (0,0)
-           , stNextSongPos = Nothing, stNextSongID = Nothing
-           , stBitrate = 0, stXFadeWidth = 0, stMixRampdB = 0
-           , stMixRampDelay = 0, stAudio = (0,0,0), stUpdatingDb = 0
-           , stSingle = False, stConsume = False, stError = "" }

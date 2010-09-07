@@ -8,163 +8,252 @@
 --
 -- Parsers for MPD data types.
 
-module Network.MPD.Commands.Parse where
+module Network.MPD.Commands.Parse (
+    -- * Parsers for many objects
+    parseSongs, parseEntries, parseOutputs,
+    -- * Parsers for one object
+    parseCount, parseStats, parseStatus,
+    -- * Misc utilities
+    parse, pair
+    ) where
 
 import Network.MPD.Commands.Types
 
-import Control.Arrow ((***))
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe)
+import Control.Arrow (first, (***))
 import Control.Monad.Error
 import Network.MPD.Utils
 import Network.MPD.Core (MonadMPD, MPDError(Unexpected))
 
--- | Builds a 'Count' instance from an assoc. list.
-parseCount :: [String] -> Either String Count
-parseCount = foldM f defaultCount . toAssocList
-        where f :: Count -> (String, String) -> Either String Count
-              f a ("songs", x)    = return $ parse parseNum
-                                    (\x' -> a { cSongs = x'}) a x
-              f a ("playtime", x) = return $ parse parseNum
-                                    (\x' -> a { cPlaytime = x' }) a x
-              f _ x               = Left $ show x
+type ItemGen a = [(String, String)] -- ^ list of (key,value) pairs
+               -> a                 -- ^ intermediate object
+               -> (a, Int)          -- ^ result object along with information
+                                    --   about amount of lines it consumed
 
--- | Builds a list of 'Device' instances from an assoc. list
-parseOutputs :: [String] -> Either String [Device]
-parseOutputs = mapM (foldM f defaultDevice)
-             . splitGroups [("outputid",id)]
-             . toAssocList
-    where f a ("outputid", x)      = return $ parse parseNum
-                                     (\x' -> a { dOutputID = x' }) a x
-          f a ("outputname", x)    = return a { dOutputName = x }
-          f a ("outputenabled", x) = return $ parse parseBool
-                                     (\x' -> a { dOutputEnabled = x'}) a x
-          f _ x                    = fail $ show x
+-- | Generate Output object.
+parseOutput :: ItemGen Output
+parseOutput ls d = f ls d 0
+    where f []                d n = (d, n)
+          f ((key, value):ls) d n =
+              case key of
+                   "outputname"    -> f ls d { outName = value }      (succ n)
+                   "outputenabled" -> f ls (up outenabled' parseBool) (succ n)
+                   "outputid"      -> (d, n) -- new output, we're done here
+                   _               -> f ls d (succ n) -- ignore unknown keys
+
+              where up g parser = maybe d g $ parser value
+                    outenabled' v = d { outEnabled = v }
+
+-- | Generate Entry object
+parseEntry :: ItemGen Entry
+parseEntry ls (SongE s) = first SongE $ parseSong ls s
+parseEntry _  d@(DirectoryE _) = (d, 0)
+parseEntry ls (PlaylistE p) = first PlaylistE $ parsePlaylist ls p 0
+    where parsePlaylist [] s n = (s, n)
+          parsePlaylist ((key, value):ls) p n =
+              case key of
+                   "Last-Modified" -> parsePlaylist ls p
+                                        { plLastModified = parseIso8601 value }
+                                        (succ n)
+                   "playlist"      -> (p, n) -- new playlist, we're done here
+                   _               -> parsePlaylist ls p (succ n) -- ignore unknown keys
+
+-- | Generate Song object
+parseSong :: ItemGen Song
+parseSong ls s = f ls s 0
+    where f []                s n = (s, n)
+          f ((key, value):ls) s n =
+              case key of
+                   "Last-Modified" -> f ls s { sgLastModified = lm   } (succ n)
+                   "Time"          -> f ls s { sgLength       = time } (succ n)
+                   "Id"            -> f ls s { sgIndex        = id'  } (succ n)
+                   "Pos"           -> f ls s { sgIndex        = pos  } (succ n)
+                   "file"          -> (s, n) -- new item, we're done here
+                   "playlist"      -> (s, n) -- new item, we're done here
+                   -- "directory" is not needed, files are always after dirs
+                   _ -> case tagValue key of
+                            Just meta -> f ls s
+                                           { sgTags = M.insertWith' (++)
+                                                 meta [value] (sgTags s)
+                                           } (succ n)
+                            Nothing   -> f ls s (succ n) -- ignore unknown keys
+
+              where lm     = parseIso8601 value
+                    time   = maybe 0 id $ parseNum value
+                    id'    = Just (maybe 0 fst $ sgIndex s, maybe 0 id $ parseNum value)
+                    pos    = Just (maybe 0 id $ parseNum value, maybe 0 snd $ sgIndex s)
+
+                    -- Why not just derive instance of Read? Because
+                    -- using read is a few times slower than this.
+                    tagValue "Artist" = Just Artist
+                    tagValue "ArtistSort" = Just ArtistSort
+                    tagValue "Album" = Just Album
+                    tagValue "AlbumArtist" = Just AlbumArtist
+                    tagValue "AlbumArtistSort" = Just AlbumArtistSort
+                    tagValue "Title" = Just Title
+                    tagValue "Track" = Just Track
+                    tagValue "Name" = Just Name
+                    tagValue "Genre" = Just Genre
+                    tagValue "Date" = Just Date
+                    tagValue "Composer" = Just Composer
+                    tagValue "Performer" = Just Performer
+                    tagValue "Disc" = Just Disc
+                    tagValue "MUSICBRAINZ_ARTISTID" = Just MUSICBRAINZ_ARTISTID
+                    tagValue "MUSICBRAINZ_ALBUMID" = Just MUSICBRAINZ_ALBUMID
+                    tagValue "MUSICBRAINZ_ALBUMARTISTID" = Just MUSICBRAINZ_ALBUMARTISTID
+                    tagValue "MUSICBRAINZ_TRACKID" = Just MUSICBRAINZ_TRACKID
+                    tagValue _ = Nothing
+
+-------------------------------------------------------------------
+
+-- | Parser generator.
+genParser :: [(String, String -> a)] -> ItemGen a -> [(String, String)] -> [a]
+genParser _    _      []                = []
+genParser ptrs parser ((key, value):ls) =
+    case key `lookup` ptrs of
+        Just ctr -> let (item, n) = parser ls (ctr value) in
+                        item : genParser ptrs parser (drop n ls)
+        Nothing  ->            genParser ptrs parser ls
+
+-- | Parser for songs.
+parseSongs :: [(String, String)] -> [Song]
+parseSongs = genParser [ ("file", initSong)
+                       ] parseSong
+
+initSong :: String -> Song
+initSong filepath =
+    Song { sgFilePath = filepath, sgTags = M.empty
+         , sgLastModified = Nothing, sgLength = 0
+         , sgIndex = Nothing }
+
+-- | Parser for database entries.
+parseEntries :: [(String, String)] -> [Entry]
+parseEntries = genParser [ ("directory", DirectoryE)
+                         , ("file", SongE . initSong)
+                         , ("playlist", PlaylistE . initPlaylist)
+                         ] parseEntry
+
+initPlaylist :: String -> Playlist
+initPlaylist name =
+    Playlist { plName = name, plLastModified = Nothing }
+
+-- | Parser for outputs.
+parseOutputs :: [(String, String)] -> [Output]
+parseOutputs = genParser [ ("outputid", initOutput . fromMaybe (-1) . parseNum )
+                         ] parseOutput
+
+initOutput :: Int -> Output
+initOutput id' =
+    Output { outID = id', outName = "", outEnabled = False }
+
+------------------------------------------------------------------
+
+-- | Builds a 'Count' instance from an assoc. list.
+parseCount :: [(String, String)] -> Count
+parseCount = flip parseCount' defaultCount
+
+-- | Helper function.
+parseCount' :: [(String, String)] -> Count -> Count
+parseCount' []                c = c
+parseCount' ((key, value):ls) c =
+    case key of
+        "songs"    -> modify parseNum $ \v -> c { cSongs = v }
+        "playtime" -> modify parseNum $ \v -> c { cPlaytime = v }
+        _          -> parseCount' ls c
+
+    where modify p f = parseCount' ls $ parse p f c value
+
+defaultCount =
+    Count { cSongs = 0, cPlaytime = 0 }
+
+-------------------------------------------------------------------
 
 -- | Builds a 'Stats' instance from an assoc. list.
-parseStats :: [String] -> Either String Stats
-parseStats = foldM f defaultStats . toAssocList
-    where
-        f a ("artists", x)     = return $ parse parseNum
-                                 (\x' -> a { stsArtists  = x' }) a x
-        f a ("albums", x)      = return $ parse parseNum
-                                 (\x' -> a { stsAlbums   = x' }) a x
-        f a ("songs", x)       = return $ parse parseNum
-                                 (\x' -> a { stsSongs    = x' }) a x
-        f a ("uptime", x)      = return $ parse parseNum
-                                 (\x' -> a { stsUptime   = x' }) a x
-        f a ("playtime", x)    = return $ parse parseNum
-                                 (\x' -> a { stsPlaytime = x' }) a x
-        f a ("db_playtime", x) = return $ parse parseNum
-                                 (\x' -> a { stsDbPlaytime = x' }) a x
-        f a ("db_update", x)   = return $ parse parseNum
-                                 (\x' -> a { stsDbUpdate = x' }) a x
-        f _ x = fail $ show x
+parseStats :: [(String, String)] -> Stats
+parseStats = flip parseStats' defaultStats
 
--- | Builds a 'Song' instance from an assoc. list.
-parseSong :: [(String, String)] -> Either String Song
-parseSong xs = foldM f defaultSong xs
-    where f a ("Artist", x)    = return a { sgArtist = x }
-          f a ("Album", x)     = return a { sgAlbum  = x }
-          f a ("Title", x)     = return a { sgTitle = x }
-          f a ("Genre", x)     = return a { sgGenre = x }
-          f a ("Name", x)      = return a { sgName = x }
-          f a ("Composer", x)  = return a { sgComposer = x }
-          f a ("Performer", x) = return a { sgPerformer = x }
-          f a ("Date", x)      = return $ parse parseDate
-                                 (\x' -> a { sgDate = x' }) a x
-          f a ("Track", x)     = return $ parse parseTuple
-                                 (\x' -> a { sgTrack = x'}) a x
-          f a ("Disc", x)      = return a { sgDisc = parseTuple x }
-          f a ("file", x)      = return a { sgFilePath = x }
-          f a ("Time", x)      = return $ parse parseNum
-                                 (\x' -> a { sgLength = x'}) a x
-          f a ("Id", x)        = return $ parse parseNum
-                                 (\x' -> a { sgIndex = Just x' }) a x
-          -- We prefer Id but take Pos if no Id has been found.
-          f a ("Pos", x)       =
-              maybe (return $ parse parseNum
-                           (\x' -> a { sgIndex = Just x' }) a x)
-                    (const $ return a)
-                    (sgIndex a)
-          -- Collect auxiliary keys
-          f a (k, v)           = return a { sgAux = (k, v) : sgAux a }
+-- | Helper function.
+parseStats' :: [(String, String)] -> Stats -> Stats
+parseStats' []                s = s
+parseStats' ((key, value):ls) s =
+    case key of
+        "artists"     -> modify parseNum $ \v -> s { stsArtists = v }
+        "albums"      -> modify parseNum $ \v -> s { stsAlbums = v }
+        "songs"       -> modify parseNum $ \v -> s { stsSongs = v }
+        "uptime"      -> modify parseNum $ \v -> s { stsUptime = v }
+        "playtime"    -> modify parseNum $ \v -> s { stsPlaytime = v }
+        "db_playtime" -> modify parseNum $ \v -> s { stsDbPlaytime = v }
+        "db_update"   -> modify parseNum $ \v -> s { stsDbUpdate = v }
+        _             -> parseStats' ls s
 
-          parseTuple s = let (x, y) = breakChar '/' s in
-                         -- Handle incomplete values. For example, songs might
-                         -- have a track number, without specifying the total
-                         -- number of tracks, in which case the resulting
-                         -- tuple will have two identical parts.
-                         case (parseNum x, parseNum y) of
-                             (Just x', Nothing) -> Just (x', x')
-                             (Just x', Just y') -> Just (x', y')
-                             _                  -> Nothing
+    where modify p f = parseStats' ls $ parse p f s value
+
+defaultStats =
+     Stats { stsArtists = 0, stsAlbums = 0, stsSongs = 0, stsUptime = 0
+           , stsPlaytime = 0, stsDbPlaytime = 0, stsDbUpdate = 0 }
+
+-------------------------------------------------------------------
 
 -- | Builds a 'Status' instance from an assoc. list.
-parseStatus :: [String] -> Either String Status
-parseStatus = foldM f defaultStatus . toAssocList
-    where f a ("state", x)
-              = return $ parse state     (\x' -> a { stState = x' }) a x
-          f a ("volume", x)
-              = return $ parse parseNum  (\x' -> a { stVolume = x' }) a x
-          f a ("repeat", x)
-              = return $ parse parseBool (\x' -> a { stRepeat = x' }) a x
-          f a ("random", x)
-              = return $ parse parseBool (\x' -> a { stRandom = x' }) a x
-          f a ("playlist", x)
-              = return $ parse parseNum  (\x' -> a { stPlaylistVersion = x' }) a x
-          f a ("playlistlength", x)
-              = return $ parse parseNum  (\x' -> a { stPlaylistLength = x' }) a x
-          f a ("xfade", x)
-              = return $ parse parseNum  (\x' -> a { stXFadeWidth = x' }) a x
-          f a ("mixrampdb", x)
-              = return $ parse parseFrac (\x' -> a { stMixRampdB = x' }) a x
-          f a ("mixrampdelay", x)
-              = return $ parse parseFrac (\x' -> a { stMixRampDelay = x' }) a x
-          f a ("song", x)
-              = return $ parse parseNum  (\x' -> a { stSongPos = Just x' }) a x
-          f a ("songid", x)
-              = return $ parse parseNum  (\x' -> a { stSongID = Just x' }) a x
-          f a ("time", x)
-              = return $ parse time      (\x' -> a { stTime = x' }) a x
-          f a ("elapsed", x)
-              = return $ parse parseFrac (\x' -> a { stTime = (x', snd $ stTime a) }) a x
-          f a ("bitrate", x)
-              = return $ parse parseNum  (\x' -> a { stBitrate = x' }) a x
-          f a ("audio", x)
-              = return $ parse audio     (\x' -> a { stAudio = x' }) a x
-          f a ("updating_db", x)
-              = return $ parse parseNum  (\x' -> a { stUpdatingDb = x' }) a x
-          f a ("error", x)
-              = return a { stError = x }
-          f a ("single", x)
-              = return $ parse parseBool (\x' -> a { stSingle = x' }) a x
-          f a ("consume", x)
-              = return $ parse parseBool (\x' -> a { stConsume = x' }) a x
-          f a ("nextsong", x)
-              = return $ parse parseNum  (\x' -> a { stNextSongPos = Just x' }) a x
-          f a ("nextsongid", x)
-              = return $ parse parseNum  (\x' -> a { stNextSongID = Just x' }) a x
-          f _ x
-              = fail $ show x
+parseStatus :: [(String, String)] -> Status
+parseStatus = flip parseStatus' defaultStatus
 
-          state "play"  = Just Playing
-          state "pause" = Just Paused
-          state "stop"  = Just Stopped
-          state _       = Nothing
+-- | Helper function.
+parseStatus' :: [(String, String)] -> Status -> Status
+parseStatus' []                s = s
+parseStatus' ((key, value):ls) s =
+    case key of
+       "volume"         -> modify parseNum   $ \v -> s { stVolume = v }
+       "repeat"         -> modify parseBool  $ \v -> s { stRepeat = v }
+       "random"         -> modify parseBool  $ \v -> s { stRandom = v }
+       "single"         -> modify parseBool  $ \v -> s { stSingle = v }
+       "consume"        -> modify parseBool  $ \v -> s { stConsume = v }
+       "playlist"       -> modify parseNum   $ \v -> s { stPlaylistID = v }
+       "playlistlength" -> modify parseNum   $ \v -> s { stPlaylistLength = v }
+       "xfade"          -> modify parseNum   $ \v -> s { stXFadeWidth = v }
+       "mixrampdb"      -> modify parseFrac  $ \v -> s { stMixRampdB = v }
+       "mixrampdelay"   -> modify parseFrac  $ \v -> s { stMixRampDelay = v }
+       "state"          -> modify parseState $ \v -> s { stState = v }
+       "song"           -> parseStatus' ls s { stSongPos = parseNum value }
+       "songid"         -> parseStatus' ls s { stSongID = parseNum value }
+       "time"           -> modify parseTime  $ \v -> s { stTime = v }
+       "elapsed"        -> modify parseFrac  $ \v -> s { stTime = (v, snd $ stTime s) }
+       "bitrate"        -> modify parseNum   $ \v -> s { stBitrate = v }
+       "audio"          -> modify parseAudio $ \v -> s { stAudio = v }
+       "nextsong"       -> parseStatus' ls s { stNextSongPos = parseNum value }
+       "nextsongid"     -> parseStatus' ls s { stNextSongID = parseNum value }
+       "error"          -> parseStatus' ls s { stError = Just value }
+       _                -> parseStatus' ls s
 
-          time s = case parseFrac *** parseNum $ breakChar ':' s of
-                       (Just a, Just b) -> Just (a, b)
-                       _                -> Nothing
+    where modify p f = parseStatus' ls $ parse p f s value
 
-          audio s = let (u, u') = breakChar ':' s
-                        (v, w)  = breakChar ':' u' in
-                    case (parseNum u, parseNum v, parseNum w) of
-                        (Just a, Just b, Just c) -> Just (a, b, c)
-                        _                        -> Nothing
+          parseAudio s = let (u, u') = breakChar ':' s
+                             (v, w)  = breakChar ':' u' in
+              case (parseNum u, parseNum v, parseNum w) of
+                 (Just a, Just b, Just c) -> Just (a, b, c)
+                 _                        -> Nothing
 
--- | Run a parser and lift the result into the 'MPD' monad
-runParser :: (MonadMPD m, MonadError MPDError m)
-          => (input -> Either String a) -> input -> m a
-runParser f = either (throwError . Unexpected) return . f
+          parseState "play"  = Just Playing
+          parseState "pause" = Just Paused
+          parseState "stop"  = Just Stopped
+          parseState _       = Nothing
+
+          parseTime s =
+              case parseFrac *** parseNum $ breakChar ':' s of
+                 (Just a, Just b) -> Just (a, b)
+                 _                -> Nothing
+
+defaultStatus =
+    Status { stState = Stopped, stVolume = 0, stRepeat = False
+           , stRandom = False, stPlaylistID = 0, stPlaylistLength = 0
+           , stSongPos = Nothing, stSongID = Nothing, stTime = (0, 0)
+           , stNextSongPos = Nothing, stNextSongID = Nothing
+           , stBitrate = 0, stXFadeWidth = 0, stMixRampdB = 0
+           , stMixRampDelay = 0, stAudio = (0, 0, 0), stUpdatingDb = 0
+           , stSingle = False, stConsume = False, stError = Nothing }
+
+-------------------------------------------------------------------
 
 -- | A helper that runs a parser on a string and, depending on the
 -- outcome, either returns the result of some command applied to the

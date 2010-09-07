@@ -7,12 +7,15 @@
 -- Utilities.
 
 module Network.MPD.Utils (
-    parseDate, parseNum, parseFrac, parseBool, showBool,
-    breakChar, toAssoc, toAssocList, splitGroups
+    parseDate, parseIso8601, parseNum, parseFrac,
+    parseBool, showBool, breakChar, toAssoc,
+    toAssocList, splitGroups
     ) where
 
 import Data.Char (isDigit)
 import Data.Maybe (fromMaybe)
+import Data.Time.Format (ParseTime, parseTime)
+import System.Locale (defaultTimeLocale)
 
 -- Break a string by character, removing the separator.
 breakChar :: Char -> String -> (String, String)
@@ -24,6 +27,10 @@ breakChar c s = let (x, y) = break (== c) s in (x, drop 1 y)
 -- > parseDate "2008-03-01" = Just 2008
 parseDate :: String -> Maybe Int
 parseDate = parseNum . takeWhile isDigit
+
+-- Parse date in iso 8601 format
+parseIso8601 :: (ParseTime t) => String -> Maybe t
+parseIso8601 = parseTime defaultTimeLocale "%FT%TZ"
 
 -- Parse a positive or negative integer value, returning 'Nothing' on failure.
 parseNum :: (Read a, Integral a) => String -> Maybe a
