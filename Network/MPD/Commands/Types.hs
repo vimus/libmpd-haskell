@@ -53,25 +53,25 @@ data State = Playing
 
 -- | Represents the various MPD subsystems.
 data Subsystem
-    = Database          -- ^ The song database
-    | Update            -- ^ Database updates
-    | StoredPlaylist    -- ^ Stored playlists
-    | Playlist          -- ^ The current playlist
-    | Player            -- ^ The player
-    | Mixer             -- ^ The volume mixer
-    | Output            -- ^ Audio outputs
-    | Options           -- ^ Playback options
+    = DatabaseS          -- ^ The song database
+    | UpdateS            -- ^ Database updates
+    | StoredPlaylistS    -- ^ Stored playlists
+    | PlaylistS          -- ^ The current playlist
+    | PlayerS            -- ^ The player
+    | MixerS             -- ^ The volume mixer
+    | OutputS            -- ^ Audio outputs
+    | OptionsS           -- ^ Playback options
       deriving (Eq, Show)
 
 instance MPDArg Subsystem where
-    prep Database = Args ["database"]
-    prep Update = Args ["update"]
-    prep StoredPlaylist = Args ["stored_playlist"]
-    prep Playlist = Args ["playlist"]
-    prep Player = Args ["player"]
-    prep Mixer = Args ["mixer"]
-    prep Output = Args ["output"]
-    prep Options = Args ["options"]
+    prep DatabaseS = Args ["database"]
+    prep UpdateS = Args ["update"]
+    prep StoredPlaylistS = Args ["stored_playlist"]
+    prep PlaylistS = Args ["playlist"]
+    prep PlayerS = Args ["player"]
+    prep MixerS = Args ["mixer"]
+    prep OutputS = Args ["output"]
+    prep OptionsS = Args ["options"]
 
 data ReplayGainMode
     = Off       -- ^ Disable replay gain
