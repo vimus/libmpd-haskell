@@ -13,6 +13,8 @@ module Network.MPD.Commands.Parse (
     parseSongs, parseEntries, parseOutputs,
     -- * Parsers for one object
     parseCount, parseStats, parseStatus,
+    -- * Other parsers
+    parseIdle,
     -- * Misc utilities
     parse, pair
     ) where
@@ -248,6 +250,24 @@ defaultStatus =
            , stBitrate = 0, stXFadeWidth = 0, stMixRampdB = 0
            , stMixRampDelay = 0, stAudio = (0, 0, 0), stUpdatingDb = 0
            , stSingle = False, stConsume = False, stError = Nothing }
+
+-------------------------------------------------------------------
+
+-- | Builds list of idle subsystems.
+parseIdle :: [(String, String)] -> [Subsystem]
+parseIdle [] = []
+parseIdle (("changed", value):ls) =
+    case value of
+        "database"        -> DatabaseS       : parseIdle ls
+        "update"          -> UpdateS         : parseIdle ls
+        "stored_playlist" -> StoredPlaylistS : parseIdle ls
+        "playlist"        -> PlaylistS       : parseIdle ls
+        "player"          -> PlayerS         : parseIdle ls
+        "mixer"           -> MixerS          : parseIdle ls
+        "output"          -> OutputS         : parseIdle ls
+        "options"         -> OptionsS        : parseIdle ls
+        _                 ->                   parseIdle ls
+parseIdle (_:ls) = parseIdle ls
 
 -------------------------------------------------------------------
 

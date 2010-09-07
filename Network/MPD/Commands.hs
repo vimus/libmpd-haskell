@@ -16,7 +16,7 @@ module Network.MPD.Commands (
     module Network.MPD.Commands.Query,
 
     -- * Querying MPD's status
-    clearError, currentSong, idle, noidle, status, stats,
+    clearError, currentSong, idle, getIdle, noidle, status, stats,
 
     -- * Playback options
     consume, crossfade, random, repeat, setVolume, single, replayGainMode,
@@ -81,21 +81,18 @@ clearError = getResponse_ "clearerror"
 currentSong :: MonadMPD m => m (Maybe Song)
 currentSong = getResponse "currentsong" >>= takeSongs >>= return . listToMaybe
 
--- | Wait until there is a noteworthy change in one or more of MPD's
--- susbystems. Note that running this command will block until either 'idle'
--- returns or is cancelled by 'noidle'.
-idle :: MonadMPD m => m [Subsystem]
-idle =
-    mapM (\("changed", system) -> case system of "database" -> return DatabaseS
-                                                 "update"   -> return UpdateS
-                                                 "stored_playlist" -> return StoredPlaylistS
-                                                 "playlist" -> return PlaylistS
-                                                 "player" -> return PlayerS
-                                                 "mixer" -> return MixerS
-                                                 "output" -> return OutputS
-                                                 "options" -> return OptionsS
-                                                 k -> fail ("Unknown subsystem: " ++ k))
-         =<< toAssocList `liftM` getResponse "idle"
+-- | Make MPD server notify the client if there is a noteworthy change
+--   in one or more of its subsystems. Note that after running this command
+--   you can either monitor handle for incoming notifications or cancel this
+--   by 'noidle'. Any command other than 'noidle' sent to MPD server while
+--   idle is active will be ignored.
+idle :: MonadMPD m => [Subsystem] -> m ()
+idle ss = send ("idle" <$> foldr (<++>) (Args []) ss)
+
+-- | Get idle notifications. If there is no notifications ready
+--   at the moment, this function will block until they show up.
+getIdle :: MonadMPD m => m [Subsystem]
+getIdle = getResponse "" >>= return . parseIdle . toAssocList
 
 -- | Cancel 'idle'.
 noidle :: MonadMPD m => m ()
