@@ -78,11 +78,11 @@ parseSong xs = foldM f defaultSong xs
           f a ("Time", x)      = return $ parse parseNum
                                  (\x' -> a { sgLength = x'}) a x
           f a ("Id", x)        = return $ parse parseNum
-                                 (\x' -> a { sgIndex = Just (ID x') }) a x
+                                 (\x' -> a { sgIndex = Just x' }) a x
           -- We prefer Id but take Pos if no Id has been found.
           f a ("Pos", x)       =
               maybe (return $ parse parseNum
-                           (\x' -> a { sgIndex = Just (Pos x') }) a x)
+                           (\x' -> a { sgIndex = Just x' }) a x)
                     (const $ return a)
                     (sgIndex a)
           -- Collect auxiliary keys
@@ -120,9 +120,9 @@ parseStatus = foldM f defaultStatus . toAssocList
           f a ("mixrampdelay", x)
               = return $ parse parseFrac (\x' -> a { stMixRampDelay = x' }) a x
           f a ("song", x)
-              = return $ parse parseNum  (\x' -> a { stSongPos = Just (Pos x') }) a x
+              = return $ parse parseNum  (\x' -> a { stSongPos = Just x' }) a x
           f a ("songid", x)
-              = return $ parse parseNum  (\x' -> a { stSongID = Just (ID x') }) a x
+              = return $ parse parseNum  (\x' -> a { stSongID = Just x' }) a x
           f a ("time", x)
               = return $ parse time      (\x' -> a { stTime = x' }) a x
           f a ("elapsed", x)
@@ -140,9 +140,9 @@ parseStatus = foldM f defaultStatus . toAssocList
           f a ("consume", x)
               = return $ parse parseBool (\x' -> a { stConsume = x' }) a x
           f a ("nextsong", x)
-              = return $ parse parseNum  (\x' -> a { stNextSongPos = Just (Pos x') }) a x
+              = return $ parse parseNum  (\x' -> a { stNextSongPos = Just x' }) a x
           f a ("nextsongid", x)
-              = return $ parse parseNum  (\x' -> a { stNextSongID = Just (ID x') }) a x
+              = return $ parse parseNum  (\x' -> a { stNextSongID = Just x' }) a x
           f _ x
               = fail $ show x
 

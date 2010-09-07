@@ -26,7 +26,7 @@ module Network.MPD.Commands (
     next, pause, play, previous, seek, stop,
 
     -- * The current playlist
-    add, add_, addId, clear, delete, move, playlist, playlistFind,
+    add, add_, addId, clear, delete, move, {-playlist,-} playlistFind,
     playlistInfo, playlistSearch, plChanges, plChangesPosId, shuffle, swap,
 
     -- * Stored playlist
@@ -51,7 +51,7 @@ module Network.MPD.Commands (
     commands, notCommands, tagTypes, urlHandlers, decoders,
 
     -- * Extensions\/shortcuts
-    addMany, deleteMany, complete, crop, prune, lsDirs, lsFiles, lsPlaylists,
+    addMany, {-deleteMany,-} complete, {-crop, prune,-} lsDirs, lsFiles, lsPlaylists,
     listArtists, listAlbums, listAlbum, getPlaylist, toggle, updateId, volume
     ) where
 
@@ -163,23 +163,25 @@ pause :: MonadMPD m => Bool -> m ()
 pause = getResponse_ . ("pause" <$>)
 
 -- | Begin\/continue playing.
-play :: MonadMPD m => Maybe PLIndex -> m ()
-play Nothing        = getResponse_  "play"
-play (Just (Pos x)) = getResponse_ ("play"   <$> x)
-play (Just (ID x))  = getResponse_ ("playid" <$> x)
+play :: MonadMPD m => Maybe Int -> m ()
+play (Just pos) = getResponse_ ("play" <$> pos)
+play _          = getResponse_  "play"
+
+-- | Play a file with given id.
+playId :: MonadMPD m => Int -> m ()
+playId id' = getResponse_ ("playid" <$> id')
 
 -- | Play the previous song.
 previous :: MonadMPD m => m ()
 previous = getResponse_ "previous"
 
 -- | Seek to some point in a song.
--- Seeks in current song if no position is given.
-seek :: MonadMPD m => Maybe PLIndex -> Seconds -> m ()
-seek (Just (Pos x)) time = getResponse_ ("seek" <$> x <++> time)
-seek (Just (ID x)) time = getResponse_ ("seekid" <$> x <++> time)
-seek Nothing time = do
-    st <- status
-    unless (stState st == Stopped) (seek (stSongID st) time)
+seek :: MonadMPD m => Int -> Seconds -> m ()
+seek pos time = getResponse_ ("seek" <$> pos <++> time)
+
+-- | Seek to some point in a song (id version)
+seekId :: MonadMPD m => Int -> Seconds -> m ()
+seekId id' time = getResponse_ ("seekid" <$> id' <++> time)
 
 -- | Stop playing.
 stop :: MonadMPD m => m ()
@@ -192,7 +194,7 @@ stop = getResponse_ "stop"
 -- This might do better to throw an exception than silently return 0.
 -- | Like 'add', but returns a playlist id.
 addId :: MonadMPD m => Path -> Maybe Integer -- ^ Optional playlist position
-      -> m Integer
+      -> m Int
 addId p pos = liftM (parse parseNum id 0 . snd . head . toAssocList)
               $ getResponse1 ("addid" <$> p <++> pos)
 
@@ -209,38 +211,45 @@ clear :: MonadMPD m => m ()
 clear = getResponse_ "clear"
 
 -- | Remove a song from the current playlist.
-delete :: MonadMPD m => PLIndex -> m ()
-delete (Pos x) = getResponse_ ("delete" <$> x)
-delete (ID x)  = getResponse_ ("deleteid" <$> x)
+delete :: MonadMPD m => Int -> m ()
+delete pos = getResponse_ ("delete" <$> pos)
+
+-- | Remove a song from the current playlist.
+deleteId :: MonadMPD m => Int -> m ()
+deleteId id' = getResponse_ ("deleteid" <$> id')
 
 -- | Move a song to a given position in the current playlist.
-move :: MonadMPD m => PLIndex -> Integer -> m ()
-move (Pos from) to = getResponse_ ("move" <$> from <++> to)
-move (ID from) to = getResponse_ ("moveid" <$> from <++> to)
+move :: MonadMPD m => Int -> Int -> m ()
+move pos to = getResponse_ ("move" <$> pos <++> to)
+
+-- | Move a song from (songid) to (playlist index) in the playlist. If to is
+-- negative, it is relative to the current song in the playlist (if there is one).
+moveId :: MonadMPD m => Int -> Int -> m ()
+moveId id' to = getResponse_ ("moveid" <$> id' <++> to)
 
 -- | Retrieve file paths and positions of songs in the current playlist.
 -- Note that this command is only included for completeness sake; it's
 -- deprecated and likely to disappear at any time, please use 'playlistInfo'
 -- instead.
-playlist :: MonadMPD m => m [(PLIndex, Path)]
+{- playlist :: MonadMPD m => m [(PLIndex, Path)]
 playlist = mapM f =<< getResponse "playlist"
     where f s | (pos, name) <- breakChar ':' s
               , Just pos'   <- parseNum pos
               = return (Pos pos', name)
-              | otherwise = throwError . Unexpected $ show s
+              | otherwise = throwError . Unexpected $ show s -}
 
 -- | Search for songs in the current playlist with strict matching.
 playlistFind :: MonadMPD m => Query -> m [Song]
 playlistFind q = takeSongs =<< getResponse ("playlistfind" <$> q)
 
 -- | Retrieve metadata for songs in the current playlist.
-playlistInfo :: MonadMPD m => Maybe (Either PLIndex (Int, Int)) -> m [Song]
-playlistInfo x = getResponse cmd >>= takeSongs
-    where cmd = case x of
-                    Nothing -> "playlistinfo"
-                    Just (Left (Pos x')) -> "playlistinfo" <$> x'
-                    Just (Left (ID x'))  -> "playlistid" <$> x'
-                    Just (Right range)   -> "playlistinfo" <$> range
+playlistInfo :: MonadMPD m => Maybe (Int, Int) -> m [Song]
+playlistInfo range = takeSongs =<< getResponse ("playlistinfo" <$> range)
+
+-- | Displays a list of songs in the playlist.
+-- If id is specified, only its info is returned.
+playlistId :: MonadMPD m => Maybe Int -> m [Song]
+playlistId id' = takeSongs =<< getResponse ("playlistinfo" <$> id')
 
 -- | Search case-insensitively with partial matches for songs in the
 -- current playlist.
@@ -253,13 +262,13 @@ plChanges :: MonadMPD m => Integer -> m [Song]
 plChanges version = takeSongs =<< getResponse ("plchanges" <$> version)
 
 -- | Like 'plChanges' but only returns positions and ids.
-plChangesPosId :: MonadMPD m => Integer -> m [(PLIndex, PLIndex)]
+plChangesPosId :: MonadMPD m => Integer -> m [(Int, Int)]
 plChangesPosId plver =
     getResponse ("plchangesposid" <$> plver) >>=
     mapM f . splitGroups [("cpos",id)] . toAssocList
     where f xs | [("cpos", x), ("Id", y)] <- xs
                , Just (x', y') <- pair parseNum (x, y)
-               = return (Pos x', ID y')
+               = return (x', y')
                | otherwise = throwError . Unexpected $ show xs
 
 -- | Shuffle the playlist.
@@ -268,12 +277,12 @@ shuffle :: MonadMPD m => Maybe (Int, Int) -- ^ Optional range (start, end)
 shuffle range = getResponse_ ("shuffle" <$> range)
 
 -- | Swap the positions of two songs.
--- Note that the positions must be of the same type, i.e. mixing 'Pos' and 'ID'
--- will result in a no-op.
-swap :: MonadMPD m => PLIndex -> PLIndex -> m ()
-swap (Pos x) (Pos y) = getResponse_ ("swap" <$> x <++> y)
-swap (ID x)  (ID y)  = getResponse_ ("swapid" <$> x <++> y)
-swap _ _ = fail "'swap' cannot mix position and ID arguments"
+swap :: MonadMPD m => Int -> Int -> m ()
+swap pos1 pos2 = getResponse_ ("swap" <$> pos1 <++> pos2)
+
+-- | Swap the positions of two songs (Id version
+swapId :: MonadMPD m => Int -> Int -> m ()
+swapId id1 id2 = getResponse_ ("swapid" <$> id1 <++> id2)
 
 --
 -- Stored playlists
@@ -537,7 +546,7 @@ addMany plname xs = getResponses (map cmd xs) >> return ()
 -- | Delete a list of songs from a playlist.
 -- If there is a duplicate then no further songs will be deleted, so
 -- take care to avoid them (see 'prune' for this).
-deleteMany :: MonadMPD m => PlaylistName -> [PLIndex] -> m ()
+{- deleteMany :: MonadMPD m => PlaylistName -> [PLIndex] -> m ()
 deleteMany _ [] = return ()
 deleteMany plname [(Pos x)] = playlistDelete plname x
 deleteMany "" xs = getResponses (map cmd xs) >> return ()
@@ -545,7 +554,7 @@ deleteMany "" xs = getResponses (map cmd xs) >> return ()
           cmd (ID x)  = "deleteid" <$> x
 deleteMany plname xs = getResponses (map cmd xs) >> return ()
     where cmd (Pos x) = "playlistdelete" <$> plname <++> x
-          cmd _       = ""
+          cmd _       = "" -}
 
 -- | Returns all songs and directories that match the given partial
 -- path name.
@@ -565,7 +574,7 @@ complete path = do
 -- on that side.
 -- Using 'ID' will automatically find the absolute playlist position and use
 -- that as the cropping boundary.
-crop :: MonadMPD m => Maybe PLIndex -> Maybe PLIndex -> m ()
+{- crop :: MonadMPD m => Maybe PLIndex -> Maybe PLIndex -> m ()
 crop x y = do
     pl <- playlistInfo Nothing
     let x' = case x of Just (Pos p) -> fromInteger p
@@ -577,14 +586,14 @@ crop x y = do
                                       (findByID i pl)
                        Nothing      -> []
     deleteMany "" . mapMaybe sgIndex $ take x' pl ++ ys
-    where findByID i = findIndex ((==) i . (\(ID j) -> j) . fromJust . sgIndex)
+    where findByID i = findIndex ((==) i . (\(ID j) -> j) . fromJust . sgIndex) -}
 
 -- | Remove duplicate playlist entries.
-prune :: MonadMPD m => m ()
-prune = findDuplicates >>= deleteMany ""
+{- prune :: MonadMPD m => m ()
+prune = findDuplicates >>= deleteMany "" -}
 
 -- Find duplicate playlist entries.
-findDuplicates :: MonadMPD m => m [PLIndex]
+{- findDuplicates :: MonadMPD m => m [PLIndex]
 findDuplicates =
     liftM (map ((\(ID x) -> ID x) . fromJust . sgIndex) . flip dups ([],[])) $
         playlistInfo Nothing
@@ -592,7 +601,7 @@ findDuplicates =
           dups (x:xs) (ys, dup)
               | x `mSong` xs && not (x `mSong` ys) = dups xs (ys, x:dup)
               | otherwise                          = dups xs (x:ys, dup)
-          mSong x = let m = sgFilePath x in any ((==) m . sgFilePath)
+          mSong x = let m = sgFilePath x in any ((==) m . sgFilePath) -}
 
 -- | List directories non-recursively.
 lsDirs :: MonadMPD m => Path -> m [Path]
