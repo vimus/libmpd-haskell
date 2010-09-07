@@ -24,11 +24,14 @@ type Path         = String
 
 -- | Available metadata types\/scope modifiers, used for searching the
 -- database for entries with certain metadata values.
-data Meta = Artist | Album | Title | Track | Name | Genre | Date
-    | Composer | Performer | Disc | Any | Filename
-      deriving Show
+data Metadata = Artist | ArtistSort | Album | AlbumArtist
+              | AlbumArtistSort | Title | Track | Name | Genre
+              | Date | Composer | Performer | Comment | Disc
+              | MUSICBRAINZ_ARTISTID | MUSICBRAINZ_ALBUMID
+              | MUSICBRAINZ_ALBUMARTISTID | MUSICBRAINZ_TRACKID
+              deriving (Eq, Ord, Show)
 
-instance MPDArg Meta
+instance MPDArg Metadata
 
 -- | Object types.
 data ObjectType = SongObj
