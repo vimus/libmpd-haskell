@@ -28,7 +28,7 @@ import Data.Monoid
 newtype Query = Query [Match] deriving Show
 
 -- A single query clause, comprising a metadata key and a desired value.
-data Match = Match Meta String
+data Match = Match Metadata String
 
 instance Show Match where
     show (Match meta query) = show meta ++ " \"" ++ query ++ "\""
@@ -47,7 +47,7 @@ anything :: Query
 anything = mempty
 
 -- | Create a query.
-(=?) :: Meta -> String -> Query
+(=?) :: Metadata -> String -> Query
 m =? s = Query [Match m s]
 
 -- | Combine queries.

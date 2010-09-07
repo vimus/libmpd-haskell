@@ -369,7 +369,7 @@ findAdd q = getResponse_ ("findadd" <$> q)
 
 -- | List all metadata of metadata (sic).
 list :: MonadMPD m
-     => Meta -- ^ Metadata to list
+     => Metadata -- ^ Metadata to list
      -> Query -> m [String]
 list mtype query = liftM takeValues $ getResponse ("list" <$> mtype <++> query)
 
