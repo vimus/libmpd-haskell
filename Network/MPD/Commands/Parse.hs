@@ -162,6 +162,24 @@ runParser :: (MonadMPD m, MonadError MPDError m)
           => (input -> Either String a) -> input -> m a
 runParser f = either (throwError . Unexpected) return . f
 
+-- | Builds list of idle subsystems.
+parseIdle :: [(String, String)] -> [Subsystem]
+parseIdle [] = []
+parseIdle (("changed", value):ls) =
+    case value of
+        "database"        -> DatabaseS       : parseIdle ls
+        "update"          -> UpdateS         : parseIdle ls
+        "stored_playlist" -> StoredPlaylistS : parseIdle ls
+        "playlist"        -> PlaylistS       : parseIdle ls
+        "player"          -> PlayerS         : parseIdle ls
+        "mixer"           -> MixerS          : parseIdle ls
+        "output"          -> OutputS         : parseIdle ls
+        "options"         -> OptionsS        : parseIdle ls
+        _                 ->                   parseIdle ls
+parseIdle (_:ls) = parseIdle ls
+
+-------------------------------------------------------------------
+
 -- | A helper that runs a parser on a string and, depending on the
 -- outcome, either returns the result of some command applied to the
 -- result, or a default value. Used when building structures.
