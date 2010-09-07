@@ -111,7 +111,7 @@ mpdOpen = MPD $ do
             `catch` const (return Nothing)
 
         checkConn = do
-            msg <- send ""
+            [msg] <- lines <$> send ""
             if isPrefixOf "OK MPD" msg
                then do
                    MPD $ maybe (throwError $ Custom "Couldn't determine MPD version")
@@ -120,13 +120,7 @@ mpdOpen = MPD $ do
                    return True
                else return False
 
-        parseVersion s =
-            case (parseNum v1, parseNum v2, parseNum v3) of
-                 (Just v1', Just v2', Just v3') -> Just (v1', v2', v3')
-                 _                              -> Nothing
-            where (v1, s2) = breakChar '.' s1
-                  (v2, v3) = breakChar '.' s2
-                  s1       = dropWhile (not . isDigit) s
+        parseVersion = parseTriple '.' parseNum . dropWhile (not . isDigit)
 
 mpdClose :: MPD ()
 mpdClose =

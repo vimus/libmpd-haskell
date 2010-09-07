@@ -155,11 +155,7 @@ parseStatus = foldM f defaultStatus . toAssocList
                        (Just a, Just b) -> Just (a, b)
                        _                -> Nothing
 
-          audio s = let (u, u') = breakChar ':' s
-                        (v, w)  = breakChar ':' u' in
-                    case (parseNum u, parseNum v, parseNum w) of
-                        (Just a, Just b, Just c) -> Just (a, b, c)
-                        _                        -> Nothing
+          audio s = parseTriple ':' parseNum s
 
 -- | Run a parser and lift the result into the 'MPD' monad
 runParser :: (MonadMPD m, MonadError MPDError m)
