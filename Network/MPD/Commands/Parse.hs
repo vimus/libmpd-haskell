@@ -228,11 +228,7 @@ parseStatus' ((key, value):ls) s =
 
     where modify p f = parseStatus' ls $ parse p f s value
 
-          parseAudio s = let (u, u') = breakChar ':' s
-                             (v, w)  = breakChar ':' u' in
-              case (parseNum u, parseNum v, parseNum w) of
-                 (Just a, Just b, Just c) -> Just (a, b, c)
-                 _                        -> Nothing
+          parseAudio = parseTriple ':' parseNum
 
           parseState "play"  = Just Playing
           parseState "pause" = Just Paused

@@ -8,8 +8,8 @@
 
 module Network.MPD.Utils (
     parseDate, parseIso8601, parseNum, parseFrac,
-    parseBool, showBool, breakChar, toAssoc,
-    toAssocList, splitGroups
+    parseBool, showBool, breakChar, parseTriple,
+    toAssoc, toAssocList, splitGroups
     ) where
 
 import Data.Char (isDigit)
@@ -58,6 +58,14 @@ parseBool s = case take 1 s of
                   "1" -> Just True
                   "0" -> Just False
                   _   -> Nothing
+
+-- Break a string into triple.
+parseTriple :: Char -> (String -> Maybe a) -> String -> Maybe (a, a, a)
+parseTriple c f s = let (u, u') = breakChar c s
+                        (v, w)  = breakChar c u' in
+    case (f u, f v, f w) of
+        (Just a, Just b, Just c) -> Just (a, b, c)
+        _                        -> Nothing
 
 -- Break a string into an key-value pair, separating at the first ':'.
 toAssoc :: String -> (String, String)
