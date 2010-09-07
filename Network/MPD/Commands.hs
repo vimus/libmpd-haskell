@@ -91,14 +91,14 @@ currentSong = do
 -- returns or is cancelled by 'noidle'.
 idle :: MonadMPD m => m [Subsystem]
 idle =
-    mapM (\("changed", system) -> case system of "database" -> return Database
-                                                 "update"   -> return Update
-                                                 "stored_playlist" -> return StoredPlaylist
-                                                 "playlist" -> return Playlist
-                                                 "player" -> return Player
-                                                 "mixer" -> return Mixer
-                                                 "output" -> return Output
-                                                 "options" -> return Options
+    mapM (\("changed", system) -> case system of "database" -> return DatabaseS
+                                                 "update"   -> return UpdateS
+                                                 "stored_playlist" -> return StoredPlaylistS
+                                                 "playlist" -> return PlaylistS
+                                                 "player" -> return PlayerS
+                                                 "mixer" -> return MixerS
+                                                 "output" -> return OutputS
+                                                 "options" -> return OptionsS
                                                  k -> fail ("Unknown subsystem: " ++ k))
          =<< toAssocList `liftM` getResponse "idle"
 
