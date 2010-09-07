@@ -39,12 +39,6 @@ instance MPDArg ObjectType where
 
 type Seconds = Integer
 
--- | Represents a song's playlist index.
-data PLIndex = Pos Integer -- ^ A playlist position index (starting from 0)
-             | ID Integer  -- ^ A playlist ID number that more robustly
-                           --   identifies a song.
-    deriving (Show, Eq)
-
 -- | Represents the different playback states.
 data State = Playing
            | Stopped
@@ -132,7 +126,7 @@ data Song =
          , sgDate      :: Int              -- ^ Year
          , sgTrack     :: (Int, Int)       -- ^ Track number\/total tracks
          , sgDisc      :: Maybe (Int, Int) -- ^ Position in set\/total in set
-         , sgIndex     :: Maybe PLIndex
+         , sgIndex     :: Maybe Int
          , sgAux       :: [(String, String)] } -- ^ Auxiliary song fields
     deriving (Eq, Show)
 
@@ -157,13 +151,13 @@ data Status =
              -- | The number of items in the current playlist.
            , stPlaylistLength  :: Integer
              -- | Current song's position in the playlist.
-           , stSongPos         :: Maybe PLIndex
+           , stSongPos         :: Maybe Int
              -- | Current song's playlist ID.
-           , stSongID          :: Maybe PLIndex
+           , stSongID          :: Maybe Int
              -- | Next song's position in the playlist.
-           , stNextSongPos     :: Maybe PLIndex
+           , stNextSongPos     :: Maybe Int
              -- | Next song's playlist ID.
-           , stNextSongID      :: Maybe PLIndex
+           , stNextSongID      :: Maybe Int
              -- | Time elapsed\/total time.
            , stTime            :: (Float, Seconds)
              -- | Bitrate (in kilobytes per second) of playing song (if any).
