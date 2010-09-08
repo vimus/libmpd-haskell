@@ -24,7 +24,7 @@ import Network.MPD.Utils
 import Network.MPD.Core.Class
 import Network.MPD.Core.Error
 
-import Char (isDigit)
+import Data.Char (isDigit)
 import Control.Applicative (Applicative(..), (<$>))
 import Control.Monad (ap, unless)
 import Control.Monad.Error (ErrorT(..), MonadError(..))
