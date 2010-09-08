@@ -24,9 +24,7 @@ import Network.MPD.Commands.Types
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Control.Arrow (first, (***))
-import Control.Monad.Error
 import Network.MPD.Utils
-import Network.MPD.Core (MonadMPD, MPDError(Unexpected))
 
 type ItemGen a = [(String, String)] -- ^ list of (key,value) pairs
                -> a                 -- ^ intermediate object
@@ -36,16 +34,16 @@ type ItemGen a = [(String, String)] -- ^ list of (key,value) pairs
 -- | Generate Output object.
 parseOutput :: ItemGen Output
 parseOutput ls d = f ls d 0
-    where f []                d n = (d, n)
-          f ((key, value):ls) d n =
+    where f []                d' n = (d', n)
+          f ((key, value):ls') d' n =
               case key of
-                   "outputname"    -> f ls d { outName = value }      (succ n)
-                   "outputenabled" -> f ls (up outenabled' parseBool) (succ n)
-                   "outputid"      -> (d, n) -- new output, we're done here
-                   _               -> f ls d (succ n) -- ignore unknown keys
+                   "outputname"    -> f ls' d' { outName = value }      (succ n)
+                   "outputenabled" -> f ls' (up outenabled' parseBool) (succ n)
+                   "outputid"      -> (d', n) -- new output, we're done here
+                   _               -> f ls' d' (succ n) -- ignore unknown keys
 
               where up g parser = maybe d g $ parser value
-                    outenabled' v = d { outEnabled = v }
+                    outenabled' v = d' { outEnabled = v }
 
 -- | Generate Entry object
 parseEntry :: ItemGen Entry
@@ -53,38 +51,38 @@ parseEntry ls (SongE s) = first SongE $ parseSong ls s
 parseEntry _  d@(DirectoryE _) = (d, 0)
 parseEntry ls (PlaylistE p) = first PlaylistE $ parsePlaylist ls p 0
     where parsePlaylist [] s n = (s, n)
-          parsePlaylist ((key, value):ls) p n =
+          parsePlaylist ((key, value):ls') p' n =
               case key of
-                   "Last-Modified" -> parsePlaylist ls p
+                   "Last-Modified" -> parsePlaylist ls' p'
                                         { plLastModified = parseIso8601 value }
                                         (succ n)
-                   "playlist"      -> (p, n) -- new playlist, we're done here
-                   _               -> parsePlaylist ls p (succ n) -- ignore unknown keys
+                   "playlist"      -> (p', n) -- new playlist, we're done here
+                   _               -> parsePlaylist ls' p' (succ n) -- ignore unknown keys
 
 -- | Generate Song object
 parseSong :: ItemGen Song
 parseSong ls s = f ls s 0
-    where f []                s n = (s, n)
-          f ((key, value):ls) s n =
+    where f []                s' n = (s', n)
+          f ((key, value):ls') s' n =
               case key of
-                   "Last-Modified" -> f ls s { sgLastModified = lm   } (succ n)
-                   "Time"          -> f ls s { sgLength       = time } (succ n)
-                   "Id"            -> f ls s { sgIndex        = id'  } (succ n)
-                   "Pos"           -> f ls s { sgIndex        = pos  } (succ n)
-                   "file"          -> (s, n) -- new item, we're done here
-                   "playlist"      -> (s, n) -- new item, we're done here
+                   "Last-Modified" -> f ls' s' { sgLastModified = lm   } (succ n)
+                   "Time"          -> f ls' s' { sgLength       = time } (succ n)
+                   "Id"            -> f ls' s' { sgIndex        = id'  } (succ n)
+                   "Pos"           -> f ls' s' { sgIndex        = pos  } (succ n)
+                   "file"          -> (s', n) -- new item, we're done here
+                   "playlist"      -> (s', n) -- new item, we're done here
                    -- "directory" is not needed, files are always after dirs
                    _ -> case tagValue key of
-                            Just meta -> f ls s
+                            Just meta -> f ls' s'
                                            { sgTags = M.insertWith' (++)
-                                                 meta [value] (sgTags s)
+                                                 meta [value] (sgTags s')
                                            } (succ n)
-                            Nothing   -> f ls s (succ n) -- ignore unknown keys
+                            Nothing   -> f ls' s' (succ n) -- ignore unknown keys
 
               where lm     = parseIso8601 value
                     time   = maybe 0 id $ parseNum value
-                    id'    = Just (maybe 0 fst $ sgIndex s, maybe 0 id $ parseNum value)
-                    pos    = Just (maybe 0 id $ parseNum value, maybe 0 snd $ sgIndex s)
+                    id'    = Just (maybe 0 fst $ sgIndex s', maybe 0 id $ parseNum value)
+                    pos    = Just (maybe 0 id $ parseNum value, maybe 0 snd $ sgIndex s')
 
                     -- Why not just derive instance of Read? Because
                     -- using read is a few times slower than this.
@@ -237,8 +235,8 @@ parseStatus' ((key, value):ls) s =
           parseState "stop"  = Just Stopped
           parseState _       = Nothing
 
-          parseTime s =
-              case parseFrac *** parseNum $ breakChar ':' s of
+          parseTime s' =
+              case parseFrac *** parseNum $ breakChar ':' s' of
                  (Just a, Just b) -> Just (a, b)
                  _                -> Nothing
 

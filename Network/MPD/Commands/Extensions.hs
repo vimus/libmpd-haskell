@@ -8,6 +8,16 @@
 
 module Network.MPD.Commands.Extensions where
 
+import Network.MPD.Commands.Arg
+import Network.MPD.Commands.Query
+import Network.MPD.Commands.Types
+import Network.MPD.Commands.Util
+import Network.MPD.Commands
+import Network.MPD.Core
+
+import Control.Monad (liftM)
+import Prelude hiding (repeat)
+
 -- | Like 'update', but returns the update job id.
 updateId :: MonadMPD m => [Path] -> m Integer
 updateId paths = liftM (read . head . takeValues) cmd

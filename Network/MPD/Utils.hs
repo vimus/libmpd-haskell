@@ -64,7 +64,7 @@ parseTriple :: Char -> (String -> Maybe a) -> String -> Maybe (a, a, a)
 parseTriple c f s = let (u, u') = breakChar c s
                         (v, w)  = breakChar c u' in
     case (f u, f v, f w) of
-        (Just a, Just b, Just c) -> Just (a, b, c)
+        (Just x, Just y, Just z) -> Just (x, y, z)
         _                        -> Nothing
 
 -- Break a string into an key-value pair, separating at the first ':'.

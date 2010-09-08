@@ -23,11 +23,12 @@ module Network.MPD.Commands (
     replayGainStatus,
 
     -- * Controlling playback
-    next, pause, play, previous, seek, stop,
+    next, pause, play, playId, previous, seek, seekId, stop,
 
     -- * The current playlist
-    add, add_, addId, clear, delete, move, playlist, playlistFind,
-    playlistInfo, playlistSearch, plChanges, plChangesPosId, shuffle, swap,
+    add, add_, addId, clear, delete, deleteId, move, moveId, playlist,
+    playlistId, playlistFind, playlistInfo, playlistSearch, plChanges,
+    plChangesPosId, shuffle, swap, swapId,
 
     -- * Stored playlist
     listPlaylist, listPlaylistInfo, listPlaylists, load, playlistAdd,
@@ -59,12 +60,10 @@ import Network.MPD.Commands.Util
 import Network.MPD.Core
 import Network.MPD.Utils
 
-import Control.Monad (liftM, unless)
+import Control.Monad (liftM)
 import Control.Monad.Error (throwError)
 import Prelude hiding (repeat)
-import Data.List (findIndex, intersperse, isPrefixOf)
 import Data.Maybe
-import System.FilePath (dropFileName)
 
 --
 -- Querying MPD's status
