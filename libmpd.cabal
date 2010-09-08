@@ -44,7 +44,8 @@ Library
     Build-Depends:      network >= 2.1 && < 2.3,
                         mtl >= 1.1 && < 1.2, filepath >= 1.0 && < 1.2,
                         utf8-string >= 0.3.1 && < 0.4
-    Exposed-Modules:    Network.MPD, Network.MPD.Core
+    Exposed-Modules:    Network.MPD, Network.MPD.Commands.Extensions,
+                        Network.MPD.Core
     Other-Modules:      Network.MPD.Core.Class,
                         Network.MPD.Core.Error,
                         Network.MPD.Commands,
@@ -52,6 +53,7 @@ Library
                         Network.MPD.Commands.Parse,
                         Network.MPD.Commands.Query,
                         Network.MPD.Commands.Types,
+                        Network.MPD.Commands.Util,
                         Network.MPD.Utils
     ghc-prof-options:   -auto-all -prof
 
