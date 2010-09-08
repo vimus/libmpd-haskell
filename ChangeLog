@@ -1,3 +1,16 @@
+* v0.5.0, 2010-09-08
+	- Moved extensions to Network.MPD.Commands.Extensions
+	These might be removed in a later version
+	- Non-blocking `idle'
+	- The API is closer to the MPD spec, by untangling functionality
+	- Better MPD API coverage
+	- Improved parser implementation, now runs in constant space
+	- Constructors of the `Subsystem' type have been renamed
+	- Passwords can be changed using `setPassword'
+	- The connection handle can be accessed via `getHandle'
+	- The version of the MPD server is available via `getVersion'
+	- Added support for connecting via unix sockets
+
 * v0.4.1, 2010-08-31
 	- Only depend on QuickCheck when building the test target
 
