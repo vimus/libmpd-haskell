@@ -82,6 +82,8 @@ submitting your patch.
 
 * When fixing a bug, try to implement a test for it first
 
+* Branches are cheap, use them
+
 ### Submitting patches
 To submit a patch, use `git format-patch` and email the resulting
 file to one of the developers or upload it to the [bug tracker].
