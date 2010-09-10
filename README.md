@@ -113,6 +113,8 @@ Ben Sinclair \<ben.d.sinclair@gmail.com\>
 
 Joachim Fasting \<joachim.fasting@gmail.com\>
 
+gwern0 \<gwern0@gmail.com\>
+
 Daniel Schoepe \<daniel.schoepe@googlemail.com\>
 
 Andrzej Rybczak \<electricityispower@gmail.com\>
