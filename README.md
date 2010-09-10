@@ -85,7 +85,7 @@ See our [bug tracker].
 * [Using GitHub]
 * \#libmpd-haskell @ irc.freenode.net
 
-[bug tracker]: http://trac.haskell.org/libmpd/
+[bug tracker]: http://github.com/joachifm/libmpd-haskell/issues
 [GitHub]: http://www.github.com
 [repository]: http://www.github.com/joachifm/libmpd-haskell
 [API documentation]: http://hackage.haskell.org/packages/archive/libmpd/0.4.2/doc/html/Network-MPD.html
