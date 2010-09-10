@@ -187,4 +187,3 @@ data Status =
              -- | Last error message (if any).
            , stError           :: Maybe String }
     deriving (Eq, Show)
-
