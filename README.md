@@ -1,7 +1,6 @@
 # libmpd-haskell: a client library for MPD
 
 ## About
-
 libmpd-haskell is a client library for [MPD] written in [Haskell] that <br />
 aims to provide a safe and flexible yet consistent and intuitive <br />
 interface to MPD's external API.
@@ -43,7 +42,6 @@ We try to comply with the latest version of the MPD protocol specification;
 any deviation from this is a bug.
 
 ## Usage
-
 With GHCi:
 
     > import Network.MPD
@@ -54,6 +52,7 @@ With GHCi:
 
 ## Development
 
+### Getting started
 To start developing libmpd-haskell you'll first need a clone of the
 source code repository. There are two main branches: the master and
 the trunk. The master branch should never break, while trunk may
@@ -69,36 +68,75 @@ To pull in new changes from upstream, use:
 
 To set up GIT hooks, see `hooks/README` in the source distribution.
 
-Here are some general guidelines to keep in mind:
+### General guidelines
+* When writing or modifying code, please try to conform to the surrounding style
 
-* When writing or modifying code, please try to conform to the
-surrounding style. If you introduce new functionality, please include
-a test case or at least document the expected behavior.
+* If you introduce new functionality, please include a test case or at least
+  document the expected behavior.
 
 * Use -Wall during development and try to eliminate all warnings before
-submitting your patch.
+  submitting your patch
 
-* Before merging trunk with master, the code must pass all tests
+* Before merging trunk with master, all tests must pass
 
 * When fixing a bug, try to implement a test for it first
+
+* Orphan instances are bad, use `newtype` if at all possible. Otherwise,
+  please use `{-# OPTIONS_GHC -fno-warn-orphans #-}` in the affected source
+  file and note why it is necessary to use it. This does not apply to the test
+  harness
 
 * Branches are cheap, use them
 
 ### Submitting patches
-To submit a patch, use `git format-patch` and email the resulting
-file to one of the developers or upload it to the [bug tracker].
+To submit a patch, use `git format-patch` and email the resulting file(s) to
+one of the developers or upload it to the [bug tracker].
 
-Alternatively you can create your own fork of the [repository]
-and send a pull request.
+Alternatively you can create your own fork of the [repository] and send a pull
+request.
 
 ### Submitting bug reports
-See our [bug tracker].
+See our [bug tracker]. Test cases are highly appreciated.
+
+### The release process
+This outlines a general process used when cutting a new release:
+
+1. Run the test harness
+2. Fix errors
+3. Goto 1 unless there were no errors to fix
+4. Make sure `README.md` is correct, add any contributors
+5. Decide what version component should be bumped
+6. Update the ChangeLog
+7. Create a source distribution using `cabal sdist`
+8. Unpack the source to a temporary location and make sure it builds and that
+no files are missing
+9. Tag the release by doing `git tag -a -m vVERSION vVERSION`
+
+In general, patches that fix bugs are the most critical and should be
+released quickly (bumping the last version component). Remember, all
+deviations from the MPD protocol specification are considered bugs.
+
+In some cases, say when the MPD protocol changes to the point of not
+being backwards compatible, a bump in at least the minor version is required.
+
+The same goes for making backwards incompatible API changes (e.g., deletions,
+type changes).
+
+The major version indicates "completeness", and after the first 1.0.0 release,
+all subsequent API changes must be backwards compatible (that is, only
+additions are allowed).
+
+For users this means that restricting dependencies on libmpd-haskell
+to only allow changes in the last version component guarantees that
+your code will not break due to updates. All users are nonetheless encouraged
+to support the latest major\/minor release at any given time, because there
+is no backporting.
 
 ### Resources
 * [API documentation]
 * [Protocol reference]
 * [Using GitHub]
-* \#libmpd-haskell @ irc.freenode.net
+* \#libmpd-haskell @ irc.freenode.net (defunct)
 
 [bug tracker]: http://github.com/joachifm/libmpd-haskell/issues
 [GitHub]: http://www.github.com
