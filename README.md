@@ -55,19 +55,32 @@ With GHCi:
 ## Development
 
 To start developing libmpd-haskell you'll first need a clone of the
-source code repository:
+source code repository. There are two main branches: the master and
+the trunk. The master branch should never break, while trunk may
+break at any time.
 
-`git clone git://github.com/joachifm/libmpd-haskell.git`
+Create the clone thus:
+
+`git clone git://github.com/joachifm/libmpd-haskell.git trunk`
 
 To pull in new changes from upstream, use:
 
-`git pull origin master`
+`git pull origin trunk`
 
-When writing or modifying code, please try to conform to the
+To set up GIT hooks, see `hooks/README` in the source distribution.
+
+Here are some general guidelines to keep in mind:
+
+* When writing or modifying code, please try to conform to the
 surrounding style. If you introduce new functionality, please include
 a test case or at least document the expected behavior.
 
-To set up GIT hooks, see `hooks/README` in the source distribution.
+* Use -Wall during development and try to eliminate all warnings before
+submitting your patch.
+
+* Before merging trunk with master, the code must pass all tests
+
+* When fixing a bug, try to implement a test for it first
 
 ### Submitting patches
 To submit a patch, use `git format-patch` and email the resulting
