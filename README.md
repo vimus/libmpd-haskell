@@ -95,7 +95,7 @@ See our [bug tracker].
 ## License
 LGPL version 2.1 (see LICENSE)
 
-## Authors
+## Contributors (in order of appearance)
 Ben Sinclair \<ben.d.sinclair@gmail.com\>
 
 Joachim Fasting \<joachim.fasting@gmail.com\>
