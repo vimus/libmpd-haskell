@@ -54,10 +54,10 @@ With GHCi:
 
 ### Getting started
 To start developing libmpd-haskell you'll first need a clone of the
-source code repository. There are two main branches: the master and
-the trunk. The master branch should never break, while trunk may
-break at any time. New stuff goes into trunk, while the only patches created
-against master should be documentation and bug fixes (which will be forward-ported).
+source code repository. There are two main branches: the `master` and
+`trunk`. The master branch should never break, while the trunk may
+break at any time. New stuff goes into `trunk`, while the only patches created
+against `master` should be documentation and bug fixes (which will be forward-ported).
 
 Create the clone thus:
 
@@ -86,7 +86,7 @@ To set up GIT hooks, see `hooks/README` in the source distribution.
 
 * Merge with upstream on a regular basis for long-running branches
 
-* Before merging trunk with master, all tests must pass
+* Before merging `trunk` with `master`, all tests must pass
 
 * When fixing a bug, try to implement a test for it first
 
@@ -141,7 +141,7 @@ additions are allowed).
 For users this means that restricting dependencies on libmpd-haskell
 to only allow changes in the last version component guarantees that
 your code will not break due to updates. All users are nonetheless encouraged
-to support the latest major\/minor release at any given time, because there
+to support the latest major/minor release at any given time, because there
 is no backporting.
 
 ### Resources
