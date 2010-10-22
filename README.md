@@ -84,6 +84,8 @@ To set up GIT hooks, see `hooks/README` in the source distribution.
 * Merge the upstream branch and redo your patch if necessary
   before submitting it
 
+* Merge with upstream on a regular basis for long-running branches
+
 * Before merging trunk with master, all tests must pass
 
 * When fixing a bug, try to implement a test for it first
