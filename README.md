@@ -114,15 +114,15 @@ This outlines a general process used when cutting a new release:
 02. Create a topic branch
 03. Run the test harness
 04. Fix errors
-05. Goto 03 unless there were no errors to fix
+05. Goto 3 unless there were no errors to fix
 06. Make sure `README.md` is correct, add any contributors
 07. Update the ChangeLog
 08. Create a source distribution using `cabal sdist`
 09. Unpack the source to a temporary location and make sure it builds and that
 no files are missing
-10. Goto 09 unless there were no errors to fix
-11. Tag the release by doing `git tag -a -m vVERSION vVERSION`
-12. Finally, merge topic branch into `master`
+10. Goto 8 unless there were no errors to fix
+11. Merge topic branch into `master`
+12. Tag the release by doing `git tag -a -m vVERSION vVERSION`
 
 In general, patches that fix bugs are the most critical and should be
 released quickly (bumping the last version component). Remember, all
