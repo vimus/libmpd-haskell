@@ -141,7 +141,7 @@ is no backporting.
 [bug tracker]: http://github.com/joachifm/libmpd-haskell/issues
 [GitHub]: http://www.github.com
 [repository]: http://www.github.com/joachifm/libmpd-haskell
-[API documentation]: http://hackage.haskell.org/packages/archive/libmpd/0.4.2/doc/html/Network-MPD.html
+[API documentation]: http://hackage.haskell.org/packages/archive/libmpd/0.5.0/doc/html/Network-MPD.html
 [Protocol reference]: http://www.musicpd.org/doc/protocol/
 [Using GitHub]: http://help.github.com
 
