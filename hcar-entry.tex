@@ -1,19 +1,17 @@
 \begin{hcarentry}{libmpd}
-\report{Ben Sinclair}
+\report{Joachim Fasting}
 \status{maintained}
-\participants{Joachim Fasting}
+\participants{Andrzej Rybczak}
 \makeheader
 
 \textsc{libmpd} is a client implementation of the MPD music playing
-daemon's network protocol. The interface has mostly stabilised and is
-usable.  Although the next release will have an improved API using a
-typeclass, it should be source compatible.  In version 0.3.1 some bugs
-have been addressed to fix the automatic reconnection feature and to
-be more permissive with data from the server.
+daemon's network protocol. Since the last report (version 0.3.1), several
+improvements have been made to the API and protocol compliance.
 
-Support for bytestrings is planned for the future.
+Maintenance of the project has been transfered (to me), but I do not
+personally use MPD anymore, so I mainly take care of cutting releases.
 
 \FurtherReading
-The project's web page is at \url{http://projects.haskell.org/libmpd/}
+The project's web page is at \url{http://github.com/joachifm/libmpd-haskell/}
 and MPD can be found at \url{http://www.musicpd.org/}.
 \end{hcarentry}
