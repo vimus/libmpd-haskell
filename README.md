@@ -72,6 +72,9 @@ To set up GIT hooks, see `hooks/README` in the source distribution.
 ### General guidelines
 * When writing or modifying code, please try to conform to the surrounding style
 
+* All bugs that exist in `master` should be fixed there first, and then
+  forward-ported to other branches.
+
 * If you introduce new functionality, please include a test case or at least
   document the expected behavior.
 
@@ -122,8 +125,6 @@ no files are missing
 In general, patches that fix bugs are the most critical and should be
 released quickly (bumping the last version component). Remember, all
 deviations from the MPD protocol specification are considered bugs.
-All bugs that exist in `master` should be fixed there first, and then
-forward-ported to other branches.
 
 In some cases, say when the MPD protocol changes to the point of not
 being backwards compatible, a bump in at least the minor version is required.
