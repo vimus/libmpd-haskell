@@ -105,20 +105,25 @@ See our [bug tracker]. Test cases are highly appreciated.
 ### The release process
 This outlines a general process used when cutting a new release:
 
-1. Run the test harness
-2. Fix errors
-3. Goto 1 unless there were no errors to fix
-4. Make sure `README.md` is correct, add any contributors
-5. Decide what version component should be bumped
-6. Update the ChangeLog
-7. Create a source distribution using `cabal sdist`
-8. Unpack the source to a temporary location and make sure it builds and that
+01. Decide what version component should be bumped
+02. Create a topic branch
+03. Run the test harness
+04. Fix errors
+05. Goto 03 unless there were no errors to fix
+06. Make sure `README.md` is correct, add any contributors
+07. Update the ChangeLog
+08. Create a source distribution using `cabal sdist`
+09. Unpack the source to a temporary location and make sure it builds and that
 no files are missing
-9. Tag the release by doing `git tag -a -m vVERSION vVERSION`
+10. Goto 09 unless there were no errors to fix
+11. Tag the release by doing `git tag -a -m vVERSION vVERSION`
+12. Finally, merge topic branch into `master`
 
 In general, patches that fix bugs are the most critical and should be
 released quickly (bumping the last version component). Remember, all
 deviations from the MPD protocol specification are considered bugs.
+All bugs that exist in `master` should be fixed there first, and then
+forward-ported to other branches.
 
 In some cases, say when the MPD protocol changes to the point of not
 being backwards compatible, a bump in at least the minor version is required.
