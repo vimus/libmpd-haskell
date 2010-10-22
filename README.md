@@ -12,7 +12,17 @@ interface to MPD's external API.
 * [Latest release]
 * `git clone git://github.com/joachifm/libmpd-haskell.git`
 
-[Latest release]: http://hackage.haskell.org/package/libmpd
+There are packages available on the following systems:
+
+* [Arch Linux](http://aur.archlinux.org/packages.php?ID=17759 "libmpd-haskell for Arch Linux")
+* [Fedora](https://admin.fedoraproject.org/pkgdb/acls/name/ghc-libmpd "libmpd-haskell for Fedora")
+* [FreeBSD](http://www.freebsd.org/cgi/cvsweb.cgi/ports/audio/hs-libmpd/ "libmpd-haskell for FreeBSD")
+* [Gentoo Linux](http://code.haskell.org/gentoo/gentoo-haskell/dev-haskell/libmpd/ "libmpd-haskell for Gentoo Linux")
+* [Gobo Linux](http://www.gobolinux.org/recipe-store/Haskell-LibMPD--0.3.1-r1--recipe.tar.bz2 "libmpd-haskell for Gobo Linux")
+
+Note that some of these packages are outdated.
+
+[Latest release]: http://hackage.haskell.org/package/libmpd "libmpd-haskell on Hackage"
 
 ## Building
 The preferred method of building libmpd-haskell is using [cabal-install], which
