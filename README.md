@@ -78,6 +78,8 @@ To set up GIT hooks, see `hooks/README` in the source distribution.
 * Use -Wall during development and try to eliminate all warnings before
   submitting your patch
 
+* Merge against the upstream branch before submitting your patch.
+
 * Before merging trunk with master, all tests must pass
 
 * When fixing a bug, try to implement a test for it first
