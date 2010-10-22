@@ -56,7 +56,8 @@ With GHCi:
 To start developing libmpd-haskell you'll first need a clone of the
 source code repository. There are two main branches: the master and
 the trunk. The master branch should never break, while trunk may
-break at any time.
+break at any time. New stuff goes into trunk, while the only patches created
+against master should be documentation and bug fixes (which will be forward-ported).
 
 Create the clone thus:
 
