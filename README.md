@@ -14,6 +14,7 @@ interface to MPD's external API.
 
 There are packages available on the following systems:
 
+* [Alt Linux](http://sisyphus.ru/en/srpm/Sisyphus/ghc-libmpd "libmpd-haskell for Alt Linux")
 * [Arch Linux](http://aur.archlinux.org/packages.php?ID=17759 "libmpd-haskell for Arch Linux")
 * [Fedora](https://admin.fedoraproject.org/pkgdb/acls/name/ghc-libmpd "libmpd-haskell for Fedora")
 * [FreeBSD](http://www.freebsd.org/cgi/cvsweb.cgi/ports/audio/hs-libmpd/ "libmpd-haskell for FreeBSD")
