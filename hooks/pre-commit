@@ -1,2 +1,133 @@
 #!/bin/sh
-tests/run-tests.lhs
+
+topdir=`git rev-parse --show-toplevel`
+tmpdir=`mktemp -d`
+
+testprefix="$topdir/test-temp"
+builddir="$testprefix"/dist
+installdir="$testprefix"/install
+cabal_flags="--builddir=$builddir -v0"
+configure_flags="--disable-optimization --user --prefix=$installdir"
+
+get_libmpd_version()
+{
+    grep "^Version" "$topdir"/libmpd.cabal | sed 's/Version: *//'
+}
+
+# Check package description
+checkpkgdesc()
+{
+    cd "$topdir"
+    cabal check >/dev/null
+    if [[ $? -ne 0 ]] ; then
+        echo "Commit rejected: bad package description"
+        exit 1
+    fi
+}
+
+# Create source distribution and see if we can build the library from it
+# This will pick up missing modules and so forth
+checkdist_build()
+{
+    cd "$topdir"
+    version=`get_libmpd_version`
+    cabal $cabal_flags sdist
+    tar xf "$builddir"/libmpd-${version}.tar.gz -C "$tmpdir"
+    cd "$tmpdir"/libmpd-${version}
+    cabal $cabal_flags configure $configure_flags && cabal $cabal_flags build
+    if [[ $? -ne 0 ]] ; then
+        echo "Commit rejected: checkdist_build failed"
+        exit 1
+    fi
+}
+
+# Verify that the Haddock documentation can be built
+checkdocs()
+{
+    cd "$topdir"
+    cabal $cabal_flags configure $configure_flags \
+        && cabal $cabal_flags haddock --hyperlink
+    if [[ $? -ne 0 ]] ; then
+        echo "Commit rejected: failed to build documentation"
+        exit 1
+    fi
+}
+
+# Run test-suite
+checktests()
+{
+    cd "$topdir"
+    cabal $cabal_flags configure $configure_flags -f test \
+        && cabal $cabal_flags build \
+        && "$builddir"/build/test/test
+    if [[ $? -ne 0 ]] ; then
+        echo "Commit rejected: test suite failed"
+        exit 1
+    fi
+}
+
+# Figure out what tests to do based on what's changed
+run_checkdist_build=false
+run_checkpkgdesc=false
+run_checkdocs=false
+run_checktests=false
+
+cd "$topdir"
+
+for x in `git diff-index --cached --name-only HEAD` ; do
+    case "$x" in
+        # File specific checks
+
+        *.bash)
+            bash -n "$x" >/dev/null
+            if [[ $? -ne 0 ]] ; then
+                echo "Commit rejected: syntax error in $x"
+                exit 1
+            fi
+            ;;
+        *.sh)
+            sh -n "$x" >/dev/null
+            if [[ $? -ne 0 ]] ; then
+                echo "Commit rejected: syntax error in $x"
+                exit 1
+            fi
+            ;;
+        *.md)
+            pandoc "$x" >/dev/null
+            if [[ $? -ne 0 ]] ; then
+                echo "Commit rejected: pandoc failed for $x"
+                exit 1
+            fi
+            ;;
+        *.hs)
+            hlint -q -i 'Eta reduce' "$x"
+            if [[ $? -ne 0 ]] ; then
+                echo "Commit rejected: syntax error in $x"
+                exit 1
+            fi
+            ;;
+
+        # Project-wide checks
+
+        libmpd.cabal)
+            run_checkpkgdesc=true
+            ;;
+
+        Network/MPD*)
+            run_checkdist_build=true
+            run_checkpkgdesc=true
+            run_checkdocs=true
+            run_checktests=true
+            ;;
+    esac
+done
+
+$run_checkdist_build && checkdist_build
+$run_checkpkgdesc && checkpkgdesc
+$run_checkdocs && checkdocs
+$run_checktests && checktests
+
+# Cleanup
+rm -rf "$tmpdir"
+
+# vim: set ft=sh ts=4 sts=4 sw=4 et :
