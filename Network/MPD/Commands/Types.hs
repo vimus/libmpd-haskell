@@ -10,6 +10,9 @@ module Network.MPD.Commands.Types where
 
 import Network.MPD.Commands.Arg (MPDArg(prep), Args(Args))
 
+import qualified Data.Map as M
+import Data.Time.Clock (UTCTime)
+
 type Artist       = String
 type Album        = String
 type Title        = String
@@ -103,6 +106,32 @@ defaultDevice :: Device
 defaultDevice =
     Device { dOutputID = 0, dOutputName = "", dOutputEnabled = False }
 
+-- | Represents a single song item.
+data Song = Song
+         { sgFilePath     :: String
+         -- | Map of available tags (multiple occurences of one tag type allowed)
+         , sgTags         :: M.Map Metadata [String]
+         -- | Last modification date
+         , sgLastModified :: Maybe UTCTime
+         -- | Length of the song in seconds
+         , sgLength       :: Seconds
+         -- | Id (preferred) or position in playlist
+         , sgIndex        :: Maybe Int
+         } deriving (Eq, Show)
+
+-- | Get list of specific tag type
+sgGetTag :: Metadata -> Song -> Maybe [String]
+sgGetTag meta s = M.lookup meta $ sgTags s
+
+-- | Add metadata tag value.
+sgAddTag :: Metadata -> String -> Song -> Song
+sgAddTag meta value s = s { sgTags = M.insertWith' (++) meta [value] (sgTags s) }
+
+defaultSong :: Song
+defaultSong =
+    Song { sgFilePath = "", sgTags = M.empty, sgLastModified = Nothing
+         , sgLength = 0, sgIndex = Nothing }
+
 -- | Container for database statistics.
 data Stats =
     Stats { stsArtists    :: Integer -- ^ Number of artists.
@@ -120,26 +149,6 @@ defaultStats :: Stats
 defaultStats =
      Stats { stsArtists = 0, stsAlbums = 0, stsSongs = 0, stsUptime = 0
            , stsPlaytime = 0, stsDbPlaytime = 0, stsDbUpdate = 0 }
-
--- | Represents a single song item.
-data Song =
-    Song { sgArtist, sgAlbum, sgTitle, sgFilePath, sgGenre, sgName, sgComposer
-         , sgPerformer :: String
-         , sgLength    :: Seconds          -- ^ Length in seconds
-         , sgDate      :: Int              -- ^ Year
-         , sgTrack     :: (Int, Int)       -- ^ Track number\/total tracks
-         , sgDisc      :: Maybe (Int, Int) -- ^ Position in set\/total in set
-         , sgIndex     :: Maybe Int
-         , sgAux       :: [(String, String)] } -- ^ Auxiliary song fields
-    deriving (Eq, Show)
-
-defaultSong :: Song
-defaultSong =
-    Song { sgArtist = "", sgAlbum = "", sgTitle = ""
-         , sgGenre = "", sgName = "", sgComposer = ""
-         , sgPerformer = "", sgDate = 0, sgTrack = (0,0)
-         , sgDisc = Nothing, sgFilePath = "", sgLength = 0
-         , sgIndex = Nothing, sgAux = [] }
 
 -- | Container for MPD status.
 data Status =

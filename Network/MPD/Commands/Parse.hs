@@ -14,6 +14,8 @@ import Network.MPD.Commands.Types
 
 import Control.Arrow ((***))
 import Control.Monad.Error
+import qualified Data.Map as M
+
 import Network.MPD.Utils
 import Network.MPD.Core (MonadMPD, MPDError(Unexpected))
 
@@ -62,41 +64,42 @@ parseStats = foldM f defaultStats . toAssocList
 -- | Builds a 'Song' instance from an assoc. list.
 parseSong :: [(String, String)] -> Either String Song
 parseSong xs = foldM f defaultSong xs
-    where f a ("Artist", x)    = return a { sgArtist = x }
-          f a ("Album", x)     = return a { sgAlbum  = x }
-          f a ("Title", x)     = return a { sgTitle = x }
-          f a ("Genre", x)     = return a { sgGenre = x }
-          f a ("Name", x)      = return a { sgName = x }
-          f a ("Composer", x)  = return a { sgComposer = x }
-          f a ("Performer", x) = return a { sgPerformer = x }
-          f a ("Date", x)      = return $ parse parseDate
-                                 (\x' -> a { sgDate = x' }) a x
-          f a ("Track", x)     = return $ parse parseTuple
-                                 (\x' -> a { sgTrack = x'}) a x
-          f a ("Disc", x)      = return a { sgDisc = parseTuple x }
-          f a ("file", x)      = return a { sgFilePath = x }
-          f a ("Time", x)      = return $ parse parseNum
-                                 (\x' -> a { sgLength = x'}) a x
-          f a ("Id", x)        = return $ parse parseNum
-                                 (\x' -> a { sgIndex = Just x' }) a x
-          -- We prefer Id but take Pos if no Id has been found.
-          f a ("Pos", x)       =
-              maybe (return $ parse parseNum
-                           (\x' -> a { sgIndex = Just x' }) a x)
-                    (const $ return a)
-                    (sgIndex a)
-          -- Collect auxiliary keys
-          f a (k, v)           = return a { sgAux = (k, v) : sgAux a }
+    where
+        f :: Song -> (String, String) -> Either String Song
+        f s ("Last-Modified", v) =
+            return s { sgLastModified = parseIso8601 v }
+        f s ("Time", v) =
+            return s { sgLength = maybe 0 id $ parseNum v }
+        -- We prefer Id...
+        f s ("Id", v) =
+            return $ parse parseNum (\v' -> s { sgIndex = Just v' }) s v
+        -- .. but will make due with Pos
+        f s ("Pos", v) =
+            maybe (return $ parse parseNum
+                                  (\v' -> s { sgIndex = Just v' }) s v)
+                  (const $ return s)
+                  (sgIndex s)
+        f s ("file", v) =
+            return s { sgFilePath = v }
+        f s (k, v) =
+            case readMeta k of
+                Just m -> return $ sgAddTag m v s
+                Nothing -> return s
 
-          parseTuple s = let (x, y) = breakChar '/' s in
-                         -- Handle incomplete values. For example, songs might
-                         -- have a track number, without specifying the total
-                         -- number of tracks, in which case the resulting
-                         -- tuple will have two identical parts.
-                         case (parseNum x, parseNum y) of
-                             (Just x', Nothing) -> Just (x', x')
-                             (Just x', Just y') -> Just (x', y')
-                             _                  -> Nothing
+        -- Custom-made Read instance
+        readMeta "Artist" = Just Artist
+        readMeta "Album" = Just Album
+        readMeta "Title" = Just Title
+        readMeta "Genre" = Just Genre
+        readMeta "Name" = Just Name
+        readMeta "Composer" = Just Composer
+        readMeta "Performer" = Just Performer
+        readMeta "Date" = Just Date
+        readMeta "Track" = Just Track
+        readMeta "Disc" = Just Disc
+        readMeta "MUSICBRAINZ_ARTISTID" = Just MUSICBRAINZ_ARTISTID
+        readMeta "MUSICBRAINZ_TRACKID" = Just MUSICBRAINZ_TRACKID
+        readMeta _ = Nothing
 
 -- | Builds a 'Status' instance from an assoc. list.
 parseStatus :: [String] -> Either String Status
