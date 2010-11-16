@@ -26,7 +26,7 @@ module Network.MPD.Commands (
     next, pause, play, playId, previous, seek, seekId, stop,
 
     -- * The current playlist
-    add, add_, addId, clear, delete, deleteId, move, moveId, {-playlist,-} playlistId,
+    add, add_, addId, clear, delete, deleteId, move, moveId, playlist, playlistId,
     playlistFind, playlistInfo, playlistSearch, plChanges, plChangesPosId, shuffle, swap,
     swapId,
 
@@ -226,12 +226,12 @@ moveId id' to = getResponse_ ("moveid" <$> id' <++> to)
 -- Note that this command is only included for completeness sake; it's
 -- deprecated and likely to disappear at any time, please use 'playlistInfo'
 -- instead.
-{- playlist :: MonadMPD m => m [(PLIndex, Path)]
+playlist :: MonadMPD m => m [(Int, Path)]
 playlist = mapM f =<< getResponse "playlist"
     where f s | (pos, name) <- breakChar ':' s
               , Just pos'   <- parseNum pos
-              = return (Pos pos', name)
-              | otherwise = throwError . Unexpected $ show s -}
+              = return (pos', name)
+              | otherwise = throwError . Unexpected $ show s
 
 -- | Search for songs in the current playlist with strict matching.
 playlistFind :: MonadMPD m => Query -> m [Song]
