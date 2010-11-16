@@ -162,15 +162,15 @@ data Status =
              -- | Next song's playlist ID.
            , stNextSongID      :: Maybe Int
              -- | Time elapsed\/total time.
-           , stTime            :: (Float, Seconds)
+           , stTime            :: (Double, Seconds)
              -- | Bitrate (in kilobytes per second) of playing song (if any).
            , stBitrate         :: Int
              -- | Crossfade time.
            , stXFadeWidth      :: Seconds
              -- | MixRamp threshold in dB
-           , stMixRampdB       :: Float
+           , stMixRampdB       :: Double
              -- | MixRamp extra delay in seconds
-           , stMixRampDelay    :: Float
+           , stMixRampDelay    :: Double
              -- | Samplerate\/bits\/channels for the chosen output device
              --   (see mpd.conf).
            , stAudio           :: (Int, Int, Int)
@@ -181,7 +181,7 @@ data Status =
              -- | If True, a song will be removed after it has been played.
            , stConsume         :: Bool
              -- | Last error message (if any).
-           , stError           :: String }
+           , stError           :: Maybe String }
     deriving (Eq, Show)
 
 defaultStatus :: Status
@@ -192,4 +192,4 @@ defaultStatus =
            , stNextSongPos = Nothing, stNextSongID = Nothing
            , stBitrate = 0, stXFadeWidth = 0, stMixRampdB = 0
            , stMixRampDelay = 0, stAudio = (0,0,0), stUpdatingDb = 0
-           , stSingle = False, stConsume = False, stError = "" }
+           , stSingle = False, stConsume = False, stError = Nothing }

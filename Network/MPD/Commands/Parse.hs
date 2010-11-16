@@ -134,7 +134,7 @@ parseStatus = foldM f defaultStatus . toAssocList
           f a ("updating_db", x)
               = return $ parse parseNum  (\x' -> a { stUpdatingDb = x' }) a x
           f a ("error", x)
-              = return a { stError = x }
+              = return a { stError = Just x }
           f a ("single", x)
               = return $ parse parseBool (\x' -> a { stSingle = x' }) a x
           f a ("consume", x)
