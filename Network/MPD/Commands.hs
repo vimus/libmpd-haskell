@@ -16,7 +16,7 @@ module Network.MPD.Commands (
     module Network.MPD.Commands.Query,
 
     -- * Querying MPD's status
-    clearError, currentSong, idle, getIdle, noidle, status, stats,
+    clearError, currentSong, idle, noidle, status, stats,
 
     -- * Playback options
     consume, crossfade, random, repeat, setVolume, single, replayGainMode,
@@ -26,9 +26,9 @@ module Network.MPD.Commands (
     next, pause, play, playId, previous, seek, seekId, stop,
 
     -- * The current playlist
-    add, add_, addId, clear, delete, deleteId, move, moveId, playlist,
-    playlistId, playlistFind, playlistInfo, playlistSearch, plChanges,
-    plChangesPosId, shuffle, swap, swapId,
+    add, add_, addId, clear, delete, deleteId, move, moveId, {-playlist,-} playlistId,
+    playlistFind, playlistInfo, playlistSearch, plChanges, plChangesPosId, shuffle, swap,
+    swapId,
 
     -- * Stored playlist
     listPlaylist, listPlaylistInfo, listPlaylists, load, playlistAdd,
@@ -60,10 +60,12 @@ import Network.MPD.Commands.Util
 import Network.MPD.Core
 import Network.MPD.Utils
 
-import Control.Monad (liftM)
+import Control.Monad (liftM, unless)
 import Control.Monad.Error (throwError)
 import Prelude hiding (repeat)
+import Data.List (findIndex, intersperse, isPrefixOf)
 import Data.Maybe
+import System.FilePath (dropFileName)
 
 --
 -- Querying MPD's status
@@ -73,22 +75,30 @@ import Data.Maybe
 clearError :: MonadMPD m => m ()
 clearError = getResponse_ "clearerror"
 
--- | Get the current song.
-currentSong :: MonadMPD m => m (Maybe Song)
-currentSong = getResponse "currentsong" >>= takeSongs >>= return . listToMaybe
+-- | Get the currently playing song.
+currentSong :: (Functor m, MonadMPD m) => m (Maybe Song)
+currentSong = do
+    cs <- status
+    if stState cs == Stopped
+       then return Nothing
+       else getResponse1 "currentsong" >>=
+            fmap Just . runParser parseSong . toAssocList
 
--- | Make MPD server notify the client if there is a noteworthy change
---   in one or more of its subsystems. Note that after running this command
---   you can either monitor handle for incoming notifications or cancel this
---   by 'noidle'. Any command other than 'noidle' sent to MPD server while
---   idle is active will be ignored.
-idle :: MonadMPD m => [Subsystem] -> m ()
-idle ss = send ("idle" <$> foldr (<++>) (Args []) ss)
-
--- | Get idle notifications. If there is no notifications ready
---   at the moment, this function will block until they show up.
-getIdle :: MonadMPD m => m [Subsystem]
-getIdle = getResponse "" >>= return . parseIdle . toAssocList
+-- | Wait until there is a noteworthy change in one or more of MPD's
+-- susbystems. Note that running this command will block until either 'idle'
+-- returns or is cancelled by 'noidle'.
+idle :: MonadMPD m => m [Subsystem]
+idle =
+    mapM (\("changed", system) -> case system of "database" -> return DatabaseS
+                                                 "update"   -> return UpdateS
+                                                 "stored_playlist" -> return StoredPlaylistS
+                                                 "playlist" -> return PlaylistS
+                                                 "player" -> return PlayerS
+                                                 "mixer" -> return MixerS
+                                                 "output" -> return OutputS
+                                                 "options" -> return OptionsS
+                                                 k -> fail ("Unknown subsystem: " ++ k))
+         =<< toAssocList `liftM` getResponse "idle"
 
 -- | Cancel 'idle'.
 noidle :: MonadMPD m => m ()
@@ -96,11 +106,11 @@ noidle = getResponse_ "noidle"
 
 -- | Get server statistics.
 stats :: MonadMPD m => m Stats
-stats = getResponse "stats" >>= return . parseStats . toAssocList
+stats = getResponse "stats" >>= runParser parseStats
 
 -- | Get the server's status.
 status :: MonadMPD m => m Status
-status = getResponse "status" >>= return . parseStatus . toAssocList
+status = getResponse "status" >>= runParser parseStatus
 
 --
 -- Playback options
@@ -219,12 +229,12 @@ moveId id' to = getResponse_ ("moveid" <$> id' <++> to)
 -- Note that this command is only included for completeness sake; it's
 -- deprecated and likely to disappear at any time, please use 'playlistInfo'
 -- instead.
-playlist :: MonadMPD m => m [(Int, Path)]
+{- playlist :: MonadMPD m => m [(PLIndex, Path)]
 playlist = mapM f =<< getResponse "playlist"
     where f s | (pos, name) <- breakChar ':' s
               , Just pos'   <- parseNum pos
-              = return (pos', name)
-              | otherwise = throwError . Unexpected $ show s
+              = return (Pos pos', name)
+              | otherwise = throwError . Unexpected $ show s -}
 
 -- | Search for songs in the current playlist with strict matching.
 playlistFind :: MonadMPD m => Query -> m [Song]
@@ -345,7 +355,7 @@ save plname = getResponse_ ("save" <$> plname)
 
 -- | Count the number of entries matching a query.
 count :: MonadMPD m => Query -> m Count
-count query = getResponse ("count" <$>  query) >>= return . parseCount . toAssocList
+count query = getResponse ("count" <$>  query) >>= runParser parseCount
 
 -- | Search the database for entries exactly matching a query.
 find :: MonadMPD m => Query -> m [Song]
@@ -366,17 +376,23 @@ listAll :: MonadMPD m => Path -> m [Path]
 listAll path = liftM (map snd . filter ((== "file") . fst) . toAssocList)
                      (getResponse $ "listall" <$> path)
 
+-- Helper for lsInfo and listAllInfo.
+lsInfo' :: MonadMPD m => String -> Path -> m [Either Path Song]
+lsInfo' cmd path =
+    liftM (extractEntries (Just . Right, const Nothing, Just . Left)) $
+         takeEntries =<< getResponse (cmd <$> path)
+
 -- | Recursive 'lsInfo'.
-listAllInfo :: MonadMPD m => Path -> m [Song]
-listAllInfo path = takeSongs =<< getResponse ("listallinfo" <$> path)
+listAllInfo :: MonadMPD m => Path -> m [Either Path Song]
+listAllInfo = lsInfo' "listallinfo"
 
 -- | Non-recursively list the contents of a database directory.
-lsInfo :: MonadMPD m => Path -> m [Entry]
-lsInfo path = takeEntries =<< getResponse ("lsinfo" <$> path)
+lsInfo :: MonadMPD m => Path -> m [Either Path Song]
+lsInfo = lsInfo' "lsinfo"
 
 -- | Search the database using case insensitive matching.
 search :: MonadMPD m => Query -> m [Song]
-search query = takeSongs =<< getResponse ("search" <$> query)
+search query = getResponse ("search" <$> query) >>= takeSongs
 
 -- | Update the server's database.
 -- If no paths are given, all paths will be scanned.
@@ -465,8 +481,8 @@ enableOutput :: MonadMPD m => Int -> m ()
 enableOutput = getResponse_ . ("enableoutput" <$>)
 
 -- | Retrieve information for all output devices.
-outputs :: MonadMPD m => m [Output]
-outputs = getResponse "outputs" >>= return . parseOutputs . toAssocList
+outputs :: MonadMPD m => m [Device]
+outputs = getResponse "outputs" >>= runParser parseOutputs
 
 --
 -- Reflection

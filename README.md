@@ -162,10 +162,12 @@ is no backporting.
 
 ### Resources
 * [API documentation]
+* [libmpd-haskell mailing list]
 * [Protocol reference]
 * [Using GitHub]
 * \#libmpd-haskell @ irc.freenode.net (defunct)
 
+[libmpd-haskell mailing list]: http://groups.google.com/group/libmpd-haskell
 [bug tracker]: http://github.com/joachifm/libmpd-haskell/issues
 [GitHub]: http://www.github.com
 [repository]: http://www.github.com/joachifm/libmpd-haskell

@@ -14,6 +14,8 @@ import Control.Applicative ((<$>), (<*>))
 import Control.Monad (liftM2, liftM3, replicateM)
 import Data.Char (isSpace)
 import Data.List (intersperse)
+import qualified Data.Map as M
+import Data.Time
 import Test.QuickCheck
 
 import Network.MPD.Commands.Types
@@ -32,6 +34,22 @@ positive = abs <$> arbitrary
 -- MPD fields can't contain newlines and the parser skips initial spaces.
 field :: Gen String
 field = (filter (/= '\n') . dropWhile isSpace) <$> arbitrary
+
+-- Orphan instances for built-in types
+instance (Ord key, Arbitrary key, Arbitrary val) => Arbitrary (M.Map key val) where
+    arbitrary = do
+        size <- choose (1, 1000)
+        vals <- replicateM size arbitrary
+        keys <- replicateM size arbitrary
+        return $ M.fromList (zip keys vals)
+
+instance Arbitrary Day where
+    arbitrary = ModifiedJulianDay <$> arbitrary
+
+instance Arbitrary DiffTime
+
+instance Arbitrary UTCTime where
+    arbitrary = UTCTime <$> arbitrary <*> arbitrary
 
 -- an assoc. string is a string of the form "key: value", followed by
 -- the key and value separately.
@@ -71,31 +89,25 @@ instance Arbitrary DateString where
 instance Arbitrary Count where
     arbitrary = liftM2 Count arbitrary arbitrary
 
-instance Arbitrary Device where
-    arbitrary = liftM3 Device arbitrary field arbitrary
+instance Arbitrary Output where
+    arbitrary = liftM3 Output arbitrary field arbitrary
 
 instance Arbitrary Song where
     arbitrary = do
-        [file,artist,album,title,genre,name,cmpsr,prfmr] <- replicateM 8 field
-        date  <- positive
-        len   <- positive
-        track <- two positive
-        disc  <- two positive
-        idx   <- oneof [return Nothing
-                       ,Just . Pos <$> positive
-                       ,Just . ID <$> positive]
-        return $ Song { sgArtist = artist, sgAlbum = album, sgTitle = title
-                      , sgFilePath = file, sgGenre = genre, sgName = name
-                      , sgComposer = cmpsr, sgPerformer = prfmr, sgLength = len
-                      , sgDate = date, sgTrack = track, sgDisc = Just disc
-                      , sgIndex = idx, sgAux = [] }
+        Song <$> field
+             <*> arbitrary
+             <*> arbitrary
+             <*> positive
+             <*> arbitrary
 
 instance Arbitrary Stats where
     arbitrary = Stats <$> positive <*> positive <*> positive <*> positive
                       <*> positive <*> positive <*> positive
 
-instance Arbitrary Meta where
-    arbitrary = elements [Artist, Album, Title, Track, Disc
-                         ,Name, Genre, Date
-                         ,Composer, Performer, Filename, Any
-                         ]
+-- XXX: maybe derive Enum/Bounded
+instance Arbitrary Metadata where
+    arbitrary = elements [Artist, ArtistSort, Album, AlbumArtist,
+                          AlbumArtistSort, Title, Track, Name, Genre,
+                          Date, Composer, Performer, Comment, Disc,
+                          MUSICBRAINZ_ARTISTID, MUSICBRAINZ_ALBUMID,
+                          MUSICBRAINZ_ALBUMARTISTID, MUSICBRAINZ_TRACKID]
