@@ -132,7 +132,7 @@ This outlines a general process used when cutting a new release:
 04. Fix errors
 05. Goto 3 unless there were no errors to fix
 06. Make sure `README.md` is correct, add any contributors
-07. Update the ChangeLog
+07. Update the `NEWS`
 08. Create a source distribution using `cabal sdist`
 09. Unpack the source to a temporary location and make sure it builds and that
 no files are missing
