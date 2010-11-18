@@ -4,4 +4,7 @@
 *.old
 *~
 .*.swp
+ChangeLog
+TAGS
 dist/
+tags
