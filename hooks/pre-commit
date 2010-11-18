@@ -92,7 +92,7 @@ for x in `git diff-index --cached --name-only HEAD` ; do
                 exit 1
             fi
             ;;
-        *.md)
+        *.md|*.markdown)
             pandoc "$x" >/dev/null
             if [[ $? -ne 0 ]] ; then
                 echo "Commit rejected: pandoc failed for $x"
