@@ -31,6 +31,10 @@ three m = liftM3 (,,) m m m
 positive :: (Arbitrary a, Num a) => Gen a
 positive = abs <$> arbitrary
 
+possibly :: Gen a -> Gen (Maybe a)
+possibly m = arbitrary >>= bool (Just <$> m) (return Nothing)
+    where bool thenE elseE b = if b then thenE else elseE
+
 -- MPD fields can't contain newlines and the parser skips initial spaces.
 field :: Gen String
 field = (filter (/= '\n') . dropWhile isSpace) <$> arbitrary
@@ -89,16 +93,24 @@ instance Arbitrary DateString where
 instance Arbitrary Count where
     arbitrary = liftM2 Count arbitrary arbitrary
 
-instance Arbitrary Output where
-    arbitrary = liftM3 Output arbitrary field arbitrary
+instance Arbitrary Device where
+    arbitrary = liftM3 Device arbitrary field arbitrary
 
 instance Arbitrary Song where
-    arbitrary = do
-        Song <$> field
-             <*> arbitrary
-             <*> arbitrary
-             <*> positive
-             <*> arbitrary
+    arbitrary = Song <$> field
+                     <*> field
+                     <*> field
+                     <*> field
+                     <*> field
+                     <*> field
+                     <*> field
+                     <*> field
+                     <*> positive
+                     <*> positive
+                     <*> two positive
+                     <*> possibly (two positive)
+                     <*> possibly positive
+                     <*> arbitrary
 
 instance Arbitrary Stats where
     arbitrary = Stats <$> positive <*> positive <*> positive <*> positive
