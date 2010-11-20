@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -Wwarn -fno-warn-missing-signatures #-}
 
 -- |
 -- This module provides a way of verifying that the interface to the MPD

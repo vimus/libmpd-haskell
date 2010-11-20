@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wwarn #-}
+
 module Displayable (Displayable(..)) where
 
 import Network.MPD.Commands.Types

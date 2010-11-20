@@ -1,4 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, MultiParamTypeClasses #-}
+{-# OPTIONS_GHC -Wwarn #-}
 
 -- | Module    : StringConn
 -- Copyright   : (c) Ben Sinclair 2005-2009

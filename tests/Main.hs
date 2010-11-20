@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -Wwarn -fno-warn-missing-signatures #-}
 -- |
 -- GUTD: The Grand Unified Test Driver.
 import qualified Commands

@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-orphans -fno-warn-missing-methods #-}
+{-# OPTIONS_GHC -Wwarn -fno-warn-orphans -fno-warn-missing-methods #-}
 
 -- | This module contains Arbitrary instances for various types.
 
