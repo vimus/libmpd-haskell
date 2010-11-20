@@ -9,6 +9,11 @@ SRC = $(shell find Network -type f -name '*.hs')
 
 all:
 
+install-hooks:
+	cd $(shell git rev-parse --show-toplevel)
+	cp hooks/pre-commit .git/hooks/pre-commit
+	chmod +x .git/hooks/pre-commit
+
 maintainer-clean:
 	@rm -f TAGS tags ChangeLog
 
