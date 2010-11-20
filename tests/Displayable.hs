@@ -38,8 +38,7 @@ instance Displayable Song where
         ,"Track: "     ++ (let (x,y) = sgTrack s in show x++"/"++show y)
         ,"Disc: "      ++ (case sgDisc s of Just (x,y) -> show x++"/"++show y; _ -> "")
         ,"Time: "      ++ show (sgLength s)]
-        ++ maybe [] (\x -> [case x of Pos n -> "Pos: " ++ show n
-                                      ID  n -> "Id: "  ++ show n]) (sgIndex s)
+        ++ maybe [] (\n -> ["Id: " ++ show n]) (sgIndex s)
 
 instance Displayable Stats where
     empty = defaultStats
@@ -74,7 +73,5 @@ instance Displayable Status where
         ,"error: " ++ show (stError s)
         ,"single: " ++ showBool (stSingle s)
         ,"consume: " ++ showBool (stConsume s)]
-        ++ maybe [] (\x -> [case x of Pos n -> "song: " ++ show n
-                                      _     -> undefined]) (stSongPos s)
-        ++ maybe [] (\x -> [case x of ID n  -> "songid: " ++ show n
-                                      _     -> undefined]) (stSongID s)
+        ++ maybe [] (\n -> ["song: " ++ show n]) (stSongPos s)
+        ++ maybe [] (\n -> ["songid: " ++ show n]) (stSongID s)
