@@ -8,9 +8,7 @@
 
 module Network.MPD.Commands.Util where
 
-import Network.MPD.Commands.Arg
 import Network.MPD.Commands.Parse
-import Network.MPD.Commands.Query
 import Network.MPD.Commands.Types
 import Network.MPD.Core
 import Network.MPD.Utils
