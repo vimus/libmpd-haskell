@@ -12,7 +12,7 @@ Synopsis:           An MPD client library.
 Description:        A client library for MPD, the Music Player Daemon
                     (<http://www.musicpd.org/>).
 Category:           Network, Sound
-Tested-With:        GHC == 6.10.1, GHC == 6.12.1
+Tested-With:        GHC == 7.0.2
 Build-Type:         Simple
 Cabal-Version:      >= 1.6
 Extra-Source-Files: README.md ChangeLog NEWS tests/Properties.hs
@@ -27,23 +27,17 @@ flag coverage
     Description: Build driver with hpc instrumentation
     Default: False
 
-flag old_base
-    Description: Use base version 3
-    Default: False
-
 Source-Repository head
     type:       git
     location:   git://github.com/joachifm/libmpd-haskell.git
 
 Library
-    if flag(old_base)
-        Build-Depends: base >= 3 && < 4
-    else
-        Build-Depends: base >= 4 && < 5
-
-    Build-Depends:      network >= 2.1 && < 2.3,
-                        mtl >= 1.1 && < 1.2, filepath >= 1.0 && < 1.2,
+    Build-Depends:      base >= 4 && < 5,
+                        mtl >= 2.0 && < 2.1,
+                        network >= 2.1 && < 2.4,
+                        filepath >= 1.0 && < 1.3,
                         utf8-string >= 0.3.1 && < 0.4
+
     Exposed-Modules:    Network.MPD, Network.MPD.Commands.Extensions,
                         Network.MPD.Core
     Other-Modules:      Network.MPD.Core.Class,
@@ -55,6 +49,7 @@ Library
                         Network.MPD.Commands.Types,
                         Network.MPD.Commands.Util,
                         Network.MPD.Utils
+
     ghc-prof-options:   -auto-all -prof
 
     if flag(test)
