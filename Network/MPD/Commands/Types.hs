@@ -32,7 +32,7 @@ data Metadata = Artist | ArtistSort | Album | AlbumArtist
               | Date | Composer | Performer | Comment | Disc
               | MUSICBRAINZ_ARTISTID | MUSICBRAINZ_ALBUMID
               | MUSICBRAINZ_ALBUMARTISTID | MUSICBRAINZ_TRACKID
-              deriving (Eq, Ord, Show)
+              deriving (Eq, Enum, Ord, Show)
 
 instance MPDArg Metadata
 
