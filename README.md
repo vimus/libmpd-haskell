@@ -1,8 +1,8 @@
 # libmpd-haskell: a client library for MPD
 
 ## About
-libmpd-haskell is a client library for [MPD] written in [Haskell] that <br />
-aims to provide a safe and flexible yet consistent and intuitive <br />
+libmpd-haskell is a client library for [MPD] written in [Haskell] that
+aims to provide a safe and flexible yet consistent and intuitive
 interface to MPD's external API.
 
 [MPD]: http://www.musicpd.org
@@ -32,10 +32,6 @@ takes care of dependency resolution and other minutiae.
 To install libmpd-haskell, simply run:
 
 `cd libmpd-haskell && cabal install`
-
-To use the deprecated base 3, run:
-
-`cabal install -f old_base`
 
 [cabal-install]: http://hackage.haskell.org/package/cabal-install
 
