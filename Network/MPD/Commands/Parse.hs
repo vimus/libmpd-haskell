@@ -14,6 +14,7 @@ import Network.MPD.Commands.Types
 
 import Control.Arrow ((***))
 import Control.Monad.Error
+import Data.Maybe (fromMaybe)
 
 import Network.MPD.Utils
 import Network.MPD.Core (MonadMPD, MPDError(Unexpected))
@@ -68,7 +69,7 @@ parseSong xs = foldM f defaultSong xs
         f s ("Last-Modified", v) =
             return s { sgLastModified = parseIso8601 v }
         f s ("Time", v) =
-            return s { sgLength = maybe 0 id $ parseNum v }
+            return s { sgLength = fromMaybe 0 $ parseNum v }
         -- We prefer Id...
         f s ("Id", v) =
             return $ parse parseNum (\v' -> s { sgIndex = Just v' }) s v
