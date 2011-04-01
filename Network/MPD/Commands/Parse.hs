@@ -14,7 +14,6 @@ import Network.MPD.Commands.Types
 
 import Control.Arrow ((***))
 import Control.Monad.Error
-import qualified Data.Map as M
 
 import Network.MPD.Utils
 import Network.MPD.Core (MonadMPD, MPDError(Unexpected))
