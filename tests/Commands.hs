@@ -32,7 +32,9 @@ main = mapM_ (\(n, f) -> printf "%-25s : " n >> f) tests
                   ,("update0", testUpdate0)
                   ,("update1", testUpdate1)
                   ,("updateMany", testUpdateMany)
+{-
                   ,("prop_find", mycheck prop_find 100)
+-}
                   {-
                   ,("prop_lsFiles", mycheck prop_lsFiles 100)
                   ,("prop_lsDirs", mycheck prop_lsDirs 100)
@@ -42,7 +44,9 @@ main = mapM_ (\(n, f) -> printf "%-25s : " n >> f) tests
                   ,("listAll", testListAll)
                   ,("lsInfo", testLsInfo)
                   ,("listAllInfo", testListAllInfo)
+{-
                   ,("search", testSearch)
+-}
                   ,("count", testCount)
                   ,("add", testAdd)
                   ,("add_", testAdd_)
@@ -78,19 +82,25 @@ main = mapM_ (\(n, f) -> printf "%-25s : " n >> f) tests
                   ,("swap1", testSwap1)
                   -}
                   ,("shuffle", testShuffle)
+{-
                   ,("playlistInfo0", testPlaylistInfo0)
+-}
                   {-
                   ,("playlistInfo / pos", testPlaylistInfoPos)
                   ,("playlistInfo / id", testPlaylistInfoId)
                   -}
+{-
                   ,("listPlaylistInfo", testListPlaylistInfo)
+-}
                   ,("listPlaylist", testListPlaylist)
                   {-
                   ,("playlist", testPlaylist)
                   -}
+{-
                   ,("plchanges", testPlChanges)
                   ,("playlistFind", testPlaylistFind)
                   ,("playlistSearch", testPlaylistSearch)
+-}
                   ,("crossfade", testCrossfade)
                   ,("play", testPlay)
                   {-
@@ -188,6 +198,7 @@ testUpdateMany =
 -- Database commands
 --
 
+{-
 prop_find :: Song -> Metadata -> QC.Property
 prop_find song meta = isJust (sgDisc song) ==> result == Ok
     where
@@ -211,6 +222,7 @@ prop_find song meta = isJust (sgDisc song) ==> result == Ok
             Filename  -> sgFilePath  song
             Any       -> "Foo"
             -}
+-}
 
 {- XXX: where did these go?
 prop_lsFiles :: [Song] -> Bool
@@ -266,12 +278,14 @@ testListAllInfo =
          (Right [Left "Foo", Left "Bar"])
          (listAllInfo "")
 
+{-
 testSearch =
     test [("search Artist \"oo\"", Right resp)] (Right [obj])
          (search (Artist =? "oo"))
     where obj = empty { sgArtist = "Foo", sgTitle = "Bar"
                       , sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60 }
           resp = display obj ++ "OK"
+-}
 
 testCount =
     test [("count Title \"Foo\"", Right resp)] (Right obj)
@@ -374,11 +388,13 @@ testSwap1 = test_ [("swapid 1 2", Right "OK")] (swap (ID 1) (ID 2))
 
 testShuffle = test_ [("shuffle", Right "OK")] (shuffle Nothing)
 
+{-
 testPlaylistInfo0 = test [("playlistinfo", Right resp)] (Right [obj])
                     (playlistInfo Nothing)
     where obj = empty { sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60
                       , sgArtist = "Foo", sgTitle = "Bar" }
           resp = display obj ++ "OK"
+-}
 
 {- XXX: port this
 testPlaylistInfoPos = test [("playlistinfo 1", Right resp)] (Right [obj])
@@ -396,12 +412,14 @@ testPlaylistInfoId = test [("playlistid 1", Right resp)] (Right [obj])
           resp = display obj ++ "OK"
 -}
 
+{-
 testListPlaylistInfo = test [("listplaylistinfo \"foo\"", Right resp)]
                        (Right [obj])
                        (listPlaylistInfo "foo")
     where obj = empty { sgFilePath = "dir/Foo-Bar.ogg", sgLength = 60
                       , sgArtist = "Foo", sgTitle = "Bar" }
           resp = display obj ++ "OK"
+-}
 
 testListPlaylist = test [("listplaylist \"foo\""
                          ,Right "file: dir/Foo-bar.ogg\n\
@@ -420,22 +438,28 @@ testPlaylist = test [("playlist"
                playlist
 -}
 
+{-
 testPlChanges = test [("plchanges 0", Right resp)] (Right [obj]) (plChanges 0)
     where obj = empty { sgArtist = "Foo", sgTitle = "Bar"
                       , sgFilePath = "foo/bar.ogg" }
           resp = display obj ++ "OK"
+-}
 
+{-
 testPlaylistFind = test [("playlistfind Artist \"Foo\"", Right resp)]
                    (Right [obj])
                    (playlistFind (Artist =? "Foo"))
     where obj = empty { sgFilePath = "dir/Foo/Bar.ogg", sgArtist = "Foo" }
           resp = display obj ++ "OK"
+-}
 
+{-
 testPlaylistSearch = test [("playlistsearch Artist \"Foo\"", Right resp)]
                      (Right [obj])
                      (playlistSearch (Artist =? "Foo"))
     where obj = empty { sgFilePath = "dir/Foo/Bar.ogg", sgArtist = "Foo" }
           resp = display obj ++ "OK"
+-}
 
 --
 -- Playback commands

@@ -98,19 +98,10 @@ instance Arbitrary Device where
 
 instance Arbitrary Song where
     arbitrary = Song <$> field
-                     <*> field
-                     <*> field
-                     <*> field
-                     <*> field
-                     <*> field
-                     <*> field
-                     <*> field
-                     <*> positive
-                     <*> positive
-                     <*> two positive
-                     <*> possibly (two positive)
-                     <*> possibly positive
                      <*> arbitrary
+                     <*> possibly arbitrary
+                     <*> positive
+                     <*> possibly positive
 
 instance Arbitrary Stats where
     arbitrary = Stats <$> positive <*> positive <*> positive <*> positive

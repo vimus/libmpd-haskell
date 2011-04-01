@@ -2,6 +2,7 @@
 
 module Displayable (Displayable(..)) where
 
+import qualified Data.Map as M
 import Network.MPD.Commands.Types
 import Network.MPD.Utils
 
@@ -27,20 +28,16 @@ instance Displayable Device where
 
 instance Displayable Song where
     empty = defaultSong
-    display s = unlines $
-        ["file: "      ++ sgFilePath s
-        ,"Artist: "    ++ sgArtist s
-        ,"Album: "     ++ sgAlbum s
-        ,"Title: "     ++ sgTitle s
-        ,"Genre: "     ++ sgGenre s
-        ,"Name: "      ++ sgName s
-        ,"Composer: "  ++ sgComposer s
-        ,"Performer: " ++ sgPerformer s
-        ,"Date: "      ++ show (sgDate s)
-        ,"Track: "     ++ (let (x,y) = sgTrack s in show x++"/"++show y)
-        ,"Disc: "      ++ (case sgDisc s of Just (x,y) -> show x++"/"++show y; _ -> "")
-        ,"Time: "      ++ show (sgLength s)]
-        ++ maybe [] (\n -> ["Id: " ++ show n]) (sgIndex s)
+    display s =
+        let fs  = concatMap toF . M.toList $ sgTags s
+            idx = maybe [] (\n -> ["Id: " ++ show n]) (sgIndex s)
+        in unlines $ ["file: " ++ sgFilePath s]
+                  ++ fs
+                  ++ ["Last-Modified: " ++ show (sgLastModified s)]
+                  ++ idx
+        where
+            toF (k, vs) = map (toF' k) vs
+            toF' k v    = show k ++ ": " ++ v
 
 instance Displayable Stats where
     empty = defaultStats
