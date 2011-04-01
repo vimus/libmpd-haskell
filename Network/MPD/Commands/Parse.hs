@@ -81,10 +81,8 @@ parseSong xs = foldM f defaultSong xs
                   (sgIndex s)
         f s ("file", v) =
             return s { sgFilePath = v }
-        f s (k, v) =
-            case readMeta k of
-                Just m -> return $ sgAddTag m v s
-                Nothing -> return s
+        f s (k, v) = return . maybe s (\m -> sgAddTag m v s) $
+                     readMeta k
 
         -- Custom-made Read instance
         readMeta "Artist" = Just Artist
