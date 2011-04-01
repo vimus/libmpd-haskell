@@ -1,3 +1,11 @@
+* v0.6.0, 2011-03-31
+  - Reverted some changes from 0.5.0 that caused problems,
+    most notably the parser improvements have been removed for now.
+  - Support for GHC 7
+  - Removed support for building against the deprecated base 3 package
+  - Added an `Enum' instance for `Metadata'
+  - Removed the `old_base' flag
+
 * v0.5.0, 2010-09-08
 	- Moved extensions to Network.MPD.Commands.Extensions
 	These might be removed in a later version
