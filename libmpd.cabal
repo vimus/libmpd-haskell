@@ -15,7 +15,7 @@ Category:           Network, Sound
 Tested-With:        GHC == 7.0.2
 Build-Type:         Simple
 Cabal-Version:      >= 1.6
-Extra-Source-Files: README.md ChangeLog NEWS tests/Properties.hs
+Extra-Source-Files: README.md NEWS tests/Properties.hs
                     tests/Commands.hs tests/Main.hs tests/Displayable.hs
                     tests/run-tests.lhs tests/coverage.lhs
 
