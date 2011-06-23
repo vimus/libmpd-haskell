@@ -50,7 +50,8 @@ instance (Ord key, Arbitrary key, Arbitrary val) => Arbitrary (M.Map key val) wh
 instance Arbitrary Day where
     arbitrary = ModifiedJulianDay <$> arbitrary
 
-instance Arbitrary DiffTime
+instance Arbitrary DiffTime where
+    arbitrary = secondsToDiffTime <$> positive
 
 instance Arbitrary UTCTime where
     arbitrary = UTCTime <$> arbitrary <*> arbitrary

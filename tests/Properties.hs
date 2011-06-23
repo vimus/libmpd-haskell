@@ -11,6 +11,7 @@ import Network.MPD.Utils
 import Control.Monad
 import Data.List
 import Data.Maybe
+import Data.Time
 import System.Environment
 import Text.Printf
 import Test.QuickCheck
@@ -34,6 +35,7 @@ main = do
                         mytest prop_parseDate_simple)
                   ,("parseDate / complex",
                         mytest prop_parseDate_complex)
+                  ,("parseIso8601", mytest prop_parseIso8601)
                   ,("parseCount", mytest prop_parseCount)
                   ,("parseOutputs", mytest prop_parseOutputs)
                   ,("parseSong", mytest prop_parseSong)
@@ -90,6 +92,12 @@ prop_parseNum x =
 --------------------------------------------------------------------------
 -- Parsers
 --------------------------------------------------------------------------
+
+-- This property also ensures, that (instance Arbitrary UTCTime) is sound.
+-- Indeed, a bug in the instance declaration was the primary motivation to add
+-- this property.
+prop_parseIso8601 :: UTCTime -> Bool
+prop_parseIso8601 t = Just t == (parseIso8601 . formatIso8601) t
 
 prop_parseCount :: Count -> Bool
 prop_parseCount c = Right c == (parseCount . lines $ display c)
