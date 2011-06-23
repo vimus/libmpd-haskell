@@ -28,10 +28,12 @@ type Path         = String
 -- | Available metadata types\/scope modifiers, used for searching the
 -- database for entries with certain metadata values.
 data Metadata = Artist
-              | ArtistSort
+              -- NOTE: The commented constructors are not yet handled by the
+              -- parser.  If you uncomment them, some test will fail.
+              -- | ArtistSort
               | Album
-              | AlbumArtist
-              | AlbumArtistSort
+              -- | AlbumArtist
+              -- | AlbumArtistSort
               | Title
               | Track
               | Name
@@ -39,11 +41,11 @@ data Metadata = Artist
               | Date
               | Composer
               | Performer
-              | Comment
+              -- | Comment
               | Disc
               | MUSICBRAINZ_ARTISTID
-              | MUSICBRAINZ_ALBUMID
-              | MUSICBRAINZ_ALBUMARTISTID
+              -- | MUSICBRAINZ_ALBUMID
+              -- | MUSICBRAINZ_ALBUMARTISTID
               | MUSICBRAINZ_TRACKID
               deriving (Eq, Enum, Ord, Bounded, Show)
 
