@@ -27,11 +27,24 @@ type Path         = String
 
 -- | Available metadata types\/scope modifiers, used for searching the
 -- database for entries with certain metadata values.
-data Metadata = Artist | ArtistSort | Album | AlbumArtist
-              | AlbumArtistSort | Title | Track | Name | Genre
-              | Date | Composer | Performer | Comment | Disc
-              | MUSICBRAINZ_ARTISTID | MUSICBRAINZ_ALBUMID
-              | MUSICBRAINZ_ALBUMARTISTID | MUSICBRAINZ_TRACKID
+data Metadata = Artist
+              | ArtistSort
+              | Album
+              | AlbumArtist
+              | AlbumArtistSort
+              | Title
+              | Track
+              | Name
+              | Genre
+              | Date
+              | Composer
+              | Performer
+              | Comment
+              | Disc
+              | MUSICBRAINZ_ARTISTID
+              | MUSICBRAINZ_ALBUMID
+              | MUSICBRAINZ_ALBUMARTISTID
+              | MUSICBRAINZ_TRACKID
               deriving (Eq, Enum, Ord, Show)
 
 instance MPDArg Metadata
