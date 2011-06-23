@@ -45,7 +45,7 @@ data Metadata = Artist
               | MUSICBRAINZ_ALBUMID
               | MUSICBRAINZ_ALBUMARTISTID
               | MUSICBRAINZ_TRACKID
-              deriving (Eq, Enum, Ord, Show)
+              deriving (Eq, Enum, Ord, Bounded, Show)
 
 instance MPDArg Metadata
 

@@ -107,10 +107,5 @@ instance Arbitrary Stats where
     arbitrary = Stats <$> positive <*> positive <*> positive <*> positive
                       <*> positive <*> positive <*> positive
 
--- XXX: maybe derive Enum/Bounded
 instance Arbitrary Metadata where
-    arbitrary = elements [Artist, ArtistSort, Album, AlbumArtist,
-                          AlbumArtistSort, Title, Track, Name, Genre,
-                          Date, Composer, Performer, Comment, Disc,
-                          MUSICBRAINZ_ARTISTID, MUSICBRAINZ_ALBUMID,
-                          MUSICBRAINZ_ALBUMARTISTID, MUSICBRAINZ_TRACKID]
+    arbitrary = elements [minBound .. maxBound]
