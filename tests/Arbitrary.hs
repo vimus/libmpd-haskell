@@ -43,7 +43,7 @@ field = (filter (/= '\n') . dropWhile isSpace) <$> arbitrary
 instance Arbitrary (M.Map Metadata [String]) where
     arbitrary = do
         size <- choose (1, 1000)
-        vals <- replicateM size (listOf1 arbitrary)
+        vals <- replicateM size (listOf1 field)
         keys <- replicateM size arbitrary
         return $ M.fromList (zip keys vals)
 
