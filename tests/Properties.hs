@@ -11,10 +11,12 @@ import Network.MPD.Utils
 import Control.Monad
 import Data.List
 import Data.Maybe
+import qualified Data.Map as M
 import Data.Time
 import System.Environment
 import Text.Printf
 import Test.QuickCheck
+
 
 main :: IO ()
 main = do
@@ -107,7 +109,12 @@ prop_parseOutputs ds =
     Right ds == (parseOutputs . lines $ concatMap display ds)
 
 prop_parseSong :: Song -> Bool
-prop_parseSong s = Right s == (parseSong . toAssocList . lines $ display s)
+prop_parseSong s = Right (sortTags s) == sortTags `fmap` (parseSong . toAssocList . lines $ display s)
+  where
+    -- We consider lists of tag values equal if they contain the same elements.
+    -- To ensure that two lists with the same elements are equal, we bring the
+    -- elements in a deterministic order.
+    sortTags song = song {sgTags = M.map sort $ sgTags song}
 
 prop_parseStats :: Stats -> Bool
 prop_parseStats s = Right s == (parseStats . lines $ display s)
