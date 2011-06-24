@@ -36,6 +36,7 @@ import Network (PortID(..), withSocketsDo, connectTo)
 import System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
 import System.IO.Error (isEOFError)
 import qualified System.IO.UTF8 as U
+import Text.Printf (printf)
 
 --
 -- Data types.
@@ -113,14 +114,26 @@ mpdOpen = MPD $ do
         checkConn = do
             [msg] <- lines <$> send ""
             if isPrefixOf "OK MPD" msg
-               then do
-                   MPD $ maybe (throwError $ Custom "Couldn't determine MPD version")
-                               (\v -> modify (\st -> st { stVersion = v }))
-                               (parseVersion msg)
-                   return True
-               else return False
+                then MPD $ checkVersion $ parseVersion msg
+                else return False
+
+        checkVersion Nothing = throwError $ Custom "Couldn't determine MPD version"
+        checkVersion (Just version)
+            | version < requiredVersion =
+                throwError $ Custom $ printf
+                    "MPD %s is not supported, upgrade to MPD %s or above!"
+                    (formatVersion version) (formatVersion requiredVersion)
+            | otherwise = do
+                modify (\st -> st { stVersion = version })
+                return True
+            where
+                requiredVersion = (0, 15, 0)
 
         parseVersion = parseTriple '.' parseNum . dropWhile (not . isDigit)
+
+        formatVersion :: (Int, Int, Int) -> String
+        formatVersion (x, y, z) = printf "%d.%d.%d" x y z
+
 
 mpdClose :: MPD ()
 mpdClose =
