@@ -59,25 +59,14 @@ With GHCi:
 
 ## Development
 
-### Branches
-
-* `master`:
-      Stable branch, should never break.
-* `trunk`:
-      Development branch, turns into master
-* `integrate`:
-      New, untested stuff
-
-Develop against `trunk` unless the patch is fixing a problem known to exist in `master`.
-
 ### Getting started
 Create the clone thus:
 
-`git clone git://github.com/joachifm/libmpd-haskell.git trunk`
+`git clone git://github.com/joachifm/libmpd-haskell.git master`
 
 To pull in new changes from upstream, use:
 
-`git pull origin trunk`
+`git pull origin master`
 
 To set up GIT hooks, see `hooks/README` in the source distribution.
 
@@ -106,8 +95,6 @@ To set up GIT hooks, see `hooks/README` in the source distribution.
   please use `{-# OPTIONS_GHC -fno-warn-orphans #-}` in the affected source
   file and note why it is necessary to use it. This does not apply to the test
   harness
-
-* Branches are cheap, use them
 
 ### Submitting patches
 To submit a patch, use `git format-patch` and email the resulting file(s) to
@@ -184,3 +171,5 @@ gwern0 \<gwern0@gmail.com\>
 Daniel Schoepe \<daniel.schoepe@googlemail.com\>
 
 Andrzej Rybczak \<electricityispower@gmail.com\>
+
+Simon Hengel \<simon.hengel@wiktory.org\>
