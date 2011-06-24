@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wwarn -fno-warn-orphans -fno-warn-missing-methods #-}
+{-# OPTIONS_GHC -Wwarn -fno-warn-orphans -fno-warn-missing-methods -XFlexibleInstances #-}
 
 -- | This module contains Arbitrary instances for various types.
 
@@ -40,17 +40,18 @@ field :: Gen String
 field = (filter (/= '\n') . dropWhile isSpace) <$> arbitrary
 
 -- Orphan instances for built-in types
-instance (Ord key, Arbitrary key, Arbitrary val) => Arbitrary (M.Map key val) where
+instance Arbitrary (M.Map Metadata [String]) where
     arbitrary = do
         size <- choose (1, 1000)
-        vals <- replicateM size arbitrary
+        vals <- replicateM size (listOf1 field)
         keys <- replicateM size arbitrary
         return $ M.fromList (zip keys vals)
 
 instance Arbitrary Day where
     arbitrary = ModifiedJulianDay <$> arbitrary
 
-instance Arbitrary DiffTime
+instance Arbitrary DiffTime where
+    arbitrary = secondsToDiffTime <$> positive
 
 instance Arbitrary UTCTime where
     arbitrary = UTCTime <$> arbitrary <*> arbitrary
@@ -107,10 +108,5 @@ instance Arbitrary Stats where
     arbitrary = Stats <$> positive <*> positive <*> positive <*> positive
                       <*> positive <*> positive <*> positive
 
--- XXX: maybe derive Enum/Bounded
 instance Arbitrary Metadata where
-    arbitrary = elements [Artist, ArtistSort, Album, AlbumArtist,
-                          AlbumArtistSort, Title, Track, Name, Genre,
-                          Date, Composer, Performer, Comment, Disc,
-                          MUSICBRAINZ_ARTISTID, MUSICBRAINZ_ALBUMID,
-                          MUSICBRAINZ_ALBUMARTISTID, MUSICBRAINZ_TRACKID]
+    arbitrary = elements [minBound .. maxBound]
