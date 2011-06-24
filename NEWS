@@ -1,4 +1,4 @@
-* v0.6.0, 2011-03-31
+* v0.6.0, 2011-04-01
   - Reverted some changes from 0.5.0 that caused problems,
     most notably the parser improvements have been removed for now.
   - Support for GHC 7
@@ -19,7 +19,7 @@
 	- The version of the MPD server is available via `getVersion'
 	- Added support for connecting via unix sockets
 
-* v0.4.1, 2010-08-31
+* v0.4.2, 2010-08-31
 	- Only depend on QuickCheck when building the test target
 
 * v0.4.1, 2010-03-26
