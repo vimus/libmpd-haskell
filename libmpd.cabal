@@ -64,7 +64,7 @@ Executable test
     -- Dependencies that are only required by the test-suite:
     if flag(test)
         Build-Depends: QuickCheck >= 2.1, time, containers
-    ghc-options:        -Wall -Werror -fno-warn-warnings-deprecations
+    ghc-options:        -Wall -fno-warn-warnings-deprecations
                         -fno-warn-type-defaults
 
     if flag(coverage)
