@@ -163,7 +163,7 @@ play (Just pos) = getResponse_ ("play" <$> pos)
 play _          = getResponse_  "play"
 
 -- | Play a file with given id.
-playId :: MonadMPD m => Int -> m ()
+playId :: MonadMPD m => Id -> m ()
 playId id' = getResponse_ ("playid" <$> id')
 
 -- | Play the previous song.
@@ -175,7 +175,7 @@ seek :: MonadMPD m => Int -> Seconds -> m ()
 seek pos time = getResponse_ ("seek" <$> pos <++> time)
 
 -- | Seek to some point in a song (id version)
-seekId :: MonadMPD m => Int -> Seconds -> m ()
+seekId :: MonadMPD m => Id -> Seconds -> m ()
 seekId id' time = getResponse_ ("seekid" <$> id' <++> time)
 
 -- | Stop playing.
@@ -189,8 +189,8 @@ stop = getResponse_ "stop"
 -- This might do better to throw an exception than silently return 0.
 -- | Like 'add', but returns a playlist id.
 addId :: MonadMPD m => Path -> Maybe Integer -- ^ Optional playlist position
-      -> m Int
-addId p pos = liftM (parse parseNum id 0 . snd . head . toAssocList)
+      -> m Id
+addId p pos = liftM (parse parseNum Id (Id 0) . snd . head . toAssocList)
               $ getResponse1 ("addid" <$> p <++> pos)
 
 -- | Like 'add_' but returns a list of the files added.
@@ -210,7 +210,7 @@ delete :: MonadMPD m => Int -> m ()
 delete pos = getResponse_ ("delete" <$> pos)
 
 -- | Remove a song from the current playlist.
-deleteId :: MonadMPD m => Int -> m ()
+deleteId :: MonadMPD m => Id -> m ()
 deleteId id' = getResponse_ ("deleteid" <$> id')
 
 -- | Move a song to a given position in the current playlist.
@@ -219,7 +219,7 @@ move pos to = getResponse_ ("move" <$> pos <++> to)
 
 -- | Move a song from (songid) to (playlist index) in the playlist. If to is
 -- negative, it is relative to the current song in the playlist (if there is one).
-moveId :: MonadMPD m => Int -> Int -> m ()
+moveId :: MonadMPD m => Id -> Int -> m ()
 moveId id' to = getResponse_ ("moveid" <$> id' <++> to)
 
 -- | Retrieve file paths and positions of songs in the current playlist.
@@ -243,7 +243,7 @@ playlistInfo range = takeSongs =<< getResponse ("playlistinfo" <$> range)
 
 -- | Displays a list of songs in the playlist.
 -- If id is specified, only its info is returned.
-playlistId :: MonadMPD m => Maybe Int -> m [Song]
+playlistId :: MonadMPD m => Maybe Id -> m [Song]
 playlistId id' = takeSongs =<< getResponse ("playlistinfo" <$> id')
 
 -- | Search case-insensitively with partial matches for songs in the
@@ -257,13 +257,13 @@ plChanges :: MonadMPD m => Integer -> m [Song]
 plChanges version = takeSongs =<< getResponse ("plchanges" <$> version)
 
 -- | Like 'plChanges' but only returns positions and ids.
-plChangesPosId :: MonadMPD m => Integer -> m [(Int, Int)]
+plChangesPosId :: MonadMPD m => Integer -> m [(Int, Id)]
 plChangesPosId plver =
     getResponse ("plchangesposid" <$> plver) >>=
     mapM f . splitGroups [("cpos",id)] . toAssocList
     where f xs | [("cpos", x), ("Id", y)] <- xs
                , Just (x', y') <- pair parseNum (x, y)
-               = return (x', y')
+               = return (x', Id y')
                | otherwise = throwError . Unexpected $ show xs
 
 -- | Shuffle the playlist.
@@ -276,7 +276,7 @@ swap :: MonadMPD m => Int -> Int -> m ()
 swap pos1 pos2 = getResponse_ ("swap" <$> pos1 <++> pos2)
 
 -- | Swap the positions of two songs (Id version
-swapId :: MonadMPD m => Int -> Int -> m ()
+swapId :: MonadMPD m => Id -> Id -> m ()
 swapId id1 id2 = getResponse_ ("swapid" <$> id1 <++> id2)
 
 --

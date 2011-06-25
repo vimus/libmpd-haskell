@@ -130,9 +130,17 @@ data Song = Song
          , sgLastModified :: Maybe UTCTime
          -- | Length of the song in seconds
          , sgLength       :: Seconds
-         -- | Id (preferred) or position in playlist
+         -- | Id in playlist
+         , sgId           :: Maybe Id
+         -- | Position in playlist
          , sgIndex        :: Maybe Int
          } deriving (Eq, Show)
+
+newtype Id = Id Int
+    deriving (Eq, Show)
+
+instance (MPDArg Id) where
+    prep (Id x) = prep x
 
 -- | Get list of specific tag type
 sgGetTag :: Metadata -> Song -> Maybe [String]
@@ -145,7 +153,7 @@ sgAddTag meta value s = s { sgTags = M.insertWith' (++) meta [value] (sgTags s) 
 defaultSong :: Song
 defaultSong =
     Song { sgFilePath = "", sgTags = M.empty, sgLastModified = Nothing
-         , sgLength = 0, sgIndex = Nothing }
+         , sgLength = 0, sgId = Nothing, sgIndex = Nothing }
 
 -- | Container for database statistics.
 data Stats =
@@ -180,11 +188,11 @@ data Status =
              -- | Current song's position in the playlist.
            , stSongPos         :: Maybe Int
              -- | Current song's playlist ID.
-           , stSongID          :: Maybe Int
+           , stSongID          :: Maybe Id
              -- | Next song's position in the playlist.
            , stNextSongPos     :: Maybe Int
              -- | Next song's playlist ID.
-           , stNextSongID      :: Maybe Int
+           , stNextSongID      :: Maybe Id
              -- | Time elapsed\/total time.
            , stTime            :: (Double, Seconds)
              -- | Bitrate (in kilobytes per second) of playing song (if any).
