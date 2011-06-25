@@ -139,6 +139,9 @@ data Song = Song
 newtype Id = Id Int
     deriving (Eq, Show)
 
+instance (MPDArg Id) where
+    prep (Id x) = prep x
+
 -- | Get list of specific tag type
 sgGetTag :: Metadata -> Song -> Maybe [String]
 sgGetTag meta s = M.lookup meta $ sgTags s
