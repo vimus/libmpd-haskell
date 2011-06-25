@@ -121,7 +121,7 @@ parseStatus = foldM f defaultStatus . toAssocList
           f a ("song", x)
               = return $ parse parseNum  (\x' -> a { stSongPos = Just x' }) a x
           f a ("songid", x)
-              = return $ parse parseNum  (\x' -> a { stSongID = Just x' }) a x
+              = return $ parse parseNum  (\x' -> a { stSongID = Just $ Id x' }) a x
           f a ("time", x)
               = return $ parse time      (\x' -> a { stTime = x' }) a x
           f a ("elapsed", x)
@@ -141,7 +141,7 @@ parseStatus = foldM f defaultStatus . toAssocList
           f a ("nextsong", x)
               = return $ parse parseNum  (\x' -> a { stNextSongPos = Just x' }) a x
           f a ("nextsongid", x)
-              = return $ parse parseNum  (\x' -> a { stNextSongID = Just x' }) a x
+              = return $ parse parseNum  (\x' -> a { stNextSongID = Just $ Id x' }) a x
           f _ x
               = fail $ show x
 

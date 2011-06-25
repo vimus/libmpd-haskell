@@ -188,11 +188,11 @@ data Status =
              -- | Current song's position in the playlist.
            , stSongPos         :: Maybe Int
              -- | Current song's playlist ID.
-           , stSongID          :: Maybe Int
+           , stSongID          :: Maybe Id
              -- | Next song's position in the playlist.
            , stNextSongPos     :: Maybe Int
              -- | Next song's playlist ID.
-           , stNextSongID      :: Maybe Int
+           , stNextSongID      :: Maybe Id
              -- | Time elapsed\/total time.
            , stTime            :: (Double, Seconds)
              -- | Bitrate (in kilobytes per second) of playing song (if any).
