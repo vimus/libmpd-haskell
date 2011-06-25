@@ -70,10 +70,8 @@ parseSong xs = foldM f defaultSong xs
             return s { sgLastModified = parseIso8601 v }
         f s ("Time", v) =
             return s { sgLength = fromMaybe 0 $ parseNum v }
-        -- We prefer Id...
         f s ("Id", v) =
-            return $ parse parseNum (\v' -> s { sgIndex = Just v' }) s v
-        -- .. but will make due with Pos
+            return $ parse parseNum (\v' -> s { sgId = Just $ Id v' }) s v
         f s ("Pos", v) =
             maybe (return $ parse parseNum
                                   (\v' -> s { sgIndex = Just v' }) s v)

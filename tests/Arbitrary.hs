@@ -97,11 +97,15 @@ instance Arbitrary Count where
 instance Arbitrary Device where
     arbitrary = liftM3 Device arbitrary field arbitrary
 
+instance Arbitrary Id where
+    arbitrary = Id <$> arbitrary
+
 instance Arbitrary Song where
     arbitrary = Song <$> field
                      <*> arbitrary
                      <*> possibly arbitrary
                      <*> positive
+                     <*> possibly arbitrary
                      <*> possibly positive
 
 instance Arbitrary Stats where

@@ -130,9 +130,14 @@ data Song = Song
          , sgLastModified :: Maybe UTCTime
          -- | Length of the song in seconds
          , sgLength       :: Seconds
-         -- | Id (preferred) or position in playlist
+         -- | Id in playlist
+         , sgId           :: Maybe Id
+         -- | Position in playlist
          , sgIndex        :: Maybe Int
          } deriving (Eq, Show)
+
+newtype Id = Id Int
+    deriving (Eq, Show)
 
 -- | Get list of specific tag type
 sgGetTag :: Metadata -> Song -> Maybe [String]
@@ -145,7 +150,7 @@ sgAddTag meta value s = s { sgTags = M.insertWith' (++) meta [value] (sgTags s) 
 defaultSong :: Song
 defaultSong =
     Song { sgFilePath = "", sgTags = M.empty, sgLastModified = Nothing
-         , sgLength = 0, sgIndex = Nothing }
+         , sgLength = 0, sgId = Nothing, sgIndex = Nothing }
 
 -- | Container for database statistics.
 data Stats =

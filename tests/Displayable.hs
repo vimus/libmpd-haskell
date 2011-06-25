@@ -30,12 +30,14 @@ instance Displayable Song where
     empty = defaultSong
     display s =
         let fs  = concatMap toF . M.toList $ sgTags s
-            idx = maybe [] (\n -> ["Id: " ++ show n]) (sgIndex s)
+            id_ = maybe [] (\(Id n) -> ["Id: " ++ show n]) (sgId s)
+            idx = maybe [] (\n -> ["Pos: " ++ show n]) (sgIndex s)
             lastModified = maybe [] (return . ("Last-Modified: " ++) . formatIso8601) (sgLastModified s)
         in unlines $ ["file: " ++ sgFilePath s]
                   ++ ["Time: " ++ (show . sgLength) s]
                   ++ fs
                   ++ lastModified
+                  ++ id_
                   ++ idx
         where
             toF (k, vs) = map (toF' k) vs
