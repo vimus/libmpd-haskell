@@ -310,7 +310,7 @@ testAdd_pl = test_ [("playlistadd \"foo\" \"bar\"", Right "OK")]
 
 testAddId =
     test [("addid \"dir/Foo-Bar.ogg\"", Right "Id: 20\nOK")]
-         (Right 20)
+         (Right $ Id 20)
          (addId "dir/Foo-Bar.ogg" Nothing)
 
 testClearPlaylist = test_ [("playlistclear \"foo\"", Right "OK")]
