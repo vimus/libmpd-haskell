@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
 
 -- | Module    : Network.MPD.Commands.Arg
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
