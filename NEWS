@@ -1,3 +1,10 @@
+* v0.7.0, 2011-11-22
+  - Several fixes to the test harness (Simon Hengel)
+  - Fixed issue with the (<$>) operator (Simon Hengel)
+  - Type safe handling of song IDs (Simon Hengel)
+  - Check MPD version on connect (now depends on MPD >= 0.15) (Simon Hengel)
+  - Compatibility with GHC 7.2 (Daniel Wagner)
+
 * v0.6.0, 2011-04-01
   - Reverted some changes from 0.5.0 that caused problems,
     most notably the parser improvements have been removed for now.
