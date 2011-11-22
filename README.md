@@ -173,3 +173,5 @@ Daniel Schoepe \<daniel.schoepe@googlemail.com\>
 Andrzej Rybczak \<electricityispower@gmail.com\>
 
 Simon Hengel \<simon.hengel@wiktory.org\>
+
+Daniel Wagner \<daniel@wagner-home.com\>
