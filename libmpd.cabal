@@ -15,9 +15,11 @@ Category:           Network, Sound
 Tested-With:        GHC == 7.0.2
 Build-Type:         Simple
 Cabal-Version:      >= 1.6
-Extra-Source-Files: README.md NEWS tests/Properties.hs
-                    tests/Commands.hs tests/Main.hs tests/Displayable.hs
-                    tests/run-tests.lhs tests/coverage.lhs
+Extra-Source-Files: README.md NEWS
+                    tests/Arbitrary.hs tests/Commands.hs
+                    tests/Displayable.hs tests/Properties.hs
+                    tests/StringConn.hs tests/Main.hs
+                    tests/coverage.lhs tests/run-tests.lhs
 
 flag test
     Description: Build test driver
