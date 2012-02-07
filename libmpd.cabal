@@ -1,8 +1,8 @@
 Name:               libmpd
-Version:            0.7.0
+Version:            0.7.1
 License:            LGPL
 License-file:       LICENSE
-Copyright:          Ben Sinclair 2005-2009, Joachim Fasting 2010, 2011
+Copyright:          Ben Sinclair 2005-2009, Joachim Fasting 2012
 Author:             Ben Sinclair
 Maintainer:         Joachim Fasting <joachim.fasting@gmail.com>
 Stability:          beta
