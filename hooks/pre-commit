@@ -100,7 +100,7 @@ for x in `git diff-index --cached --name-only HEAD` ; do
             fi
             ;;
         *.hs)
-            hlint -q -i 'Eta reduce' "$x"
+            hlint -q -i 'Redundant $' -i 'Eta reduce' "$x"
             if [[ $? -ne 0 ]] ; then
                 echo "Commit rejected: syntax error in $x"
                 exit 1
