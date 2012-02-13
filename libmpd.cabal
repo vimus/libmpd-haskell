@@ -60,9 +60,11 @@ Library
         Buildable: False
 
 Executable test
+    cpp-options:        -DTEST
     Hs-Source-Dirs:     . tests
     Main-Is:            tests/Main.hs
     Build-Depends:      base ==4.*, network, mtl, filepath, utf8-string
+                        , hspec, unix, HUnit
     -- Dependencies that are only required by the test-suite:
     if flag(test)
         Build-Depends: QuickCheck >= 2.1, time, containers
