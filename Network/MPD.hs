@@ -16,7 +16,7 @@ module Network.MPD (
     MonadMPD, MPD, MPDError(..), ACKType(..), Response,
     Host, Port, Password,
     -- * Connections
-    withMPD, withMPDEx,
+    withMPD, withMPD_, withMPDEx,
     module Network.MPD.Commands,
     ) where
 
@@ -40,10 +40,28 @@ import System.IO.Error (isDoesNotExistError)
 -- > withMPD $ play Nothing
 -- > withMPD $ add_ "tool" >> play Nothing >> currentSong
 withMPD :: MPD a -> IO (Response a)
-withMPD m = do
-    port       <- read `liftM` getEnvDefault "MPD_PORT" "6600"
-    (host, pw) <- parseHost `liftM` getEnvDefault "MPD_HOST" "localhost"
-    withMPDEx host port pw m
+withMPD = withMPD_ Nothing Nothing
+
+-- | Same as `withMPD`, but takes optional arguments that override MPD_HOST and
+-- MPD_PORT.
+--
+-- This is e.g. useful for clients that optionally take @--port@ and @--host@
+-- as command line arguments, and fall back to `withMPD`'s defaults if those
+-- arguments are not given.
+withMPD_ :: Maybe String -- ^ optional override for MPD_HOST
+         -> Maybe String -- ^ optional override for MPD_PORT
+         -> MPD a -> IO (Response a)
+withMPD_ mHost mPort action = do
+    (host, port, pw) <- getConnectionSettings mHost mPort
+    withMPDEx host port pw action
+
+getConnectionSettings :: Maybe String -> Maybe String -> IO (Host, Port, Password)
+getConnectionSettings mHost mPort = do
+    (host, pw) <- parseHost `fmap`
+        maybe (getEnvDefault "MPD_HOST" "localhost") return mHost
+    port <- read `fmap`
+        maybe (getEnvDefault "MPD_PORT" "6600") return mPort
+    return (host, port, pw)
     where
         getEnvDefault x dflt =
             catch (getEnv x) (\e -> if isDoesNotExistError e
