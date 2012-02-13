@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -- | Module    : Network.MPD
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
 -- License     : LGPL (see LICENSE)
@@ -18,6 +19,9 @@ module Network.MPD (
     -- * Connections
     withMPD, withMPD_, withMPDEx,
     module Network.MPD.Commands,
+#ifdef TEST
+    getConnectionSettings, getEnvDefault
+#endif
     ) where
 
 import Prelude hiding (catch)
@@ -63,9 +67,11 @@ getConnectionSettings mHost mPort = do
         maybe (getEnvDefault "MPD_PORT" "6600") return mPort
     return (host, port, pw)
     where
-        getEnvDefault x dflt =
-            catch (getEnv x) (\e -> if isDoesNotExistError e
-                                    then return dflt else ioError e)
         parseHost s = case breakChar '@' s of
                           (host, "") -> (host, "")
                           (pw, host) -> (host, pw)
+
+getEnvDefault :: String -> String -> IO String
+getEnvDefault x dflt =
+    catch (getEnv x) (\e -> if isDoesNotExistError e
+                            then return dflt else ioError e)

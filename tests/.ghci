@@ -1,1 +1,1 @@
-:set -i..
+:set -i.. -optP -DTEST
