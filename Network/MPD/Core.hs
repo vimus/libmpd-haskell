@@ -25,7 +25,7 @@ import Network.MPD.Core.Class
 import Network.MPD.Core.Error
 
 import Data.Char (isDigit)
-import Control.Applicative (Applicative(..), (<$>))
+import Control.Applicative (Applicative(..), (<$>), (<*))
 import Control.Monad (ap, unless)
 import Control.Monad.Error (ErrorT(..), MonadError(..))
 import Control.Monad.Reader (ReaderT(..), ask)
@@ -92,9 +92,9 @@ type Response = Either MPDError
 -- | The most configurable API for running an MPD action.
 withMPDEx :: Host -> Port -> Password -> MPD a -> IO (Response a)
 withMPDEx host port pw x = withSocketsDo $
-    runReaderT (evalStateT (runErrorT . runMPD $ open >> x) initState)
+    runReaderT (evalStateT (runErrorT . runMPD $ open >> (x <* close)) initState)
                (host, port)
-                   where initState = MPDState Nothing pw (0, 0, 0)
+    where initState = MPDState Nothing pw (0, 0, 0)
 
 mpdOpen :: MPD ()
 mpdOpen = MPD $ do
