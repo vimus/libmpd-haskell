@@ -1,3 +1,7 @@
+* v0.7.2, 2012-02-13
+  - Release connections. Reported by Kanisterschleife on GitHub.
+  - Some minor internal changes (sol)
+
 * v0.7.1, 2012-02-07
   - Compatible with GHC 7.4.1
 
