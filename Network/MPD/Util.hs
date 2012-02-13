@@ -1,4 +1,4 @@
--- | Module    : Network.MPD.Utils
+-- | Module    : Network.MPD.Util
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
 -- License     : LGPL (see LICENSE)
 -- Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
@@ -6,7 +6,7 @@
 --
 -- Utilities.
 
-module Network.MPD.Utils (
+module Network.MPD.Util (
     parseDate, parseIso8601, formatIso8601, parseNum, parseFrac,
     parseBool, showBool, breakChar, parseTriple,
     toAssoc, toAssocList, splitGroups
