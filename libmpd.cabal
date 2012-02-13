@@ -52,7 +52,7 @@ Library
                         Network.MPD.Commands.Query,
                         Network.MPD.Commands.Types,
                         Network.MPD.Commands.Util,
-                        Network.MPD.Utils
+                        Network.MPD.Util
 
     ghc-prof-options:   -auto-all -prof
 

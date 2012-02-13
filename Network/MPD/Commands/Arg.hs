@@ -10,7 +10,7 @@
 
 module Network.MPD.Commands.Arg (Args(..), MPDArg(..), (<++>), (<$>)) where
 
-import Network.MPD.Utils (showBool)
+import Network.MPD.Util (showBool)
 
 -- | Arguments for getResponse are accumulated as strings in values of
 -- this type after being converted from whatever type (an instance of
