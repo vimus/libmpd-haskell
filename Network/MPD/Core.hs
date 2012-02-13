@@ -20,7 +20,7 @@ module Network.MPD.Core (
     getResponse, kill,
     ) where
 
-import Network.MPD.Utils
+import Network.MPD.Util
 import Network.MPD.Core.Class
 import Network.MPD.Core.Error
 

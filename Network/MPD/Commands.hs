@@ -58,7 +58,7 @@ import Network.MPD.Commands.Query
 import Network.MPD.Commands.Types
 import Network.MPD.Commands.Util
 import Network.MPD.Core
-import Network.MPD.Utils
+import Network.MPD.Util
 
 import Control.Monad (liftM)
 import Control.Monad.Error (throwError)

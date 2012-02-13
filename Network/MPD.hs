@@ -24,7 +24,7 @@ import Prelude hiding (catch)
 import Control.Exception
 import Network.MPD.Commands
 import Network.MPD.Core
-import Network.MPD.Utils
+import Network.MPD.Util
 
 import Control.Monad (liftM)
 import System.Environment (getEnv)
