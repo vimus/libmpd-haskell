@@ -1,7 +1,0 @@
-#+Startup: overview logdone lognotrepeat indent
-#+TODO: TODO(t) ACTIVE(a) CANCELLED(c) DEFERRED DONE(d)
-#+TAGS: enhancement defect api
-
-* TODO Support bytestrings as well as strings in the interface :defect:api:
-  Bytestrings can be much faster for lots of text data but seems to be more of
-  a pain for casual use. It'd be nice to support both them and ordinary Strings.
