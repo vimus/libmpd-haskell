@@ -74,10 +74,10 @@ instance MonadMPD MPD where
     open  = mpdOpen
     close = mpdClose
     send  = mpdSend
-    getHandle = MPD $ get >>= return . stHandle
-    getPassword = MPD $ get >>= return . stPassword
+    getHandle      = MPD $ stHandle <$> get
+    getPassword    = MPD $ stPassword <$> get
     setPassword pw = MPD $ modify (\st -> st { stPassword = pw })
-    getVersion = MPD $ get >>= return . stVersion
+    getVersion     = MPD $ stVersion <$> get
 
 -- | Inner state for MPD
 data MPDState =
@@ -113,7 +113,7 @@ mpdOpen = MPD $ do
 
         checkConn = do
             [msg] <- lines <$> send ""
-            if isPrefixOf "OK MPD" msg
+            if "OK MPD" `isPrefixOf` msg
                 then MPD $ checkVersion $ parseVersion msg
                 else return False
 
@@ -203,7 +203,7 @@ getResponse cmd = (send cmd >>= parseResponse) `catchError` sendpw
 parseResponse :: (MonadError MPDError m) => String -> m [String]
 parseResponse s
     | null xs                    = throwError $ NoMPD
-    | isPrefixOf "ACK" (head xs) = throwError $ parseAck s
+    | "ACK" `isPrefixOf` head xs = throwError $ parseAck s
     | otherwise                  = return $ Prelude.takeWhile ("OK" /=) xs
     where
         xs = lines s
