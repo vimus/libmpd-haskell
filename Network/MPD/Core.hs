@@ -20,12 +20,12 @@ module Network.MPD.Core (
     getResponse, kill,
     ) where
 
-import Network.MPD.Utils
+import Network.MPD.Util
 import Network.MPD.Core.Class
 import Network.MPD.Core.Error
 
 import Data.Char (isDigit)
-import Control.Applicative (Applicative(..), (<$>))
+import Control.Applicative (Applicative(..), (<$>), (<*))
 import Control.Monad (ap, unless)
 import Control.Monad.Error (ErrorT(..), MonadError(..))
 import Control.Monad.Reader (ReaderT(..), ask)
@@ -74,10 +74,10 @@ instance MonadMPD MPD where
     open  = mpdOpen
     close = mpdClose
     send  = mpdSend
-    getHandle = MPD $ get >>= return . stHandle
-    getPassword = MPD $ get >>= return . stPassword
+    getHandle      = MPD $ stHandle <$> get
+    getPassword    = MPD $ stPassword <$> get
     setPassword pw = MPD $ modify (\st -> st { stPassword = pw })
-    getVersion = MPD $ get >>= return . stVersion
+    getVersion     = MPD $ stVersion <$> get
 
 -- | Inner state for MPD
 data MPDState =
@@ -92,9 +92,9 @@ type Response = Either MPDError
 -- | The most configurable API for running an MPD action.
 withMPDEx :: Host -> Port -> Password -> MPD a -> IO (Response a)
 withMPDEx host port pw x = withSocketsDo $
-    runReaderT (evalStateT (runErrorT . runMPD $ open >> x) initState)
+    runReaderT (evalStateT (runErrorT . runMPD $ open >> (x <* close)) initState)
                (host, port)
-                   where initState = MPDState Nothing pw (0, 0, 0)
+    where initState = MPDState Nothing pw (0, 0, 0)
 
 mpdOpen :: MPD ()
 mpdOpen = MPD $ do
@@ -113,7 +113,7 @@ mpdOpen = MPD $ do
 
         checkConn = do
             [msg] <- lines <$> send ""
-            if isPrefixOf "OK MPD" msg
+            if "OK MPD" `isPrefixOf` msg
                 then MPD $ checkVersion $ parseVersion msg
                 else return False
 
@@ -203,7 +203,7 @@ getResponse cmd = (send cmd >>= parseResponse) `catchError` sendpw
 parseResponse :: (MonadError MPDError m) => String -> m [String]
 parseResponse s
     | null xs                    = throwError $ NoMPD
-    | isPrefixOf "ACK" (head xs) = throwError $ parseAck s
+    | "ACK" `isPrefixOf` head xs = throwError $ parseAck s
     | otherwise                  = return $ Prelude.takeWhile ("OK" /=) xs
     where
         xs = lines s

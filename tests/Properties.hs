@@ -6,7 +6,7 @@ import Displayable
 
 import Network.MPD.Commands.Parse
 import Network.MPD.Commands.Types
-import Network.MPD.Utils
+import Network.MPD.Util
 
 import Control.Monad
 import Data.List

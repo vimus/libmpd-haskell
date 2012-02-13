@@ -1,5 +1,5 @@
 Name:               libmpd
-Version:            0.7.1
+Version:            0.7.2
 License:            LGPL
 License-file:       LICENSE
 Copyright:          Ben Sinclair 2005-2009, Joachim Fasting 2012
@@ -52,7 +52,7 @@ Library
                         Network.MPD.Commands.Query,
                         Network.MPD.Commands.Types,
                         Network.MPD.Commands.Util,
-                        Network.MPD.Utils
+                        Network.MPD.Util
 
     ghc-prof-options:   -auto-all -prof
 

@@ -16,7 +16,7 @@ import Control.Arrow ((***))
 import Control.Monad.Error
 import Data.Maybe (fromMaybe)
 
-import Network.MPD.Utils
+import Network.MPD.Util
 import Network.MPD.Core (MonadMPD, MPDError(Unexpected))
 
 -- | Builds a 'Count' instance from an assoc. list.
