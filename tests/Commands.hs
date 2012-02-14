@@ -268,14 +268,14 @@ testListAll =
 testLsInfo =
     test [("lsinfo \"\"",
            Right $ "directory: Foo\n" ++ display song ++ "playlist: Quux\nOK")]
-         (Right [Left "Foo", Right song])
+         (Right [LsDirectory "Foo", LsFile song])
          (lsInfo "")
     where
         song = empty { sgFilePath = "Bar.ogg" }
 
 testListAllInfo =
     test [("listallinfo \"\"", Right "directory: Foo\ndirectory: Bar\nOK")]
-         (Right [Left "Foo", Left "Bar"])
+         (Right [LsDirectory "Foo", LsDirectory "Bar"])
          (listAllInfo "")
 
 {-
@@ -544,7 +544,7 @@ testPasswordSucceeds =
                                         \permission for \"play\"")
                 ,("password foo", Right "OK")
                 ,("lsinfo \"/\"", Right "directory: /bar\nOK")]
-        expected_resp = Right [Left "/bar"]
+        expected_resp = Right [LsDirectory "/bar"]
         cmd = lsInfo "/"
 
 testPasswordFails =
