@@ -114,6 +114,7 @@ data LsResult
     = LsDirectory Path        -- ^ Directory
     | LsFile Song             -- ^ Song
     | LsPlaylist PlaylistName -- ^ Playlist
+      deriving (Eq, Show)
 
 -- | Represents an output device.
 data Device =
