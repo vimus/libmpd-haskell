@@ -374,17 +374,17 @@ listAll path = liftM (map snd . filter ((== "file") . fst) . toAssocList)
                      (getResponse $ "listall" <$> path)
 
 -- Helper for lsInfo and listAllInfo.
-lsInfo' :: MonadMPD m => String -> Path -> m [Result]
+lsInfo' :: MonadMPD m => String -> Path -> m [LsResult]
 lsInfo' cmd path =
-    liftM (extractEntries (Just . File, Just . Playlist, Just . Directory)) $
+    liftM (extractEntries (Just . LsFile, Just . LsPlaylist, Just . LsDirectory)) $
          takeEntries =<< getResponse (cmd <$> path)
 
 -- | Recursive 'lsInfo'.
-listAllInfo :: MonadMPD m => Path -> m [Result]
+listAllInfo :: MonadMPD m => Path -> m [LsResult]
 listAllInfo = lsInfo' "listallinfo"
 
 -- | Non-recursively list the contents of a database directory.
-lsInfo :: MonadMPD m => Path -> m [Result]
+lsInfo :: MonadMPD m => Path -> m [LsResult]
 lsInfo = lsInfo' "lsinfo"
 
 -- | Search the database using case insensitive matching.

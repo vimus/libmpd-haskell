@@ -110,10 +110,10 @@ defaultCount :: Count
 defaultCount = Count { cSongs = 0, cPlaytime = 0 }
 
 -- | Result of the lsInfo operation
-data Result
-    = Directory Path        -- ^ Directory
-    | File Song             -- ^ Song
-    | Playlist PlaylistName -- ^ Playlist
+data LsResult
+    = LsDirectory Path        -- ^ Directory
+    | LsFile Song             -- ^ Song
+    | LsPlaylist PlaylistName -- ^ Playlist
 
 -- | Represents an output device.
 data Device =
