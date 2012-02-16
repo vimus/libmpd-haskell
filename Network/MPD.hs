@@ -56,16 +56,19 @@ withMPD_ :: Maybe String -- ^ optional override for MPD_HOST
          -> Maybe String -- ^ optional override for MPD_PORT
          -> MPD a -> IO (Response a)
 withMPD_ mHost mPort action = do
-    (host, port, pw) <- getConnectionSettings mHost mPort
-    withMPDEx host port pw action
+    settings <- getConnectionSettings mHost mPort
+    case settings of
+      Right (host, port, pw) -> withMPDEx host port pw action
+      Left err -> (return . Left . Custom) err
 
-getConnectionSettings :: Maybe String -> Maybe String -> IO (Host, Port, Password)
+getConnectionSettings :: Maybe String -> Maybe String -> IO (Either String (Host, Port, Password))
 getConnectionSettings mHost mPort = do
     (host, pw) <- parseHost `fmap`
         maybe (getEnvDefault "MPD_HOST" "localhost") return mHost
-    port <- read `fmap`
-        maybe (getEnvDefault "MPD_PORT" "6600") return mPort
-    return (host, port, pw)
+    port <- maybe (getEnvDefault "MPD_PORT" "6600") return mPort
+    case maybeRead port of
+      Just p  -> (return . Right) (host, p, pw)
+      Nothing -> (return . Left) (show port ++ " is not a valid port!")
     where
         parseHost s = case breakChar '@' s of
                           (host, "") -> (host, "")

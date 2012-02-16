@@ -30,50 +30,56 @@ spec = do
   describe "getConnectionSettings" $ do
     it "takes an optional argument, that overrides MPD_HOST" $ do
       setEnv "MPD_HOST" "user@example.com" True
-      (host, _, pw) <- getConnectionSettings (Just "foo@bar") Nothing
+      Right (host, _, pw) <- getConnectionSettings (Just "foo@bar") Nothing
       pw `shouldBe` "foo"
       host `shouldBe` "bar"
 
     it "takes an optional argument, that overrides MPD_PORT" $ do
       setEnv "MPD_PORT" "8080" True
-      (_, port, _) <- getConnectionSettings Nothing (Just "23")
+      Right (_, port, _) <- getConnectionSettings Nothing (Just "23")
       port `shouldBe` 23
+
+    it "returns an error message, if MPD_PORT is not an int" $ do
+      setEnv "MPD_PORT" "foo" True
+      r <- getConnectionSettings Nothing Nothing
+      r `shouldBe` Left "\"foo\" is not a valid port!"
+      unsetEnv "MPD_PORT"
 
     describe "host" $ do
       it "is taken from MPD_HOST" $ do
         setEnv "MPD_HOST" "example.com" True
-        (host, _, _) <- getConnectionSettings Nothing Nothing
+        Right (host, _, _) <- getConnectionSettings Nothing Nothing
         host `shouldBe` "example.com"
 
       it "is 'localhost' if MPD_HOST is not set" $ do
         unsetEnv "MPD_HOST"
-        (host, _, _) <- getConnectionSettings Nothing Nothing
+        Right (host, _, _) <- getConnectionSettings Nothing Nothing
         host `shouldBe` "localhost"
 
     describe "port" $ do
       it "is taken from MPD_PORT" $ do
         setEnv "MPD_PORT" "8080" True
-        (_, port, _) <- getConnectionSettings Nothing Nothing
+        Right (_, port, _) <- getConnectionSettings Nothing Nothing
         port `shouldBe` 8080
 
       it "is 6600 if MPD_PORT is not set" $ do
         unsetEnv "MPD_PORT"
-        (_, port, _) <- getConnectionSettings Nothing Nothing
+        Right (_, port, _) <- getConnectionSettings Nothing Nothing
         port `shouldBe` 6600
 
     describe "password" $ do
       it "is taken from MPD_HOST if MPD_HOST is of the form password@host" $ do
         setEnv "MPD_HOST" "password@host" True
-        (host, _, pw) <- getConnectionSettings Nothing Nothing
+        Right (host, _, pw) <- getConnectionSettings Nothing Nothing
         host `shouldBe` "host"
         pw `shouldBe` "password"
 
       it "is '' if MPD_HOST is not of the form password@host" $ do
         setEnv "MPD_HOST" "example.com" True
-        (_, _, pw) <- getConnectionSettings Nothing Nothing
+        Right (_, _, pw) <- getConnectionSettings Nothing Nothing
         pw `shouldBe` ""
 
       it "is '' if MPD_HOST is not set" $ do
         unsetEnv "MPD_HOST"
-        (_, _, pw) <- getConnectionSettings Nothing Nothing
+        Right (_, _, pw) <- getConnectionSettings Nothing Nothing
         pw `shouldBe` ""
