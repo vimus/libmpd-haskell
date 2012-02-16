@@ -9,11 +9,11 @@
 module Network.MPD.Util (
     parseDate, parseIso8601, formatIso8601, parseNum, parseFrac,
     parseBool, showBool, breakChar, parseTriple,
-    toAssoc, toAssocList, splitGroups
+    toAssoc, toAssocList, splitGroups, maybeRead
     ) where
 
 import Data.Char (isDigit)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Time.Format (ParseTime, parseTime, FormatTime, formatTime)
 import System.Locale (defaultTimeLocale)
 
@@ -100,3 +100,6 @@ splitGroups wrappers (x@(k,_):xs) =
         f <- k `lookup` wrappers
         let (us,vs) = break (\(k',_) -> k' `elem` map fst wrappers) xs
         return $ f (x:us) : splitGroups wrappers vs
+
+maybeRead :: Read a => String -> Maybe a
+maybeRead = fmap fst . listToMaybe . reads
