@@ -61,6 +61,10 @@ parseStats = foldM f defaultStats . toAssocList
                                  (\x' -> a { stsDbUpdate = x' }) a x
         f _ x = fail $ show x
 
+parseMaybeSong :: [(String, String)] -> Either String (Maybe Song)
+parseMaybeSong xs | null xs   = Right Nothing
+                  | otherwise = Just `fmap` parseSong xs
+
 -- | Builds a 'Song' instance from an assoc. list.
 parseSong :: [(String, String)] -> Either String Song
 parseSong xs = case xs of
