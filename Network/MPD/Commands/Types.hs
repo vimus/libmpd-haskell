@@ -130,7 +130,7 @@ defaultDevice =
 
 -- | Represents a single song item.
 data Song = Song
-         { sgFilePath     :: String
+         { sgFilePath     :: FilePath
          -- | Map of available tags (multiple occurences of one tag type allowed)
          , sgTags         :: M.Map Metadata [String]
          -- | Last modification date
@@ -157,9 +157,9 @@ sgGetTag meta s = M.lookup meta $ sgTags s
 sgAddTag :: Metadata -> String -> Song -> Song
 sgAddTag meta value s = s { sgTags = M.insertWith' (++) meta [value] (sgTags s) }
 
-defaultSong :: Song
-defaultSong =
-    Song { sgFilePath = "", sgTags = M.empty, sgLastModified = Nothing
+defaultSong :: FilePath -> Song
+defaultSong path =
+    Song { sgFilePath = path, sgTags = M.empty, sgLastModified = Nothing
          , sgLength = 0, sgId = Nothing, sgIndex = Nothing }
 
 -- | Container for database statistics.

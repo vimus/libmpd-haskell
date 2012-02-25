@@ -271,7 +271,7 @@ testLsInfo =
          (Right [LsDirectory "Foo", LsFile song])
          (lsInfo "")
     where
-        song = empty { sgFilePath = "Bar.ogg" }
+        song = defaultSong "Bar.ogg"
 
 testListAllInfo =
     test [("listallinfo \"\"", Right "directory: Foo\ndirectory: Bar\nOK")]
