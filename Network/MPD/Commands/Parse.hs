@@ -61,9 +61,16 @@ parseStats = foldM f defaultStats . toAssocList
                                  (\x' -> a { stsDbUpdate = x' }) a x
         f _ x = fail $ show x
 
+parseMaybeSong :: [(String, String)] -> Either String (Maybe Song)
+parseMaybeSong xs | null xs   = Right Nothing
+                  | otherwise = Just `fmap` parseSong xs
+
 -- | Builds a 'Song' instance from an assoc. list.
 parseSong :: [(String, String)] -> Either String Song
-parseSong xs = foldM f defaultSong xs
+parseSong xs = case xs of
+    ("file", path):ys -> foldM f (defaultSong path) ys
+    _ -> Left "Got a song without a file path! This indicates a bug in either libmpd-haskell or MPD itself!"
+
     where
         f :: Song -> (String, String) -> Either String Song
         f s ("Last-Modified", v) =
@@ -77,8 +84,6 @@ parseSong xs = foldM f defaultSong xs
                                   (\v' -> s { sgIndex = Just v' }) s v)
                   (const $ return s)
                   (sgIndex s)
-        f s ("file", v) =
-            return s { sgFilePath = v }
         f s (k, v) = return . maybe s (\m -> sgAddTag m v s) $
                      readMeta k
 

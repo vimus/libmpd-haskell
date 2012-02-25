@@ -27,7 +27,7 @@ instance Displayable Device where
         ,"outputenabled: " ++ showBool (dOutputEnabled d)]
 
 instance Displayable Song where
-    empty = defaultSong
+    empty = error "There is no notion of an empty song.  A song always has at least a file path."
     display s =
         let fs  = concatMap toF . M.toList $ sgTags s
             id_ = maybe [] (\(Id n) -> ["Id: " ++ show n]) (sgId s)

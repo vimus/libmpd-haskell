@@ -74,18 +74,20 @@ clearError = getResponse_ "clearerror"
 
 -- | Get the currently playing song.
 currentSong :: (Functor m, MonadMPD m) => m (Maybe Song)
-currentSong = do
-    cs <- status
-    if stState cs == Stopped
-       then return Nothing
-       else getResponse1 "currentsong" >>=
-            fmap Just . runParser parseSong . toAssocList
+currentSong = getResponse "currentsong" >>= runParser parseMaybeSong . toAssocList
 
 -- | Wait until there is a noteworthy change in one or more of MPD's
--- susbystems. Note that running this command will block until either 'idle'
--- returns or is cancelled by 'noidle'.
-idle :: MonadMPD m => m [Subsystem]
-idle =
+-- susbystems.
+--
+-- The first argument is a list of subsystems that should be considered.  An
+-- empty list specifies that all subsystems should be considered.
+--
+-- A list of subsystems that have noteworthy changes is returned.
+--
+-- Note that running this command will block until either 'idle' returns or is
+-- cancelled by 'noidle'.
+idle :: MonadMPD m => [Subsystem] -> m [Subsystem]
+idle subsystems =
     mapM (\("changed", system) -> case system of "database" -> return DatabaseS
                                                  "update"   -> return UpdateS
                                                  "stored_playlist" -> return StoredPlaylistS
@@ -95,7 +97,7 @@ idle =
                                                  "output" -> return OutputS
                                                  "options" -> return OptionsS
                                                  k -> fail ("Unknown subsystem: " ++ k))
-         =<< toAssocList `liftM` getResponse "idle"
+         =<< toAssocList `liftM` getResponse ("idle" <$> foldr (<++>) (Args []) subsystems)
 
 -- | Cancel 'idle'.
 noidle :: MonadMPD m => m ()
