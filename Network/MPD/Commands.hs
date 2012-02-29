@@ -378,7 +378,7 @@ listAll path = liftM (map snd . filter ((== "file") . fst) . toAssocList)
 -- Helper for lsInfo and listAllInfo.
 lsInfo' :: MonadMPD m => String -> Path -> m [LsResult]
 lsInfo' cmd path =
-    liftM (extractEntries (Just . LsFile, Just . LsPlaylist, Just . LsDirectory)) $
+    liftM (extractEntries (Just . LsSong, Just . LsPlaylist, Just . LsDirectory)) $
          takeEntries =<< getResponse (cmd <$> path)
 
 -- | Recursive 'lsInfo'.
