@@ -112,7 +112,7 @@ defaultCount = Count { cSongs = 0, cPlaytime = 0 }
 -- | Result of the lsInfo operation
 data LsResult
     = LsDirectory Path        -- ^ Directory
-    | LsFile Song             -- ^ Song
+    | LsSong Song             -- ^ Song
     | LsPlaylist PlaylistName -- ^ Playlist
       deriving (Eq, Show)
 

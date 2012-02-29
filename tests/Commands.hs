@@ -268,7 +268,7 @@ testListAll =
 testLsInfo =
     test [("lsinfo \"\"",
            Right $ "directory: Foo\n" ++ display song ++ "playlist: Quux\nOK")]
-         (Right [LsDirectory "Foo", LsFile song])
+         (Right [LsDirectory "Foo", LsSong song])
          (lsInfo "")
     where
         song = defaultSong "Bar.ogg"
