@@ -26,7 +26,7 @@ class (Monad m, MonadError MPDError m) => MonadMPD m where
     -- | Close the connection.
     close :: m ()
     -- | Send a string to the server and return its response.
-    send  :: String -> m String
+    send  :: String -> m [String]
     -- | Get underlying Handle (or Nothing, if no connection is estabilished)
     getHandle :: m (Maybe Handle)
     -- | Produce a password to send to the server should it ask for
