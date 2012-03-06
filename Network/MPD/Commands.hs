@@ -88,16 +88,20 @@ currentSong = getResponse "currentsong" >>= runParser parseMaybeSong . toAssocLi
 -- cancelled by 'noidle'.
 idle :: MonadMPD m => [Subsystem] -> m [Subsystem]
 idle subsystems =
-    mapM (\("changed", system) -> case system of "database" -> return DatabaseS
-                                                 "update"   -> return UpdateS
-                                                 "stored_playlist" -> return StoredPlaylistS
-                                                 "playlist" -> return PlaylistS
-                                                 "player" -> return PlayerS
-                                                 "mixer" -> return MixerS
-                                                 "output" -> return OutputS
-                                                 "options" -> return OptionsS
-                                                 k -> fail ("Unknown subsystem: " ++ k))
-         =<< toAssocList `liftM` getResponse ("idle" <$> foldr (<++>) (Args []) subsystems)
+    mapM f =<< toAssocList `liftM` getResponse ("idle" <$> foldr (<++>) (Args []) subsystems)
+    where
+        f ("changed", system) =
+            case system of
+                "database"        -> return DatabaseS
+                "update"          -> return UpdateS
+                "stored_playlist" -> return StoredPlaylistS
+                "playlist"        -> return PlaylistS
+                "player"          -> return PlayerS
+                "mixer"           -> return MixerS
+                "output"          -> return OutputS
+                "options"         -> return OptionsS
+                k                 -> fail ("Unknown subsystem: " ++ k)
+        f x                       =  fail ("idle: Unexpected " ++ show x)
 
 -- | Cancel 'idle'.
 noidle :: MonadMPD m => m ()

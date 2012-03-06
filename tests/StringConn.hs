@@ -62,7 +62,7 @@ instance MonadMPD StringMPD where
                  (throwError . MErr . Left
                              $ UnexpectedRequest expected_request request)
             put rest
-            either (throwError . MErr . Right) return response
+            either (throwError . MErr . Right) (return . lines) response
 
 -- | Run an action against a set of expected requests and responses,
 -- and an expected result. The result is Nothing if everything matched

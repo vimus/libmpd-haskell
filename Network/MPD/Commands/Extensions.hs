@@ -141,4 +141,4 @@ getPlaylist = playlistInfo Nothing
 volume :: MonadMPD m => Int -> m ()
 volume n = do
     current <- (fromIntegral . stVolume) `liftM` status
-    setVolume . round $ (fromIntegral n / 100) * current + current
+    setVolume . round $ (fromIntegral n / (100 :: Double)) * current + current
