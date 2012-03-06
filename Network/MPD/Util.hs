@@ -9,11 +9,10 @@
 module Network.MPD.Util (
     parseDate, parseIso8601, formatIso8601, parseNum, parseFrac,
     parseBool, showBool, breakChar, parseTriple,
-    toAssoc, toAssocList, splitGroups, maybeRead
+    toAssoc, toAssocList, splitGroups
     ) where
 
 import           Data.Char (isDigit)
-import           Data.Maybe (listToMaybe)
 import           Data.Time.Format (ParseTime, parseTime, FormatTime, formatTime)
 import           System.Locale (defaultTimeLocale)
 
@@ -96,6 +95,3 @@ splitGroups groupHeads = go
         (x:ys) : go zs
 
     isGroupHead = (`elem` groupHeads) . fst
-
-maybeRead :: Read a => String -> Maybe a
-maybeRead = fmap fst . listToMaybe . reads

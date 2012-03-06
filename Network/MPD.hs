@@ -28,10 +28,10 @@ import           Prelude hiding (catch)
 import           Control.Exception
 import           Network.MPD.Commands
 import           Network.MPD.Core
-import           Network.MPD.Util
 
 import           System.Environment (getEnv)
 import           System.IO.Error (isDoesNotExistError)
+import           Data.Maybe (listToMaybe)
 
 -- | A wrapper for 'withMPDEx' that uses localhost:6600 as the default
 -- host:port, or whatever is found in the environment variables MPD_HOST and
@@ -77,3 +77,10 @@ getEnvDefault :: String -> String -> IO String
 getEnvDefault x dflt =
     catch (getEnv x) (\e -> if isDoesNotExistError e
                             then return dflt else ioError e)
+
+-- Break a string by character, removing the separator.
+breakChar :: Char -> String -> (String, String)
+breakChar c s = let (x, y) = break (== c) s in (x, drop 1 y)
+
+maybeRead :: Read a => String -> Maybe a
+maybeRead = fmap fst . listToMaybe . reads
