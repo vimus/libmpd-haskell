@@ -92,7 +92,7 @@ toAssocList = map toAssoc
 -- > splitGroups [(1,id),(5,id)]
 -- >             [(1,'a'),(2,'b'),(5,'c'),(6,'d'),(1,'z'),(2,'y'),(3,'x')] ==
 -- >     [[(1,'a'),(2,'b')],[(5,'c'),(6,'d')],[(1,'z'),(2,'y'),(3,'x')]]
-splitGroups :: Eq a => [(a,[(a,b)] -> c)] -> [(a, b)] -> [c]
+splitGroups :: [(String, [(String, String)] -> [(String, String)])] -> [(String, String)] -> [[(String, String)]]
 splitGroups [] _ = []
 splitGroups _ [] = []
 splitGroups wrappers (x@(k,_):xs) =
