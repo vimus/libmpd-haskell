@@ -48,13 +48,13 @@ data EntryType
 -- Separate the result of an lsinfo\/listallinfo call into directories,
 -- playlists, and songs.
 takeEntries :: MonadMPD m => [String] -> m [EntryType]
-takeEntries = mapM toEntry . splitGroups wrappers . toAssocList
+takeEntries = mapM toEntry . splitGroups groupHeads . toAssocList
     where
         toEntry xs@(("file",_):_)   = liftM SongEntry $ runParser parseSong xs
         toEntry (("directory",d):_) = return $ DirEntry d
         toEntry (("playlist",pl):_) = return $ PLEntry  pl
         toEntry _ = error "takeEntries: splitGroups is broken"
-        wrappers = [("file",id), ("directory",id), ("playlist",id)]
+        groupHeads = ["file", "directory", "playlist"]
 
 -- Extract a subset of songs, directories, and playlists.
 extractEntries :: (Song -> Maybe a, String -> Maybe a, String -> Maybe a)
@@ -68,5 +68,5 @@ extractEntries (fSong,fPlayList,fDir) = mapMaybe f
 -- Build a list of song instances from a response.
 takeSongs :: MonadMPD m => [String] -> m [Song]
 takeSongs = mapM (runParser parseSong)
-          . splitGroups [("file",id)]
+          . splitGroups ["file"]
           . toAssocList

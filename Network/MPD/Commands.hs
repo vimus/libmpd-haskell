@@ -266,7 +266,7 @@ plChanges version = takeSongs =<< getResponse ("plchanges" <$> version)
 plChangesPosId :: MonadMPD m => Integer -> m [(Int, Id)]
 plChangesPosId plver =
     getResponse ("plchangesposid" <$> plver) >>=
-    mapM f . splitGroups [("cpos",id)] . toAssocList
+    mapM f . splitGroups ["cpos"] . toAssocList
     where f xs | [("cpos", x), ("Id", y)] <- xs
                , Just (x', y') <- pair parseNum (x, y)
                = return (x', Id y')

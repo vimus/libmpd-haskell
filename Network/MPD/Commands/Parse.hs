@@ -32,7 +32,7 @@ parseCount = foldM f defaultCount . toAssocList
 -- | Builds a list of 'Device' instances from an assoc. list
 parseOutputs :: [String] -> Either String [Device]
 parseOutputs = mapM (foldM f defaultDevice)
-             . splitGroups [("outputid",id)]
+             . splitGroups ["outputid"]
              . toAssocList
     where f a ("outputid", x)      = return $ parse parseNum
                                      (\x' -> a { dOutputID = x' }) a x
