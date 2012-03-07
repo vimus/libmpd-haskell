@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -- | Module    : Network.MPD
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
 -- License     : LGPL (see LICENSE)
@@ -16,19 +17,21 @@ module Network.MPD (
     MonadMPD, MPD, MPDError(..), ACKType(..), Response,
     Host, Port, Password,
     -- * Connections
-    withMPD, withMPDEx,
+    withMPD, withMPD_, withMPDEx,
     module Network.MPD.Commands,
+#ifdef TEST
+    getConnectionSettings, getEnvDefault
+#endif
     ) where
 
-import Prelude hiding (catch)
-import Control.Exception
-import Network.MPD.Commands
-import Network.MPD.Core
-import Network.MPD.Util
+import           Prelude hiding (catch)
+import           Control.Exception
+import           Network.MPD.Commands
+import           Network.MPD.Core
+import           Network.MPD.Util
 
-import Control.Monad (liftM)
-import System.Environment (getEnv)
-import System.IO.Error (isDoesNotExistError)
+import           System.Environment (getEnv)
+import           System.IO.Error (isDoesNotExistError)
 
 -- | A wrapper for 'withMPDEx' that uses localhost:6600 as the default
 -- host:port, or whatever is found in the environment variables MPD_HOST and
@@ -40,14 +43,37 @@ import System.IO.Error (isDoesNotExistError)
 -- > withMPD $ play Nothing
 -- > withMPD $ add_ "tool" >> play Nothing >> currentSong
 withMPD :: MPD a -> IO (Response a)
-withMPD m = do
-    port       <- read `liftM` getEnvDefault "MPD_PORT" "6600"
-    (host, pw) <- parseHost `liftM` getEnvDefault "MPD_HOST" "localhost"
-    withMPDEx host port pw m
+withMPD = withMPD_ Nothing Nothing
+
+-- | Same as `withMPD`, but takes optional arguments that override MPD_HOST and
+-- MPD_PORT.
+--
+-- This is e.g. useful for clients that optionally take @--port@ and @--host@
+-- as command line arguments, and fall back to `withMPD`'s defaults if those
+-- arguments are not given.
+withMPD_ :: Maybe String -- ^ optional override for MPD_HOST
+         -> Maybe String -- ^ optional override for MPD_PORT
+         -> MPD a -> IO (Response a)
+withMPD_ mHost mPort action = do
+    settings <- getConnectionSettings mHost mPort
+    case settings of
+      Right (host, port, pw) -> withMPDEx host port pw action
+      Left err -> (return . Left . Custom) err
+
+getConnectionSettings :: Maybe String -> Maybe String -> IO (Either String (Host, Port, Password))
+getConnectionSettings mHost mPort = do
+    (host, pw) <- parseHost `fmap`
+        maybe (getEnvDefault "MPD_HOST" "localhost") return mHost
+    port <- maybe (getEnvDefault "MPD_PORT" "6600") return mPort
+    case maybeRead port of
+      Just p  -> (return . Right) (host, p, pw)
+      Nothing -> (return . Left) (show port ++ " is not a valid port!")
     where
-        getEnvDefault x dflt =
-            catch (getEnv x) (\e -> if isDoesNotExistError e
-                                    then return dflt else ioError e)
         parseHost s = case breakChar '@' s of
                           (host, "") -> (host, "")
                           (pw, host) -> (host, pw)
+
+getEnvDefault :: String -> String -> IO String
+getEnvDefault x dflt =
+    catch (getEnv x) (\e -> if isDoesNotExistError e
+                            then return dflt else ioError e)

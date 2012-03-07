@@ -8,12 +8,12 @@
 
 module Network.MPD.Commands.Extensions where
 
-import Network.MPD.Core
-import Network.MPD.Commands
-import Network.MPD.Commands.Arg
-import Network.MPD.Commands.Util
+import           Network.MPD.Core
+import           Network.MPD.Commands
+import           Network.MPD.Commands.Arg
+import           Network.MPD.Commands.Util
 
-import Control.Monad (liftM)
+import           Control.Monad (liftM)
 
 -- | Like 'update', but returns the update job id.
 updateId :: MonadMPD m => [Path] -> m Integer
@@ -141,4 +141,4 @@ getPlaylist = playlistInfo Nothing
 volume :: MonadMPD m => Int -> m ()
 volume n = do
     current <- (fromIntegral . stVolume) `liftM` status
-    setVolume . round $ (fromIntegral n / 100) * current + current
+    setVolume . round $ (fromIntegral n / (100 :: Double)) * current + current

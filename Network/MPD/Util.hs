@@ -9,13 +9,13 @@
 module Network.MPD.Util (
     parseDate, parseIso8601, formatIso8601, parseNum, parseFrac,
     parseBool, showBool, breakChar, parseTriple,
-    toAssoc, toAssocList, splitGroups
+    toAssoc, toAssocList, splitGroups, maybeRead
     ) where
 
-import Data.Char (isDigit)
-import Data.Maybe (fromMaybe)
-import Data.Time.Format (ParseTime, parseTime, FormatTime, formatTime)
-import System.Locale (defaultTimeLocale)
+import           Data.Char (isDigit)
+import           Data.Maybe (listToMaybe)
+import           Data.Time.Format (ParseTime, parseTime, FormatTime, formatTime)
+import           System.Locale (defaultTimeLocale)
 
 -- Break a string by character, removing the separator.
 breakChar :: Char -> String -> (String, String)
@@ -82,21 +82,20 @@ toAssoc x = (k, dropWhile (== ' ') $ drop 1 v)
 toAssocList :: [String] -> [(String, String)]
 toAssocList = map toAssoc
 
--- Takes an assoc. list with recurring keys and groups each cycle of
--- keys with their values together. There can be several keys that
--- begin cycles, being listed as the first tuple component in the
--- first parameter. When a cycle finishes all of its pairs are passed
--- to the key's associated function (the second tuple component) and
--- the result appended to the resulting list.
---
--- > splitGroups [(1,id),(5,id)]
--- >             [(1,'a'),(2,'b'),(5,'c'),(6,'d'),(1,'z'),(2,'y'),(3,'x')] ==
--- >     [[(1,'a'),(2,'b')],[(5,'c'),(6,'d')],[(1,'z'),(2,'y'),(3,'x')]]
-splitGroups :: Eq a => [(a,[(a,b)] -> c)] -> [(a, b)] -> [c]
-splitGroups [] _ = []
-splitGroups _ [] = []
-splitGroups wrappers (x@(k,_):xs) =
-    fromMaybe (splitGroups wrappers xs) $ do
-        f <- k `lookup` wrappers
-        let (us,vs) = break (\(k',_) -> k' `elem` map fst wrappers) xs
-        return $ f (x:us) : splitGroups wrappers vs
+-- Takes an association list with recurring keys and groups each cycle of keys
+-- with their values together.  There can be several keys that begin cycles,
+-- (the elements of the first parameter).
+splitGroups :: [String] -> [(String, String)] -> [[(String, String)]]
+splitGroups groupHeads = go
+  where
+    go []     = []
+    go (x:xs) =
+      let
+        (ys, zs) = break isGroupHead xs
+      in
+        (x:ys) : go zs
+
+    isGroupHead = (`elem` groupHeads) . fst
+
+maybeRead :: Read a => String -> Maybe a
+maybeRead = fmap fst . listToMaybe . reads

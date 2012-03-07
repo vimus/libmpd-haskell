@@ -8,10 +8,10 @@
 
 module Network.MPD.Commands.Types where
 
-import Network.MPD.Commands.Arg (MPDArg(prep), Args(Args))
+import           Network.MPD.Commands.Arg (MPDArg(prep), Args(Args))
 
 import qualified Data.Map as M
-import Data.Time.Clock (UTCTime)
+import           Data.Time.Clock (UTCTime)
 
 type Artist       = String
 type Album        = String
@@ -109,6 +109,13 @@ data Count =
 defaultCount :: Count
 defaultCount = Count { cSongs = 0, cPlaytime = 0 }
 
+-- | Result of the lsInfo operation
+data LsResult
+    = LsDirectory Path        -- ^ Directory
+    | LsSong Song             -- ^ Song
+    | LsPlaylist PlaylistName -- ^ Playlist
+      deriving (Eq, Show)
+
 -- | Represents an output device.
 data Device =
     Device { dOutputID      :: Int    -- ^ Output's ID number
@@ -123,7 +130,7 @@ defaultDevice =
 
 -- | Represents a single song item.
 data Song = Song
-         { sgFilePath     :: String
+         { sgFilePath     :: Path
          -- | Map of available tags (multiple occurences of one tag type allowed)
          , sgTags         :: M.Map Metadata [String]
          -- | Last modification date
@@ -150,9 +157,9 @@ sgGetTag meta s = M.lookup meta $ sgTags s
 sgAddTag :: Metadata -> String -> Song -> Song
 sgAddTag meta value s = s { sgTags = M.insertWith' (++) meta [value] (sgTags s) }
 
-defaultSong :: Song
-defaultSong =
-    Song { sgFilePath = "", sgTags = M.empty, sgLastModified = Nothing
+defaultSong :: Path -> Song
+defaultSong path =
+    Song { sgFilePath = path, sgTags = M.empty, sgLastModified = Nothing
          , sgLength = 0, sgId = Nothing, sgIndex = Nothing }
 
 -- | Container for database statistics.

@@ -1,5 +1,5 @@
 Name:               libmpd
-Version:            0.7.2
+Version:            0.8.0
 License:            LGPL
 License-file:       LICENSE
 Copyright:          Ben Sinclair 2005-2009, Joachim Fasting 2012
@@ -34,6 +34,7 @@ Source-Repository head
     location:   git://github.com/joachifm/libmpd-haskell.git
 
 Library
+    ghc-options:        -Wall
     Build-Depends:      base >= 4 && < 5,
                         mtl >= 2.0 && < 2.1,
                         network >= 2.1 && < 2.4,
@@ -60,12 +61,14 @@ Library
         Buildable: False
 
 Executable test
+    cpp-options:        -DTEST
     Hs-Source-Dirs:     . tests
     Main-Is:            tests/Main.hs
     Build-Depends:      base ==4.*, network, mtl, filepath, utf8-string
     -- Dependencies that are only required by the test-suite:
     if flag(test)
-        Build-Depends: QuickCheck >= 2.1, time, containers
+        Build-Depends: QuickCheck >= 2.1, time, containers,
+                       hspec, unix, HUnit
     ghc-options:        -Wall -fno-warn-warnings-deprecations
                         -fno-warn-type-defaults
 

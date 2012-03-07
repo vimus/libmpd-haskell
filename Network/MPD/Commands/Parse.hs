@@ -10,14 +10,14 @@
 
 module Network.MPD.Commands.Parse where
 
-import Network.MPD.Commands.Types
+import           Network.MPD.Commands.Types
 
-import Control.Arrow ((***))
-import Control.Monad.Error
-import Data.Maybe (fromMaybe)
+import           Control.Arrow ((***))
+import           Control.Monad.Error
+import           Data.Maybe (fromMaybe)
 
-import Network.MPD.Util
-import Network.MPD.Core (MonadMPD, MPDError(Unexpected))
+import           Network.MPD.Util
+import           Network.MPD.Core (MonadMPD, MPDError(Unexpected))
 
 -- | Builds a 'Count' instance from an assoc. list.
 parseCount :: [String] -> Either String Count
@@ -32,7 +32,7 @@ parseCount = foldM f defaultCount . toAssocList
 -- | Builds a list of 'Device' instances from an assoc. list
 parseOutputs :: [String] -> Either String [Device]
 parseOutputs = mapM (foldM f defaultDevice)
-             . splitGroups [("outputid",id)]
+             . splitGroups ["outputid"]
              . toAssocList
     where f a ("outputid", x)      = return $ parse parseNum
                                      (\x' -> a { dOutputID = x' }) a x
@@ -61,9 +61,16 @@ parseStats = foldM f defaultStats . toAssocList
                                  (\x' -> a { stsDbUpdate = x' }) a x
         f _ x = fail $ show x
 
+parseMaybeSong :: [(String, String)] -> Either String (Maybe Song)
+parseMaybeSong xs | null xs   = Right Nothing
+                  | otherwise = Just `fmap` parseSong xs
+
 -- | Builds a 'Song' instance from an assoc. list.
 parseSong :: [(String, String)] -> Either String Song
-parseSong xs = foldM f defaultSong xs
+parseSong xs = case xs of
+    ("file", path):ys -> foldM f (defaultSong path) ys
+    _ -> Left "Got a song without a file path! This indicates a bug in either libmpd-haskell or MPD itself!"
+
     where
         f :: Song -> (String, String) -> Either String Song
         f s ("Last-Modified", v) =
@@ -77,8 +84,6 @@ parseSong xs = foldM f defaultSong xs
                                   (\v' -> s { sgIndex = Just v' }) s v)
                   (const $ return s)
                   (sgIndex s)
-        f s ("file", v) =
-            return s { sgFilePath = v }
         f s (k, v) = return . maybe s (\m -> sgAddTag m v s) $
                      readMeta k
 

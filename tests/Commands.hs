@@ -11,19 +11,19 @@
 
 module Commands (main) where
 
-import Arbitrary ()
-import Displayable
-import Network.MPD.Commands
-import Network.MPD.Commands.Extensions
-import Network.MPD.Core (MPDError(..), Response, ACKType(..))
-import StringConn
+import           Arbitrary ()
+import           Displayable
+import           Network.MPD.Commands
+import           Network.MPD.Commands.Extensions
+import           Network.MPD.Core (MPDError(..), Response, ACKType(..))
+import           StringConn
 
-import Prelude hiding (repeat)
-import Data.Char (isPrint, isSpace)
-import Data.Maybe (fromJust, isJust)
-import Text.Printf
+import           Prelude hiding (repeat)
+import           Data.Char (isPrint, isSpace)
+import           Data.Maybe (fromJust, isJust)
+import           Text.Printf
 import qualified Test.QuickCheck as QC
-import Test.QuickCheck ((==>))
+import           Test.QuickCheck ((==>))
 
 main = mapM_ (\(n, f) -> printf "%-25s : " n >> f) tests
     where tests = [("enableOutput", testEnableOutput)
@@ -268,14 +268,14 @@ testListAll =
 testLsInfo =
     test [("lsinfo \"\"",
            Right $ "directory: Foo\n" ++ display song ++ "playlist: Quux\nOK")]
-         (Right [Left "Foo", Right song])
+         (Right [LsDirectory "Foo", LsSong song])
          (lsInfo "")
     where
-        song = empty { sgFilePath = "Bar.ogg" }
+        song = defaultSong "Bar.ogg"
 
 testListAllInfo =
     test [("listallinfo \"\"", Right "directory: Foo\ndirectory: Bar\nOK")]
-         (Right [Left "Foo", Left "Bar"])
+         (Right [LsDirectory "Foo", LsDirectory "Bar"])
          (listAllInfo "")
 
 {-
@@ -544,7 +544,7 @@ testPasswordSucceeds =
                                         \permission for \"play\"")
                 ,("password foo", Right "OK")
                 ,("lsinfo \"/\"", Right "directory: /bar\nOK")]
-        expected_resp = Right [Left "/bar"]
+        expected_resp = Right [LsDirectory "/bar"]
         cmd = lsInfo "/"
 
 testPasswordFails =

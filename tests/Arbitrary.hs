@@ -10,15 +10,15 @@ module Arbitrary
     , positive, field
     ) where
 
-import Control.Applicative ((<$>), (<*>))
-import Control.Monad (liftM2, liftM3, replicateM)
-import Data.Char (isSpace)
-import Data.List (intersperse)
+import           Control.Applicative ((<$>), (<*>))
+import           Control.Monad (liftM2, liftM3, replicateM)
+import           Data.Char (isSpace)
+import           Data.List (intersperse)
 import qualified Data.Map as M
-import Data.Time
-import Test.QuickCheck
+import           Data.Time
+import           Test.QuickCheck
 
-import Network.MPD.Commands.Types
+import           Network.MPD.Commands.Types
 
 -- No longer provided by QuickCheck 2
 two :: Monad m => m a -> m (a, a)

@@ -20,23 +20,23 @@ module Network.MPD.Core (
     getResponse, kill,
     ) where
 
-import Network.MPD.Util
-import Network.MPD.Core.Class
-import Network.MPD.Core.Error
+import           Network.MPD.Util
+import           Network.MPD.Core.Class
+import           Network.MPD.Core.Error
 
-import Data.Char (isDigit)
-import Control.Applicative (Applicative(..), (<$>), (<*))
-import Control.Monad (ap, unless)
-import Control.Monad.Error (ErrorT(..), MonadError(..))
-import Control.Monad.Reader (ReaderT(..), ask)
-import Control.Monad.State (StateT, MonadIO(..), modify, get, evalStateT)
+import           Data.Char (isDigit)
+import           Control.Applicative (Applicative(..), (<$>), (<*))
+import           Control.Monad (ap, unless)
+import           Control.Monad.Error (ErrorT(..), MonadError(..))
+import           Control.Monad.Reader (ReaderT(..), ask)
+import           Control.Monad.State (StateT, MonadIO(..), modify, get, evalStateT)
 import qualified Data.Foldable as F
-import Data.List (isPrefixOf)
-import Network (PortID(..), withSocketsDo, connectTo)
-import System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
-import System.IO.Error (isEOFError)
+import           Data.List (isPrefixOf)
+import           Network (PortID(..), withSocketsDo, connectTo)
+import           System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
+import           System.IO.Error (isEOFError)
 import qualified System.IO.UTF8 as U
-import Text.Printf (printf)
+import           Text.Printf (printf)
 
 --
 -- Data types.
@@ -112,7 +112,7 @@ mpdOpen = MPD $ do
             `catch` const (return Nothing)
 
         checkConn = do
-            [msg] <- lines <$> send ""
+            [msg] <- send ""
             if "OK MPD" `isPrefixOf` msg
                 then MPD $ checkVersion $ parseVersion msg
                 else return False
@@ -149,7 +149,7 @@ mpdClose =
             | isEOFError err = result
             | otherwise      = ioError err
 
-mpdSend :: String -> MPD String
+mpdSend :: String -> MPD [String]
 mpdSend str = send' `catchError` handler
     where
         handler TimedOut = mpdOpen >> send'
@@ -170,7 +170,7 @@ mpdSend str = send' `catchError` handler
         getLines handle acc = do
             l <- U.hGetLine handle
             if "OK" `isPrefixOf` l || "ACK" `isPrefixOf` l
-                then return . unlines $ reverse (l:acc)
+                then (return . reverse) (l:acc)
                 else getLines handle (l:acc)
 
 
@@ -200,13 +200,13 @@ getResponse cmd = (send cmd >>= parseResponse) `catchError` sendpw
             throwError e
 
 -- Consume response and return a Response.
-parseResponse :: (MonadError MPDError m) => String -> m [String]
-parseResponse s
+parseResponse :: (MonadError MPDError m) => [String] -> m [String]
+parseResponse xs
     | null xs                    = throwError $ NoMPD
-    | "ACK" `isPrefixOf` head xs = throwError $ parseAck s
+    | "ACK" `isPrefixOf` x       = throwError $ parseAck x
     | otherwise                  = return $ Prelude.takeWhile ("OK" /=) xs
     where
-        xs = lines s
+        x = head xs
 
 -- Turn MPD ACK into the corresponding 'MPDError'
 parseAck :: String -> MPDError

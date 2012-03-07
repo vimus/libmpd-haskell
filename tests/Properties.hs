@@ -1,21 +1,21 @@
 {-# OPTIONS_GHC -Wwarn -fno-warn-orphans -fno-warn-missing-methods #-}
 module Properties (main) where
 
-import Arbitrary
-import Displayable
+import           Arbitrary
+import           Displayable
 
-import Network.MPD.Commands.Parse
-import Network.MPD.Commands.Types
-import Network.MPD.Util
+import           Network.MPD.Commands.Parse
+import           Network.MPD.Commands.Types
+import           Network.MPD.Util
 
-import Control.Monad
-import Data.List
-import Data.Maybe
+import           Control.Monad
+import           Data.List
+import           Data.Maybe
 import qualified Data.Map as M
-import Data.Time
-import System.Environment
-import Text.Printf
-import Test.QuickCheck
+import           Data.Time
+import           System.Environment
+import           Text.Printf
+import           Test.QuickCheck
 
 
 main :: IO ()
@@ -75,13 +75,13 @@ prop_showBool x    = showBool x == "0"
 
 prop_splitGroups_rev :: [(String, String)] -> Property
 prop_splitGroups_rev xs = not (null xs) ==>
-    let wrappers = [(fst $ head xs, id)]
+    let wrappers = [fst $ head xs]
         r = splitGroups wrappers xs
     in r == splitGroups wrappers (concat r)
 
 prop_splitGroups_integrity :: [(String, String)] -> Property
 prop_splitGroups_integrity xs = not (null xs) ==>
-    sort (concat $ splitGroups [(fst $ head xs, id)] xs) == sort xs
+    sort (concat $ splitGroups [fst $ head xs] xs) == sort xs
 
 prop_parseNum :: Integer -> Bool
 prop_parseNum x =

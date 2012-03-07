@@ -52,17 +52,17 @@ module Network.MPD.Commands (
     commands, notCommands, tagTypes, urlHandlers, decoders,
     ) where
 
-import Network.MPD.Commands.Arg
-import Network.MPD.Commands.Parse
-import Network.MPD.Commands.Query
-import Network.MPD.Commands.Types
-import Network.MPD.Commands.Util
-import Network.MPD.Core
-import Network.MPD.Util
+import           Network.MPD.Commands.Arg
+import           Network.MPD.Commands.Parse
+import           Network.MPD.Commands.Query
+import           Network.MPD.Commands.Types
+import           Network.MPD.Commands.Util
+import           Network.MPD.Core
+import           Network.MPD.Util
 
-import Control.Monad (liftM)
-import Control.Monad.Error (throwError)
-import Prelude hiding (repeat)
+import           Control.Monad (liftM)
+import           Control.Monad.Error (throwError)
+import           Prelude hiding (repeat)
 
 --
 -- Querying MPD's status
@@ -74,28 +74,34 @@ clearError = getResponse_ "clearerror"
 
 -- | Get the currently playing song.
 currentSong :: (Functor m, MonadMPD m) => m (Maybe Song)
-currentSong = do
-    cs <- status
-    if stState cs == Stopped
-       then return Nothing
-       else getResponse1 "currentsong" >>=
-            fmap Just . runParser parseSong . toAssocList
+currentSong = getResponse "currentsong" >>= runParser parseMaybeSong . toAssocList
 
 -- | Wait until there is a noteworthy change in one or more of MPD's
--- susbystems. Note that running this command will block until either 'idle'
--- returns or is cancelled by 'noidle'.
-idle :: MonadMPD m => m [Subsystem]
-idle =
-    mapM (\("changed", system) -> case system of "database" -> return DatabaseS
-                                                 "update"   -> return UpdateS
-                                                 "stored_playlist" -> return StoredPlaylistS
-                                                 "playlist" -> return PlaylistS
-                                                 "player" -> return PlayerS
-                                                 "mixer" -> return MixerS
-                                                 "output" -> return OutputS
-                                                 "options" -> return OptionsS
-                                                 k -> fail ("Unknown subsystem: " ++ k))
-         =<< toAssocList `liftM` getResponse "idle"
+-- susbystems.
+--
+-- The first argument is a list of subsystems that should be considered.  An
+-- empty list specifies that all subsystems should be considered.
+--
+-- A list of subsystems that have noteworthy changes is returned.
+--
+-- Note that running this command will block until either 'idle' returns or is
+-- cancelled by 'noidle'.
+idle :: MonadMPD m => [Subsystem] -> m [Subsystem]
+idle subsystems =
+    mapM f =<< toAssocList `liftM` getResponse ("idle" <$> foldr (<++>) (Args []) subsystems)
+    where
+        f ("changed", system) =
+            case system of
+                "database"        -> return DatabaseS
+                "update"          -> return UpdateS
+                "stored_playlist" -> return StoredPlaylistS
+                "playlist"        -> return PlaylistS
+                "player"          -> return PlayerS
+                "mixer"           -> return MixerS
+                "output"          -> return OutputS
+                "options"         -> return OptionsS
+                k                 -> fail ("Unknown subsystem: " ++ k)
+        f x                       =  fail ("idle: Unexpected " ++ show x)
 
 -- | Cancel 'idle'.
 noidle :: MonadMPD m => m ()
@@ -260,7 +266,7 @@ plChanges version = takeSongs =<< getResponse ("plchanges" <$> version)
 plChangesPosId :: MonadMPD m => Integer -> m [(Int, Id)]
 plChangesPosId plver =
     getResponse ("plchangesposid" <$> plver) >>=
-    mapM f . splitGroups [("cpos",id)] . toAssocList
+    mapM f . splitGroups ["cpos"] . toAssocList
     where f xs | [("cpos", x), ("Id", y)] <- xs
                , Just (x', y') <- pair parseNum (x, y)
                = return (x', Id y')
@@ -374,17 +380,15 @@ listAll path = liftM (map snd . filter ((== "file") . fst) . toAssocList)
                      (getResponse $ "listall" <$> path)
 
 -- Helper for lsInfo and listAllInfo.
-lsInfo' :: MonadMPD m => String -> Path -> m [Either Path Song]
-lsInfo' cmd path =
-    liftM (extractEntries (Just . Right, const Nothing, Just . Left)) $
-         takeEntries =<< getResponse (cmd <$> path)
+lsInfo' :: MonadMPD m => String -> Path -> m [LsResult]
+lsInfo' cmd path = getResponse (cmd <$> path) >>= takeEntries
 
 -- | Recursive 'lsInfo'.
-listAllInfo :: MonadMPD m => Path -> m [Either Path Song]
+listAllInfo :: MonadMPD m => Path -> m [LsResult]
 listAllInfo = lsInfo' "listallinfo"
 
 -- | Non-recursively list the contents of a database directory.
-lsInfo :: MonadMPD m => Path -> m [Either Path Song]
+lsInfo :: MonadMPD m => Path -> m [LsResult]
 lsInfo = lsInfo' "lsinfo"
 
 -- | Search the database using case insensitive matching.

@@ -3,8 +3,8 @@
 module Displayable (Displayable(..)) where
 
 import qualified Data.Map as M
-import Network.MPD.Commands.Types
-import Network.MPD.Util
+import           Network.MPD.Commands.Types
+import           Network.MPD.Util
 
 -- | A uniform interface for types that
 -- can be turned into raw responses
@@ -27,7 +27,7 @@ instance Displayable Device where
         ,"outputenabled: " ++ showBool (dOutputEnabled d)]
 
 instance Displayable Song where
-    empty = defaultSong
+    empty = error "There is no notion of an empty song.  A song always has at least a file path."
     display s =
         let fs  = concatMap toF . M.toList $ sgTags s
             id_ = maybe [] (\(Id n) -> ["Id: " ++ show n]) (sgId s)

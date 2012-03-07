@@ -8,14 +8,14 @@
 
 module Network.MPD.Commands.Util where
 
-import Network.MPD.Commands.Parse
-import Network.MPD.Commands.Types
-import Network.MPD.Core
-import Network.MPD.Util
+import           Network.MPD.Commands.Parse
+import           Network.MPD.Commands.Types
+import           Network.MPD.Core
+import           Network.MPD.Util
 
-import Control.Monad.Error
-import Data.List (intersperse)
-import Data.Maybe (mapMaybe)
+import           Control.Monad.Error
+import           Data.List (intersperse)
+import           Data.Maybe (mapMaybe)
 
 -- Run getResponse but discard the response.
 getResponse_ :: MonadMPD m => String -> m ()
@@ -39,34 +39,28 @@ getResponse1 x = getResponse x >>= failOnEmpty
 takeValues :: [String] -> [String]
 takeValues = snd . unzip . toAssocList
 
-data EntryType
-    = SongEntry Song
-    | PLEntry   String
-    | DirEntry  String
-      deriving (Eq, Show)
-
 -- Separate the result of an lsinfo\/listallinfo call into directories,
 -- playlists, and songs.
-takeEntries :: MonadMPD m => [String] -> m [EntryType]
-takeEntries = mapM toEntry . splitGroups wrappers . toAssocList
+takeEntries :: MonadMPD m => [String] -> m [LsResult]
+takeEntries = mapM toEntry . splitGroups groupHeads . toAssocList
     where
-        toEntry xs@(("file",_):_)   = liftM SongEntry $ runParser parseSong xs
-        toEntry (("directory",d):_) = return $ DirEntry d
-        toEntry (("playlist",pl):_) = return $ PLEntry  pl
+        toEntry xs@(("file",_):_)   = LsSong `liftM` runParser parseSong xs
+        toEntry (("directory",d):_) = return $ LsDirectory d
+        toEntry (("playlist",pl):_) = return $ LsPlaylist pl
         toEntry _ = error "takeEntries: splitGroups is broken"
-        wrappers = [("file",id), ("directory",id), ("playlist",id)]
+        groupHeads = ["file", "directory", "playlist"]
 
 -- Extract a subset of songs, directories, and playlists.
 extractEntries :: (Song -> Maybe a, String -> Maybe a, String -> Maybe a)
-               -> [EntryType] -> [a]
+               -> [LsResult] -> [a]
 extractEntries (fSong,fPlayList,fDir) = mapMaybe f
     where
-        f (SongEntry s) = fSong s
-        f (PLEntry pl)  = fPlayList pl
-        f (DirEntry d)  = fDir d
+        f (LsSong s) = fSong s
+        f (LsPlaylist pl)  = fPlayList pl
+        f (LsDirectory d)  = fDir d
 
 -- Build a list of song instances from a response.
 takeSongs :: MonadMPD m => [String] -> m [Song]
 takeSongs = mapM (runParser parseSong)
-          . splitGroups [("file",id)]
+          . splitGroups ["file"]
           . toAssocList
