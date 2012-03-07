@@ -20,6 +20,7 @@ Extra-Source-Files: README.md NEWS
                     tests/Displayable.hs tests/Properties.hs
                     tests/StringConn.hs tests/Main.hs
                     tests/coverage.lhs tests/run-tests.lhs
+                    tests/Unparse.hs
 
 flag test
     Description: Build test driver
