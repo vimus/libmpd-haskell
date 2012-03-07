@@ -11,12 +11,12 @@
 
 module StringConn where
 
-import Prelude hiding (exp)
-import Control.Monad.Error
-import Control.Monad.Identity
-import Control.Monad.Reader
-import Control.Monad.State
-import Network.MPD.Core
+import           Prelude hiding (exp)
+import           Control.Monad.Error
+import           Control.Monad.Identity
+import           Control.Monad.Reader
+import           Control.Monad.State
+import           Network.MPD.Core
 
 -- | An expected request.
 type Expect = String

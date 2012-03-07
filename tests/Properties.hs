@@ -1,21 +1,21 @@
 {-# OPTIONS_GHC -Wwarn -fno-warn-orphans -fno-warn-missing-methods #-}
 module Properties (main) where
 
-import Arbitrary
-import Displayable
+import           Arbitrary
+import           Displayable
 
-import Network.MPD.Commands.Parse
-import Network.MPD.Commands.Types
-import Network.MPD.Util
+import           Network.MPD.Commands.Parse
+import           Network.MPD.Commands.Types
+import           Network.MPD.Util
 
-import Control.Monad
-import Data.List
-import Data.Maybe
+import           Control.Monad
+import           Data.List
+import           Data.Maybe
 import qualified Data.Map as M
-import Data.Time
-import System.Environment
-import Text.Printf
-import Test.QuickCheck
+import           Data.Time
+import           System.Environment
+import           Text.Printf
+import           Test.QuickCheck
 
 
 main :: IO ()

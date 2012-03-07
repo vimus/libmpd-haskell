@@ -10,14 +10,14 @@
 
 module Network.MPD.Commands.Parse where
 
-import Network.MPD.Commands.Types
+import           Network.MPD.Commands.Types
 
-import Control.Arrow ((***))
-import Control.Monad.Error
-import Data.Maybe (fromMaybe)
+import           Control.Arrow ((***))
+import           Control.Monad.Error
+import           Data.Maybe (fromMaybe)
 
-import Network.MPD.Util
-import Network.MPD.Core (MonadMPD, MPDError(Unexpected))
+import           Network.MPD.Util
+import           Network.MPD.Core (MonadMPD, MPDError(Unexpected))
 
 -- | Builds a 'Count' instance from an assoc. list.
 parseCount :: [String] -> Either String Count
