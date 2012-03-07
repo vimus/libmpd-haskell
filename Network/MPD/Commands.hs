@@ -368,7 +368,7 @@ find query = getResponse ("find" <$> query) >>= takeSongs
 findAdd :: MonadMPD m => Query -> m ()
 findAdd q = getResponse_ ("findadd" <$> q)
 
--- | List all metadata of metadata (sic).
+-- | List all tags of the specified type.
 list :: MonadMPD m
      => Metadata -- ^ Metadata to list
      -> Query -> m [Value]
