@@ -236,7 +236,7 @@ playlist :: MonadMPD m => m [(Int, Path)]
 playlist = mapM f =<< getResponse "playlist"
     where f s | (pos, name) <- breakChar ':' s
               , Just pos'   <- parseNum pos
-              = return (pos', name)
+              = return (pos', Path name)
               | otherwise = throwError . Unexpected $ show s
 
 -- | Search for songs in the current playlist with strict matching.
@@ -292,7 +292,7 @@ swapId id1 id2 = getResponse_ ("swapid" <$> id1 <++> id2)
 -- | Retrieve a list of files in a given playlist.
 listPlaylist :: MonadMPD m => PlaylistName -> m [Path]
 listPlaylist plname =
-    liftM takeValues $ getResponse ("listplaylist" <$> plname)
+    (map Path . takeValues) `liftM` getResponse ("listplaylist" <$> plname)
 
 -- | Retrieve metadata for files in a given playlist.
 listPlaylistInfo :: MonadMPD m => PlaylistName -> m [Song]
@@ -376,7 +376,7 @@ list mtype query = liftM takeValues $ getResponse ("list" <$> mtype <++> query)
 
 -- | List the songs (without metadata) in a database directory recursively.
 listAll :: MonadMPD m => Path -> m [Path]
-listAll path = liftM (map snd . filter ((== "file") . fst) . toAssocList)
+listAll path = liftM (map (Path . snd) . filter ((== "file") . fst) . toAssocList)
                      (getResponse $ "listall" <$> path)
 
 -- Helper for lsInfo and listAllInfo.

@@ -101,12 +101,15 @@ instance Arbitrary Id where
     arbitrary = Id <$> arbitrary
 
 instance Arbitrary Song where
-    arbitrary = Song <$> field
+    arbitrary = Song <$> arbitrary
                      <*> arbitrary
                      <*> possibly arbitrary
                      <*> positive
                      <*> possibly arbitrary
                      <*> possibly positive
+
+instance Arbitrary Path where
+    arbitrary = Path <$> field
 
 instance Arbitrary Stats where
     arbitrary = Stats <$> positive <*> positive <*> positive <*> positive

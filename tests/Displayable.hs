@@ -33,7 +33,7 @@ instance Displayable Song where
             id_ = maybe [] (\(Id n) -> ["Id: " ++ show n]) (sgId s)
             idx = maybe [] (\n -> ["Pos: " ++ show n]) (sgIndex s)
             lastModified = maybe [] (return . ("Last-Modified: " ++) . formatIso8601) (sgLastModified s)
-        in unlines $ ["file: " ++ sgFilePath s]
+        in unlines $ ["file: " ++ (toString . sgFilePath) s]
                   ++ ["Time: " ++ (show . sgLength) s]
                   ++ fs
                   ++ lastModified

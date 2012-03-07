@@ -41,7 +41,8 @@ newtype PlaylistName = PlaylistName String
 
 -- | Used for commands which require a path within the database.
 -- If empty, the root path is used.
-type Path         = String
+newtype Path = Path String
+  deriving (Eq, Show, IsString, ToString, ToText, MPDArg)
 
 -- | Available metadata types\/scope modifiers, used for searching the
 -- database for entries with certain metadata values.
