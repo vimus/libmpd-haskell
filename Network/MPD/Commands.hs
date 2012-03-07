@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, OverloadedStrings #-}
 
 -- | Module    : Network.MPD.Commands
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
@@ -64,6 +64,9 @@ import           Control.Monad (liftM)
 import           Control.Monad.Error (throwError)
 import           Prelude hiding (repeat)
 
+import qualified Data.ByteString.UTF8 as UTF8
+import           Data.ByteString (ByteString)
+
 --
 -- Querying MPD's status
 --
@@ -100,7 +103,7 @@ idle subsystems =
                 "mixer"           -> return MixerS
                 "output"          -> return OutputS
                 "options"         -> return OptionsS
-                k                 -> fail ("Unknown subsystem: " ++ k)
+                k                 -> fail ("Unknown subsystem: " ++ UTF8.toString k)
         f x                       =  fail ("idle: Unexpected " ++ show x)
 
 -- | Cancel 'idle'.
@@ -149,7 +152,7 @@ replayGainMode = getResponse_ . ("replay_gain_mode" <$>)
 
 -- | Get the replay gain options.
 replayGainStatus :: MonadMPD m => m [String]
-replayGainStatus = getResponse "replay_gain_status"
+replayGainStatus = map UTF8.toString `liftM` getResponse "replay_gain_status"
 
 --
 -- Controlling playback
@@ -419,7 +422,7 @@ stickerGet :: MonadMPD m => ObjectType
            -> String -- ^ Object URI
            -> String -- ^ Sticker name
            -> m [String]
-stickerGet typ uri name = takeValues `liftM` getResponse ("sticker get" <$> typ <++> uri <++> name)
+stickerGet typ uri name = (map UTF8.toString . takeValues) `liftM` getResponse ("sticker get" <$> typ <++> uri <++> name)
 
 -- | Adds a sticker value to the specified object.
 stickerSet :: MonadMPD m => ObjectType
@@ -438,12 +441,16 @@ stickerDelete :: MonadMPD m => ObjectType
 stickerDelete typ uri name =
     getResponse_ ("sticker delete" <$> typ <++> uri <++> name)
 
+-- an internal helper function
+decodePair :: (ByteString, ByteString) -> (String, String)
+decodePair (x, y) = (UTF8.toString x, UTF8.toString y)
+
 -- | Lists the stickers for the specified object.
 stickerList :: MonadMPD m => ObjectType
             -> String -- ^ Object URI
             -> m [(String, String)] -- ^ Sticker name\/sticker value
 stickerList typ uri =
-    toAssocList `liftM` getResponse ("sticker list" <$> typ <++> uri)
+    (map decodePair . toAssocList) `liftM` getResponse ("sticker list" <$> typ <++> uri)
 
 -- | Searches the sticker database for stickers with the specified name, below
 -- the specified path.
@@ -452,7 +459,7 @@ stickerFind :: MonadMPD m => ObjectType
             -> String -- ^ Sticker name
             -> m [(String, String)] -- ^ URI\/sticker value
 stickerFind typ uri name =
-    toAssocList `liftM`
+    (map decodePair . toAssocList) `liftM`
     getResponse ("sticker find" <$> typ <++> uri <++> name)
 
 --
@@ -492,19 +499,19 @@ outputs = getResponse "outputs" >>= runParser parseOutputs
 
 -- | Retrieve a list of available commands.
 commands :: MonadMPD m => m [String]
-commands = liftM takeValues (getResponse "commands")
+commands = (map UTF8.toString . takeValues) `liftM` getResponse "commands"
 
 -- | Retrieve a list of unavailable (due to access restrictions) commands.
 notCommands :: MonadMPD m => m [String]
-notCommands = liftM takeValues (getResponse "notcommands")
+notCommands = (map UTF8.toString . takeValues) `liftM` getResponse "notcommands"
 
 -- | Retrieve a list of available song metadata.
 tagTypes :: MonadMPD m => m [String]
-tagTypes = liftM takeValues (getResponse "tagtypes")
+tagTypes = (map UTF8.toString . takeValues) `liftM` (getResponse "tagtypes")
 
 -- | Retrieve a list of supported urlhandlers.
 urlHandlers :: MonadMPD m => m [String]
-urlHandlers = liftM takeValues (getResponse "urlhandlers")
+urlHandlers = (map UTF8.toString . takeValues) `liftM` (getResponse "urlhandlers")
 
 -- | Retreive a list of decoder plugins with associated suffix and mime types.
 decoders :: MonadMPD m => m [(String, [(String, String)])]
@@ -513,4 +520,4 @@ decoders = (takeDecoders . toAssocList) `liftM` getResponse "decoders"
         takeDecoders [] = []
         takeDecoders ((_, p):xs) =
             let (info, rest) = break ((==) "plugin" . fst) xs
-            in (p, info) : takeDecoders rest
+            in (UTF8.toString p, map decodePair info) : takeDecoders rest

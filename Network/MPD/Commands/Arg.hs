@@ -12,6 +12,9 @@ module Network.MPD.Commands.Arg (Args(..), MPDArg(..), (<++>), (<$>)) where
 
 import           Network.MPD.Util (showBool)
 
+import           Data.ByteString (ByteString)
+import qualified Data.ByteString.UTF8 as UTF8
+
 -- | Arguments for getResponse are accumulated as strings in values of
 -- this type after being converted from whatever type (an instance of
 -- MPDArg) they were to begin with.
@@ -50,6 +53,9 @@ instance MPDArg String where
     -- We do this to avoid mangling
     -- non-ascii characters with 'show'
     prep x = Args ['"' : x ++ "\""]
+
+instance MPDArg ByteString where
+    prep = prep . UTF8.toString
 
 instance (MPDArg a) => MPDArg (Maybe a) where
     prep Nothing = Args []

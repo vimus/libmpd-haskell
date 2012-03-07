@@ -16,7 +16,9 @@ import           Data.Time.Clock (UTCTime)
 import           Data.String
 
 import           Data.Text   (Text)
-import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Text
+import           Data.ByteString (ByteString)
+import qualified Data.ByteString.UTF8 as UTF8
 
 class ToString a where
   toString :: a -> String
@@ -24,11 +26,11 @@ class ToString a where
 class ToText a where
   toText :: a -> Text
 
-instance ToString String where
-  toString = id
+instance ToString ByteString where
+  toString = UTF8.toString
 
-instance ToText String where
-  toText = Text.pack
+instance ToText ByteString where
+  toText = Text.decodeUtf8
 
 type Artist = Value
 type Album  = Value
@@ -36,13 +38,19 @@ type Title  = Value
 
 -- | Used for commands which require a playlist name.
 -- If empty, the current playlist is used.
-newtype PlaylistName = PlaylistName String
-  deriving (Eq, Show, IsString, ToString, ToText, MPDArg)
+newtype PlaylistName = PlaylistName ByteString
+  deriving (Eq, Show, ToString, ToText, MPDArg)
+
+instance IsString PlaylistName where
+  fromString = PlaylistName . UTF8.fromString
 
 -- | Used for commands which require a path within the database.
 -- If empty, the root path is used.
-newtype Path = Path String
-  deriving (Eq, Show, IsString, ToString, ToText, MPDArg)
+newtype Path = Path ByteString
+  deriving (Eq, Show, ToString, ToText, MPDArg)
+
+instance IsString Path where
+  fromString = Path . UTF8.fromString
 
 -- | Available metadata types\/scope modifiers, used for searching the
 -- database for entries with certain metadata values.
@@ -71,8 +79,11 @@ data Metadata = Artist
 instance MPDArg Metadata
 
 -- | A metadata value.
-newtype Value = Value String
-  deriving (Eq, Show, IsString, ToString, ToText, MPDArg)
+newtype Value = Value ByteString
+  deriving (Eq, Show, ToString, ToText, MPDArg)
+
+instance IsString Value where
+  fromString = Value . UTF8.fromString
 
 -- | Object types.
 data ObjectType = SongObj
