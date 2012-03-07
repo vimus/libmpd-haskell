@@ -371,8 +371,9 @@ findAdd q = getResponse_ ("findadd" <$> q)
 -- | List all metadata of metadata (sic).
 list :: MonadMPD m
      => Metadata -- ^ Metadata to list
-     -> Query -> m [String]
-list mtype query = liftM takeValues $ getResponse ("list" <$> mtype <++> query)
+     -> Query -> m [Value]
+list mtype query = (map Value . takeValues) `liftM` getResponse ("list" <$> mtype <++> query)
+
 
 -- | List the songs (without metadata) in a database directory recursively.
 listAll :: MonadMPD m => Path -> m [Path]
