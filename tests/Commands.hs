@@ -11,19 +11,19 @@
 
 module Commands (main) where
 
-import Arbitrary ()
-import Displayable
-import Network.MPD.Commands
-import Network.MPD.Commands.Extensions
-import Network.MPD.Core (MPDError(..), Response, ACKType(..))
-import StringConn
+import           Arbitrary ()
+import           Displayable
+import           Network.MPD.Commands
+import           Network.MPD.Commands.Extensions
+import           Network.MPD.Core (MPDError(..), Response, ACKType(..))
+import           StringConn
 
-import Prelude hiding (repeat)
-import Data.Char (isPrint, isSpace)
-import Data.Maybe (fromJust, isJust)
-import Text.Printf
+import           Prelude hiding (repeat)
+import           Data.Char (isPrint, isSpace)
+import           Data.Maybe (fromJust, isJust)
+import           Text.Printf
 import qualified Test.QuickCheck as QC
-import Test.QuickCheck ((==>))
+import           Test.QuickCheck ((==>))
 
 main = mapM_ (\(n, f) -> printf "%-25s : " n >> f) tests
     where tests = [("enableOutput", testEnableOutput)

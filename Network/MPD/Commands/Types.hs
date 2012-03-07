@@ -8,10 +8,10 @@
 
 module Network.MPD.Commands.Types where
 
-import Network.MPD.Commands.Arg (MPDArg(prep), Args(Args))
+import           Network.MPD.Commands.Arg (MPDArg(prep), Args(Args))
 
 import qualified Data.Map as M
-import Data.Time.Clock (UTCTime)
+import           Data.Time.Clock (UTCTime)
 
 type Artist       = String
 type Album        = String

@@ -12,10 +12,10 @@ module Network.MPD.Util (
     toAssoc, toAssocList, splitGroups, maybeRead
     ) where
 
-import Data.Char (isDigit)
-import Data.Maybe (listToMaybe)
-import Data.Time.Format (ParseTime, parseTime, FormatTime, formatTime)
-import System.Locale (defaultTimeLocale)
+import           Data.Char (isDigit)
+import           Data.Maybe (listToMaybe)
+import           Data.Time.Format (ParseTime, parseTime, FormatTime, formatTime)
+import           System.Locale (defaultTimeLocale)
 
 -- Break a string by character, removing the separator.
 breakChar :: Char -> String -> (String, String)
