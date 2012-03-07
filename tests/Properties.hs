@@ -75,13 +75,13 @@ prop_showBool x    = showBool x == "0"
 
 prop_splitGroups_rev :: [(String, String)] -> Property
 prop_splitGroups_rev xs = not (null xs) ==>
-    let wrappers = [(fst $ head xs, id)]
+    let wrappers = [fst $ head xs]
         r = splitGroups wrappers xs
     in r == splitGroups wrappers (concat r)
 
 prop_splitGroups_integrity :: [(String, String)] -> Property
 prop_splitGroups_integrity xs = not (null xs) ==>
-    sort (concat $ splitGroups [(fst $ head xs, id)] xs) == sort xs
+    sort (concat $ splitGroups [fst $ head xs] xs) == sort xs
 
 prop_parseNum :: Integer -> Bool
 prop_parseNum x =
