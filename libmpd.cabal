@@ -17,10 +17,10 @@ Build-Type:         Simple
 Cabal-Version:      >= 1.6
 Extra-Source-Files: README.md NEWS
                     tests/Arbitrary.hs tests/Commands.hs
-                    tests/Displayable.hs tests/Properties.hs
-                    tests/StringConn.hs tests/Main.hs
-                    tests/coverage.lhs tests/run-tests.lhs
-                    tests/Unparse.hs tests/Default.hs
+                    tests/Defaults.hs tests/Properties.hs
+                    tests/StringConn.hs tests/Unparse.hs
+                    tests/Main.hs tests/coverage.lhs
+                    tests/run-tests.lhs
 
 flag test
     Description: Build test driver
