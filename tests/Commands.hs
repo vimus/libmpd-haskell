@@ -12,14 +12,16 @@
 module Commands (main) where
 
 import           Arbitrary ()
-import           Displayable
+import           Defaults
 import           Network.MPD.Commands
 import           Network.MPD.Commands.Extensions
 import           Network.MPD.Core (MPDError(..), Response, ACKType(..))
 import           StringConn
+import           Unparse
 
 import           Prelude hiding (repeat)
 import           Data.Char (isPrint, isSpace)
+import           Data.Default (Default(def))
 import           Data.Maybe (fromJust, isJust)
 import           Text.Printf
 import qualified Test.QuickCheck as QC
@@ -179,9 +181,9 @@ testDisableOutput = test_ [("disableoutput 1", Right "OK")] (disableOutput 1)
 
 testOutputs =
     test [("outputs", Right resp)] (Right [obj1, obj2]) outputs
-    where obj1 = empty { dOutputName = "SoundCard0", dOutputEnabled = True }
-          obj2 = empty { dOutputName = "SoundCard1", dOutputID = 1 }
-          resp = concatMap display [obj1, obj2] ++ "OK"
+    where obj1 = def { dOutputName = "SoundCard0", dOutputEnabled = True }
+          obj2 = def { dOutputName = "SoundCard1", dOutputID = 1 }
+          resp = concatMap unparse [obj1, obj2] ++ "OK"
 
 testUpdate0 = test_ [("update", Right "updating_db: 1\nOK")] (update [])
 
@@ -267,7 +269,7 @@ testListAll =
 
 testLsInfo =
     test [("lsinfo \"\"",
-           Right $ "directory: Foo\n" ++ display song ++ "playlist: Quux\nOK")]
+           Right $ "directory: Foo\n" ++ unparse song ++ "playlist: Quux\nOK")]
          (Right [LsDirectory "Foo", LsSong song])
          (lsInfo "")
     where
@@ -291,7 +293,7 @@ testCount =
     test [("count Title \"Foo\"", Right resp)] (Right obj)
          (count (Title =? "Foo"))
     where obj = Count 1 60
-          resp = display obj ++ "OK"
+          resp = unparse obj ++ "OK"
 
 --
 -- Playlist commands
@@ -337,8 +339,8 @@ testPlChangesPosId_Weird =
 
 testCurrentSongStopped =
     test [("status", Right resp)] (Right Nothing) currentSong
-    where obj  = empty { stState = Stopped, stPlaylistVersion = 253 }
-          resp = display obj ++ "OK"
+    where obj  = def { stState = Stopped, stPlaylistVersion = 253 }
+          resp = unparse obj ++ "OK"
 
 {- XXX: port this
 testCurrentSongPlaying =
@@ -561,10 +563,10 @@ testPasswordFails =
 testPing = test_ [("ping", Right "OK")] ping
 
 testStats = test [("stats", Right resp)] (Right obj) stats
-    where obj = empty { stsArtists = 1, stsAlbums = 1, stsSongs =  1
-                      , stsUptime = 100, stsPlaytime = 100, stsDbUpdate = 10
-                      , stsDbPlaytime = 100 }
-          resp = display obj ++ "OK"
+    where obj = def { stsArtists = 1, stsAlbums = 1, stsSongs =  1
+                    , stsUptime = 100, stsPlaytime = 100, stsDbUpdate = 10
+                    , stsDbPlaytime = 100 }
+          resp = unparse obj ++ "OK"
 
 --
 -- Extensions\/shortcuts
@@ -582,19 +584,19 @@ testTogglePlay = test_
                [("status", Right resp)
                ,("pause 1", Right "OK")]
                toggle
-    where resp = display empty { stState = Playing }
+    where resp = unparse def { stState = Playing }
 
 testToggleStop = test_
                 [("status", Right resp)
                 ,("play", Right "OK")]
                 toggle
-    where resp = display empty { stState = Stopped }
+    where resp = unparse def { stState = Stopped }
 
 testTogglePause = test_
                 [("status", Right resp)
                 ,("play", Right "OK")]
                 toggle
-    where resp = display empty { stState = Paused }
+    where resp = unparse def { stState = Paused }
 
 testAddMany0 = test_ [("add \"bar\"", Right "OK")]
                (addMany "" ["bar"])
@@ -608,6 +610,6 @@ testDeleteMany1 = test_ [("playlistdelete \"foo\" 1", Right "OK")]
 -}
 
 testVolume = test_ [("status", Right st), ("setvol 90", Right "OK")] (volume (-10))
-    where st = display empty { stVolume = 100 }
+    where st = unparse def { stVolume = 100 }
 
 

@@ -2,7 +2,8 @@
 module Properties (main) where
 
 import           Arbitrary
-import           Displayable
+import           Defaults
+import           Unparse
 
 import           Network.MPD.Commands.Parse
 import           Network.MPD.Commands.Types
@@ -102,14 +103,14 @@ prop_parseIso8601 :: UTCTime -> Bool
 prop_parseIso8601 t = Just t == (parseIso8601 . formatIso8601) t
 
 prop_parseCount :: Count -> Bool
-prop_parseCount c = Right c == (parseCount . lines $ display c)
+prop_parseCount c = Right c == (parseCount . lines $ unparse c)
 
 prop_parseOutputs :: [Device] -> Bool
 prop_parseOutputs ds =
-    Right ds == (parseOutputs . lines $ concatMap display ds)
+    Right ds == (parseOutputs . lines $ concatMap unparse ds)
 
 prop_parseSong :: Song -> Bool
-prop_parseSong s = Right (sortTags s) == sortTags `fmap` (parseSong . toAssocList . lines $ display s)
+prop_parseSong s = Right (sortTags s) == sortTags `fmap` (parseSong . toAssocList . lines $ unparse s)
   where
     -- We consider lists of tag values equal if they contain the same elements.
     -- To ensure that two lists with the same elements are equal, we bring the
@@ -117,4 +118,4 @@ prop_parseSong s = Right (sortTags s) == sortTags `fmap` (parseSong . toAssocLis
     sortTags song = song {sgTags = M.map sort $ sgTags song}
 
 prop_parseStats :: Stats -> Bool
-prop_parseStats s = Right s == (parseStats . lines $ display s)
+prop_parseStats s = Right s == (parseStats . lines $ unparse s)
