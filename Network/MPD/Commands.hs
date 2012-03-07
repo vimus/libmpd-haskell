@@ -266,7 +266,7 @@ plChanges version = takeSongs =<< getResponse ("plchanges" <$> version)
 plChangesPosId :: MonadMPD m => Integer -> m [(Int, Id)]
 plChangesPosId plver =
     getResponse ("plchangesposid" <$> plver) >>=
-    mapM f . splitGroups [("cpos",id)] . toAssocList
+    mapM f . splitGroups ["cpos"] . toAssocList
     where f xs | [("cpos", x), ("Id", y)] <- xs
                , Just (x', y') <- pair parseNum (x, y)
                = return (x', Id y')
@@ -381,9 +381,7 @@ listAll path = liftM (map snd . filter ((== "file") . fst) . toAssocList)
 
 -- Helper for lsInfo and listAllInfo.
 lsInfo' :: MonadMPD m => String -> Path -> m [LsResult]
-lsInfo' cmd path =
-    liftM (extractEntries (Just . LsSong, Just . LsPlaylist, Just . LsDirectory)) $
-         takeEntries =<< getResponse (cmd <$> path)
+lsInfo' cmd path = getResponse (cmd <$> path) >>= takeEntries
 
 -- | Recursive 'lsInfo'.
 listAllInfo :: MonadMPD m => Path -> m [LsResult]
