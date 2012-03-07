@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 -- | Module    : Network.MPD.Commands.Extensions
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
 -- License     : LGPL (see LICENSE)
@@ -124,7 +125,7 @@ listArtists = liftM takeValues (getResponse "list artist")
 -- artist.
 listAlbums :: MonadMPD m => Maybe Artist -> m [Album]
 listAlbums artist = liftM takeValues $
-                    getResponse ("list album" <$> fmap ("artist" <++>) artist)
+                    getResponse ("list album" <$> fmap (("artist" :: String) <++>) artist)
 
 -- | List the songs in an album of some artist.
 listAlbum :: MonadMPD m => Artist -> Album -> m [Song]

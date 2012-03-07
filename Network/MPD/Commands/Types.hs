@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances, TypeSynonymInstances, GeneralizedNewtypeDeriving #-}
 -- | Module    : Network.MPD.Commands.Types
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
 -- License     : LGPL (see LICENSE)
@@ -12,6 +13,22 @@ import           Network.MPD.Commands.Arg (MPDArg(prep), Args(Args))
 
 import qualified Data.Map as M
 import           Data.Time.Clock (UTCTime)
+import           Data.String
+
+import           Data.Text   (Text)
+import qualified Data.Text as Text
+
+class ToString a where
+  toString :: a -> String
+
+class ToText a where
+  toText :: a -> Text
+
+instance ToString String where
+  toString = id
+
+instance ToText String where
+  toText = Text.pack
 
 type Artist       = String
 type Album        = String
@@ -19,7 +36,8 @@ type Title        = String
 
 -- | Used for commands which require a playlist name.
 -- If empty, the current playlist is used.
-type PlaylistName = String
+newtype PlaylistName = PlaylistName String
+  deriving (Eq, Show, IsString, ToString, ToText, MPDArg)
 
 -- | Used for commands which require a path within the database.
 -- If empty, the root path is used.

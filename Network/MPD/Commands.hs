@@ -301,7 +301,7 @@ listPlaylistInfo plname =
 
 -- | Retreive a list of stored playlists.
 listPlaylists :: MonadMPD m => m [PlaylistName]
-listPlaylists = (go [] . toAssocList) `liftM` getResponse "listplaylists"
+listPlaylists = (map PlaylistName . go [] . toAssocList) `liftM` getResponse "listplaylists"
     where
         -- After each playlist name we get a timestamp
         go acc [] = acc
