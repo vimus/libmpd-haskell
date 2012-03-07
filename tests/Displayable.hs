@@ -3,8 +3,8 @@
 module Displayable (Displayable(..)) where
 
 import qualified Data.Map as M
-import Network.MPD.Commands.Types
-import Network.MPD.Util
+import           Network.MPD.Commands.Types
+import           Network.MPD.Util
 
 -- | A uniform interface for types that
 -- can be turned into raw responses

@@ -20,23 +20,23 @@ module Network.MPD.Core (
     getResponse, kill,
     ) where
 
-import Network.MPD.Util
-import Network.MPD.Core.Class
-import Network.MPD.Core.Error
+import           Network.MPD.Util
+import           Network.MPD.Core.Class
+import           Network.MPD.Core.Error
 
-import Data.Char (isDigit)
-import Control.Applicative (Applicative(..), (<$>), (<*))
-import Control.Monad (ap, unless)
-import Control.Monad.Error (ErrorT(..), MonadError(..))
-import Control.Monad.Reader (ReaderT(..), ask)
-import Control.Monad.State (StateT, MonadIO(..), modify, get, evalStateT)
+import           Data.Char (isDigit)
+import           Control.Applicative (Applicative(..), (<$>), (<*))
+import           Control.Monad (ap, unless)
+import           Control.Monad.Error (ErrorT(..), MonadError(..))
+import           Control.Monad.Reader (ReaderT(..), ask)
+import           Control.Monad.State (StateT, MonadIO(..), modify, get, evalStateT)
 import qualified Data.Foldable as F
-import Data.List (isPrefixOf)
-import Network (PortID(..), withSocketsDo, connectTo)
-import System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
-import System.IO.Error (isEOFError)
+import           Data.List (isPrefixOf)
+import           Network (PortID(..), withSocketsDo, connectTo)
+import           System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
+import           System.IO.Error (isEOFError)
 import qualified System.IO.UTF8 as U
-import Text.Printf (printf)
+import           Text.Printf (printf)
 
 --
 -- Data types.

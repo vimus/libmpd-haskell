@@ -24,14 +24,14 @@ module Network.MPD (
 #endif
     ) where
 
-import Prelude hiding (catch)
-import Control.Exception
-import Network.MPD.Commands
-import Network.MPD.Core
-import Network.MPD.Util
+import           Prelude hiding (catch)
+import           Control.Exception
+import           Network.MPD.Commands
+import           Network.MPD.Core
+import           Network.MPD.Util
 
-import System.Environment (getEnv)
-import System.IO.Error (isDoesNotExistError)
+import           System.Environment (getEnv)
+import           System.IO.Error (isDoesNotExistError)
 
 -- | A wrapper for 'withMPDEx' that uses localhost:6600 as the default
 -- host:port, or whatever is found in the environment variables MPD_HOST and

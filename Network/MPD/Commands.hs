@@ -52,17 +52,17 @@ module Network.MPD.Commands (
     commands, notCommands, tagTypes, urlHandlers, decoders,
     ) where
 
-import Network.MPD.Commands.Arg
-import Network.MPD.Commands.Parse
-import Network.MPD.Commands.Query
-import Network.MPD.Commands.Types
-import Network.MPD.Commands.Util
-import Network.MPD.Core
-import Network.MPD.Util
+import           Network.MPD.Commands.Arg
+import           Network.MPD.Commands.Parse
+import           Network.MPD.Commands.Query
+import           Network.MPD.Commands.Types
+import           Network.MPD.Commands.Util
+import           Network.MPD.Core
+import           Network.MPD.Util
 
-import Control.Monad (liftM)
-import Control.Monad.Error (throwError)
-import Prelude hiding (repeat)
+import           Control.Monad (liftM)
+import           Control.Monad.Error (throwError)
+import           Prelude hiding (repeat)
 
 --
 -- Querying MPD's status

@@ -8,7 +8,7 @@
 
 module Network.MPD.Core.Error where
 
-import Control.Monad.Error (Error(..))
+import           Control.Monad.Error (Error(..))
 
 -- | The MPDError type is used to signal errors, both from the MPD and
 -- otherwise.

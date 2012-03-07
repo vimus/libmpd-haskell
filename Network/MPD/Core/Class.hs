@@ -10,11 +10,11 @@
 
 module Network.MPD.Core.Class where
 
-import System.IO (Handle)
+import           System.IO (Handle)
 
-import Network.MPD.Core.Error (MPDError)
+import           Network.MPD.Core.Error (MPDError)
 
-import Control.Monad.Error (MonadError)
+import           Control.Monad.Error (MonadError)
 
 type Password = String
 

@@ -8,14 +8,14 @@
 
 module Network.MPD.Commands.Util where
 
-import Network.MPD.Commands.Parse
-import Network.MPD.Commands.Types
-import Network.MPD.Core
-import Network.MPD.Util
+import           Network.MPD.Commands.Parse
+import           Network.MPD.Commands.Types
+import           Network.MPD.Core
+import           Network.MPD.Util
 
-import Control.Monad.Error
-import Data.List (intersperse)
-import Data.Maybe (mapMaybe)
+import           Control.Monad.Error
+import           Data.List (intersperse)
+import           Data.Maybe (mapMaybe)
 
 -- Run getResponse but discard the response.
 getResponse_ :: MonadMPD m => String -> m ()
