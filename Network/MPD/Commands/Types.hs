@@ -30,9 +30,9 @@ instance ToString String where
 instance ToText String where
   toText = Text.pack
 
-type Artist       = String
-type Album        = String
-type Title        = String
+type Artist = Value
+type Album  = Value
+type Title  = Value
 
 -- | Used for commands which require a playlist name.
 -- If empty, the current playlist is used.
@@ -69,6 +69,10 @@ data Metadata = Artist
               deriving (Eq, Enum, Ord, Bounded, Show)
 
 instance MPDArg Metadata
+
+-- | A metadata value.
+newtype Value = Value String
+  deriving (Eq, Show, IsString, ToString, ToText, MPDArg)
 
 -- | Object types.
 data ObjectType = SongObj
@@ -151,7 +155,7 @@ defaultDevice =
 data Song = Song
          { sgFilePath     :: Path
          -- | Map of available tags (multiple occurences of one tag type allowed)
-         , sgTags         :: M.Map Metadata [String]
+         , sgTags         :: M.Map Metadata [Value]
          -- | Last modification date
          , sgLastModified :: Maybe UTCTime
          -- | Length of the song in seconds
@@ -169,11 +173,11 @@ instance (MPDArg Id) where
     prep (Id x) = prep x
 
 -- | Get list of specific tag type
-sgGetTag :: Metadata -> Song -> Maybe [String]
+sgGetTag :: Metadata -> Song -> Maybe [Value]
 sgGetTag meta s = M.lookup meta $ sgTags s
 
 -- | Add metadata tag value.
-sgAddTag :: Metadata -> String -> Song -> Song
+sgAddTag :: Metadata -> Value -> Song -> Song
 sgAddTag meta value s = s { sgTags = M.insertWith' (++) meta [value] (sgTags s) }
 
 defaultSong :: Path -> Song

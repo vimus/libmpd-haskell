@@ -1,3 +1,4 @@
+{-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -Wwarn -fno-warn-orphans -fno-warn-missing-methods #-}
 module Properties (main) where
 
@@ -107,6 +108,8 @@ prop_parseCount c = Right c == (parseCount . lines $ display c)
 prop_parseOutputs :: [Device] -> Bool
 prop_parseOutputs ds =
     Right ds == (parseOutputs . lines $ concatMap display ds)
+
+deriving instance Ord Value
 
 prop_parseSong :: Song -> Bool
 prop_parseSong s = Right (sortTags s) == sortTags `fmap` (parseSong . toAssocList . lines $ display s)

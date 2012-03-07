@@ -84,7 +84,7 @@ parseSong xs = case xs of
                                   (\v' -> s { sgIndex = Just v' }) s v)
                   (const $ return s)
                   (sgIndex s)
-        f s (k, v) = return . maybe s (\m -> sgAddTag m v s) $
+        f s (k, v) = return . maybe s (\m -> sgAddTag m (Value v) s) $
                      readMeta k
 
         -- Custom-made Read instance

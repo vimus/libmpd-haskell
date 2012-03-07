@@ -41,7 +41,7 @@ instance Displayable Song where
                   ++ idx
         where
             toF (k, vs) = map (toF' k) vs
-            toF' k v    = show k ++ ": " ++ v
+            toF' k v    = show k ++ ": " ++ toString v
 
 instance Displayable Stats where
     empty = defaultStats
