@@ -45,13 +45,13 @@ takeEntries :: MonadMPD m => [String] -> m [LsResult]
 takeEntries = mapM toEntry . splitGroups groupHeads . toAssocList
     where
         toEntry xs@(("file",_):_)   = LsSong `liftM` runParser parseSong xs
-        toEntry (("directory",d):_) = return $ LsDirectory d
-        toEntry (("playlist",pl):_) = return $ LsPlaylist pl
+        toEntry (("directory",d):_) = (return . LsDirectory . Path) d
+        toEntry (("playlist",pl):_) = (return . LsPlaylist . PlaylistName) pl
         toEntry _ = error "takeEntries: splitGroups is broken"
         groupHeads = ["file", "directory", "playlist"]
 
 -- Extract a subset of songs, directories, and playlists.
-extractEntries :: (Song -> Maybe a, String -> Maybe a, String -> Maybe a)
+extractEntries :: (Song -> Maybe a, PlaylistName -> Maybe a, Path -> Maybe a)
                -> [LsResult] -> [a]
 extractEntries (fSong,fPlayList,fDir) = mapMaybe f
     where

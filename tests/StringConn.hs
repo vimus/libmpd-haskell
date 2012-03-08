@@ -50,6 +50,10 @@ instance MonadError MPDError StringMPD where
             handler (MErr (Right err))  = runSMPD (f err)
 
 instance MonadMPD StringMPD where
+    getVersion  = error "StringConn.getVersion: undefined"
+    getHandle   = error "StringConn.getHandle: undefined"
+    setPassword = error "StringConn.setPassword: undefined"
+
     open  = return ()
     close = return ()
     getPassword = SMPD ask
