@@ -40,12 +40,15 @@ field :: Gen String
 field = (filter (/= '\n') . dropWhile isSpace) <$> arbitrary
 
 -- Orphan instances for built-in types
-instance Arbitrary (M.Map Metadata [String]) where
+instance Arbitrary (M.Map Metadata [Value]) where
     arbitrary = do
         size <- choose (1, 1000)
-        vals <- replicateM size (listOf1 field)
+        vals <- replicateM size (listOf1 arbitrary)
         keys <- replicateM size arbitrary
         return $ M.fromList (zip keys vals)
+
+instance Arbitrary Value where
+    arbitrary = Value <$> field
 
 instance Arbitrary Day where
     arbitrary = ModifiedJulianDay <$> arbitrary
@@ -101,12 +104,15 @@ instance Arbitrary Id where
     arbitrary = Id <$> arbitrary
 
 instance Arbitrary Song where
-    arbitrary = Song <$> field
+    arbitrary = Song <$> arbitrary
                      <*> arbitrary
                      <*> possibly arbitrary
                      <*> positive
                      <*> possibly arbitrary
                      <*> possibly positive
+
+instance Arbitrary Path where
+    arbitrary = Path <$> field
 
 instance Arbitrary Stats where
     arbitrary = Stats <$> positive <*> positive <*> positive <*> positive

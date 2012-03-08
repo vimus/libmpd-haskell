@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wwarn -fno-warn-missing-signatures #-}
 
 -- |
@@ -26,7 +27,7 @@ import qualified Test.QuickCheck as QC
 import           Test.QuickCheck ((==>))
 
 main = mapM_ (\(n, f) -> printf "%-25s : " n >> f) tests
-    where tests = [("enableOutput", testEnableOutput)
+    where tests = [("enableOutput" :: String, testEnableOutput)
                   ,("disableOutput", testDisableOutput)
                   ,("outputs", testOutputs)
                   ,("update0", testUpdate0)
