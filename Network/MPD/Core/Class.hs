@@ -33,6 +33,6 @@ class (Monad m, MonadError MPDError m) => MonadMPD m where
     --   one.
     getPassword :: m Password
     -- | Alters password to be sent to the server.
-    setPassword :: String -> m ()
+    setPassword :: Password -> m ()
     -- | Get MPD protocol version
     getVersion :: m (Int, Int, Int)

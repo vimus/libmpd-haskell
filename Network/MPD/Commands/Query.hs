@@ -28,10 +28,10 @@ import           Data.Monoid
 newtype Query = Query [Match] deriving Show
 
 -- A single query clause, comprising a metadata key and a desired value.
-data Match = Match Metadata String
+data Match = Match Metadata Value
 
 instance Show Match where
-    show (Match meta query) = show meta ++ " \"" ++ query ++ "\""
+    show (Match meta query) = show meta ++ " \"" ++ toString query ++ "\""
     showList xs _ = unwords $ map show xs
 
 instance Monoid Query where
@@ -47,7 +47,7 @@ anything :: Query
 anything = mempty
 
 -- | Create a query.
-(=?) :: Metadata -> String -> Query
+(=?) :: Metadata -> Value -> Query
 m =? s = Query [Match m s]
 
 -- | Combine queries.
