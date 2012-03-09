@@ -1,4 +1,4 @@
-{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE StandaloneDeriving, OverloadedStrings #-}
 {-# OPTIONS_GHC -Wwarn -fno-warn-orphans -fno-warn-missing-methods #-}
 module Properties (main) where
 
@@ -7,7 +7,7 @@ import           Displayable
 
 import           Network.MPD.Commands.Parse
 import           Network.MPD.Commands.Types
-import           Network.MPD.Util
+import           Network.MPD.Util hiding (read)
 
 import           Control.Monad
 import           Data.List
@@ -18,12 +18,14 @@ import           System.Environment
 import           Text.Printf
 import           Test.QuickCheck
 
+import           Data.ByteString.Char8 (ByteString)
+import qualified Data.ByteString.UTF8 as UTF8
 
 main :: IO ()
 main = do
     n <- (maybe 100 read . listToMaybe) `liftM` getArgs
     mapM_ (\(s, f) -> printf "%-25s : " s >> f n) tests
-    where tests = [("splitGroups / reversible",
+    where tests = [("splitGroups / reversible" :: String,
                         mytest prop_splitGroups_rev)
                   ,("splitGroups / integrity",
                         mytest prop_splitGroups_integrity)
@@ -74,22 +76,24 @@ prop_showBool :: Bool -> Bool
 prop_showBool True = showBool True == "1"
 prop_showBool x    = showBool x == "0"
 
-prop_splitGroups_rev :: [(String, String)] -> Property
+prop_splitGroups_rev :: [(ByteString, ByteString)] -> Property
 prop_splitGroups_rev xs = not (null xs) ==>
     let wrappers = [fst $ head xs]
         r = splitGroups wrappers xs
     in r == splitGroups wrappers (concat r)
 
-prop_splitGroups_integrity :: [(String, String)] -> Property
+prop_splitGroups_integrity :: [(ByteString, ByteString)] -> Property
 prop_splitGroups_integrity xs = not (null xs) ==>
     sort (concat $ splitGroups [fst $ head xs] xs) == sort xs
 
 prop_parseNum :: Integer -> Bool
 prop_parseNum x =
-    case show x of
-        (xs@"")      -> parseNum xs == Nothing
-        (xs@('-':_)) -> fromMaybe 0 (parseNum xs) <= 0
-        (xs)         -> fromMaybe 0 (parseNum xs) >= 0
+    case xs of
+        '-':_ -> ((<= 0) `fmap` parseNum bs) == Just True
+        _     -> ((>= 0) `fmap` parseNum bs) == Just True
+    where
+      xs = show x
+      bs = UTF8.fromString xs
 
 
 --------------------------------------------------------------------------
@@ -100,19 +104,19 @@ prop_parseNum x =
 -- Indeed, a bug in the instance declaration was the primary motivation to add
 -- this property.
 prop_parseIso8601 :: UTCTime -> Bool
-prop_parseIso8601 t = Just t == (parseIso8601 . formatIso8601) t
+prop_parseIso8601 t = Just t == (parseIso8601 . UTF8.fromString . formatIso8601) t
 
 prop_parseCount :: Count -> Bool
-prop_parseCount c = Right c == (parseCount . lines $ display c)
+prop_parseCount c = Right c == (parseCount . map UTF8.fromString . lines . display) c
 
 prop_parseOutputs :: [Device] -> Bool
 prop_parseOutputs ds =
-    Right ds == (parseOutputs . lines $ concatMap display ds)
+    Right ds == (parseOutputs . map UTF8.fromString . lines . concatMap display) ds
 
 deriving instance Ord Value
 
 prop_parseSong :: Song -> Bool
-prop_parseSong s = Right (sortTags s) == sortTags `fmap` (parseSong . toAssocList . lines $ display s)
+prop_parseSong s = Right (sortTags s) == sortTags `fmap` (parseSong . toAssocList . map UTF8.fromString . lines . display) s
   where
     -- We consider lists of tag values equal if they contain the same elements.
     -- To ensure that two lists with the same elements are equal, we bring the
@@ -120,4 +124,4 @@ prop_parseSong s = Right (sortTags s) == sortTags `fmap` (parseSong . toAssocLis
     sortTags song = song {sgTags = M.map sort $ sgTags song}
 
 prop_parseStats :: Stats -> Bool
-prop_parseStats s = Right s == (parseStats . lines $ display s)
+prop_parseStats s = Right s == (parseStats . map UTF8.fromString . lines . display) s

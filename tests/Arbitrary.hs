@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 {-# OPTIONS_GHC -Wwarn -fno-warn-orphans -fno-warn-missing-methods -XFlexibleInstances #-}
 
 -- | This module contains Arbitrary instances for various types.
@@ -20,6 +22,12 @@ import           Test.QuickCheck
 
 import           Network.MPD.Commands.Types
 
+import           Data.ByteString (ByteString)
+import qualified Data.ByteString.UTF8 as UTF8
+
+instance Arbitrary ByteString where
+  arbitrary = UTF8.fromString <$> arbitrary
+
 -- No longer provided by QuickCheck 2
 two :: Monad m => m a -> m (a, a)
 two m = liftM2 (,) m m
@@ -39,6 +47,9 @@ possibly m = arbitrary >>= bool (Just <$> m) (return Nothing)
 field :: Gen String
 field = (filter (/= '\n') . dropWhile isSpace) <$> arbitrary
 
+fieldBS :: Gen ByteString
+fieldBS = UTF8.fromString <$> field
+
 -- Orphan instances for built-in types
 instance Arbitrary (M.Map Metadata [Value]) where
     arbitrary = do
@@ -48,7 +59,7 @@ instance Arbitrary (M.Map Metadata [Value]) where
         return $ M.fromList (zip keys vals)
 
 instance Arbitrary Value where
-    arbitrary = Value <$> field
+    arbitrary = Value <$> fieldBS
 
 instance Arbitrary Day where
     arbitrary = ModifiedJulianDay <$> arbitrary
@@ -61,38 +72,40 @@ instance Arbitrary UTCTime where
 
 -- an assoc. string is a string of the form "key: value", followed by
 -- the key and value separately.
-data AssocString = AS String String String
+data AssocString = AS ByteString ByteString ByteString
 
 instance Show AssocString where
-    show (AS str _ _) = str
+    show (AS str _ _) = UTF8.toString str
 
 instance Arbitrary AssocString where
     arbitrary = do
         key <- filter    (/= ':') <$> arbitrary
         val <- dropWhile (== ' ') <$> arbitrary
-        return $ AS (key ++ ": " ++ val) key val
+        return $ AS (UTF8.fromString (key ++ ": " ++ val))
+                    (UTF8.fromString key)
+                    (UTF8.fromString val)
 
-newtype BoolString = BS String
+newtype BoolString = BS ByteString
     deriving Show
 
 instance Arbitrary BoolString where
-    arbitrary = BS `fmap` elements ["1", "0"]
+    arbitrary = BS <$> elements ["1", "0"]
 
 -- Simple date representation, like "2004" and "1998".
-newtype YearString = YS String
+newtype YearString = YS ByteString
     deriving Show
 
 instance Arbitrary YearString where
-    arbitrary = YS . show <$> (positive :: Gen Integer)
+    arbitrary = YS . UTF8.fromString . show <$> (positive :: Gen Integer)
 
 -- Complex date representations, like "2004-20-30".
-newtype DateString = DS String
+newtype DateString = DS ByteString
     deriving Show
 
 instance Arbitrary DateString where
     arbitrary = do
         (y,m,d) <- three (positive :: Gen Integer)
-        return . DS . concat . intersperse "-" $ map show [y,m,d]
+        return . DS . UTF8.fromString . concat . intersperse "-" $ map show [y,m,d]
 
 instance Arbitrary Count where
     arbitrary = liftM2 Count arbitrary arbitrary
@@ -112,7 +125,7 @@ instance Arbitrary Song where
                      <*> possibly positive
 
 instance Arbitrary Path where
-    arbitrary = Path <$> field
+    arbitrary = Path <$> fieldBS
 
 instance Arbitrary Stats where
     arbitrary = Stats <$> positive <*> positive <*> positive <*> positive
