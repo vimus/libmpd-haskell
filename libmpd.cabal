@@ -17,9 +17,10 @@ Build-Type:         Simple
 Cabal-Version:      >= 1.6
 Extra-Source-Files: README.md NEWS
                     tests/Arbitrary.hs tests/Commands.hs
-                    tests/Displayable.hs tests/Properties.hs
-                    tests/StringConn.hs tests/Main.hs
-                    tests/coverage.lhs tests/run-tests.lhs
+                    tests/Defaults.hs tests/Properties.hs
+                    tests/StringConn.hs tests/Unparse.hs
+                    tests/Main.hs tests/coverage.lhs
+                    tests/run-tests.lhs
 
 flag test
     Description: Build test driver
@@ -70,7 +71,7 @@ Executable test
     -- Dependencies that are only required by the test-suite:
     if flag(test)
         Build-Depends: QuickCheck >= 2.1, time, containers,
-                       hspec, unix, HUnit
+                       hspec, unix, HUnit, data-default
     ghc-options:        -Wall -fno-warn-warnings-deprecations
                         -fno-warn-type-defaults
 

@@ -11,7 +11,14 @@ import System.Directory (doesDirectoryExist, removeDirectoryRecursive,
                          removeFile)
 
 excludeModules =
-    ["Main", "Arbitrary", "Properties", "Displayable", "Commands", "StringConn"]
+    [ "Main"
+    , "Arbitrary"
+    , "Properties"
+    , "Commands"
+    , "StringConn"
+    , "Unparse"
+    , "Defaults"
+    ]
 
 main = do
     -- Cleanup from previous runs
