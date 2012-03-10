@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleContexts, GeneralizedNewtypeDeriving, OverloadedStrings #-}
 
 -- | Module    : Network.MPD.Core
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
@@ -31,12 +31,17 @@ import           Control.Monad.Error (ErrorT(..), MonadError(..))
 import           Control.Monad.Reader (ReaderT(..), ask)
 import           Control.Monad.State (StateT, MonadIO(..), modify, get, evalStateT)
 import qualified Data.Foldable as F
-import           Data.List (isPrefixOf)
 import           Network (PortID(..), withSocketsDo, connectTo)
 import           System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
 import           System.IO.Error (isEOFError)
 import qualified System.IO.UTF8 as U
 import           Text.Printf (printf)
+
+import qualified Prelude
+import           Prelude hiding (break, drop, dropWhile, read)
+import           Data.ByteString.Char8 (ByteString, isPrefixOf, break, drop, dropWhile)
+import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.UTF8 as UTF8
 
 --
 -- Data types.
@@ -149,7 +154,7 @@ mpdClose =
             | isEOFError err = result
             | otherwise      = ioError err
 
-mpdSend :: String -> MPD [String]
+mpdSend :: String -> MPD [ByteString]
 mpdSend str = send' `catchError` handler
     where
         handler TimedOut = mpdOpen >> send'
@@ -167,8 +172,9 @@ mpdSend str = send' `catchError` handler
                                       else liftIO (ioError err))
                            return
 
+        getLines :: Handle -> [ByteString] -> IO [ByteString]
         getLines handle acc = do
-            l <- U.hGetLine handle
+            l <- B.hGetLine handle
             if "OK" `isPrefixOf` l || "ACK" `isPrefixOf` l
                 then (return . reverse) (l:acc)
                 else getLines handle (l:acc)
@@ -188,7 +194,7 @@ kill = ignore (send "kill") `catchError` cleanup
         cleanup e = if e == TimedOut then close else throwError e
 
 -- | Send a command to the MPD server and return the result.
-getResponse :: (MonadMPD m) => String -> m [String]
+getResponse :: (MonadMPD m) => String -> m [ByteString]
 getResponse cmd = (send cmd >>= parseResponse) `catchError` sendpw
     where
         sendpw e@(ACK Auth _) = do
@@ -200,7 +206,7 @@ getResponse cmd = (send cmd >>= parseResponse) `catchError` sendpw
             throwError e
 
 -- Consume response and return a Response.
-parseResponse :: (MonadError MPDError m) => [String] -> m [String]
+parseResponse :: (MonadError MPDError m) => [ByteString] -> m [ByteString]
 parseResponse xs
     | null xs                    = throwError $ NoMPD
     | "ACK" `isPrefixOf` x       = throwError $ parseAck x
@@ -209,8 +215,8 @@ parseResponse xs
         x = head xs
 
 -- Turn MPD ACK into the corresponding 'MPDError'
-parseAck :: String -> MPDError
-parseAck s = ACK ack msg
+parseAck :: ByteString -> MPDError
+parseAck s = ACK ack (UTF8.toString msg)
     where
         ack = case code of
                 2  -> InvalidArgument
@@ -230,7 +236,7 @@ parseAck s = ACK ack msg
 -- Break an ACK into (error code, current command, message).
 -- ACKs are of the form:
 -- ACK [error@command_listNum] {current_command} message_text\n
-splitAck :: String -> (Int, String, String)
+splitAck :: ByteString -> (Int, ByteString, ByteString)
 splitAck s = (read code, cmd, msg)
     where
         (code, notCode) = between '[' '@' s
