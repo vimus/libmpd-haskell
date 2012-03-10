@@ -3,7 +3,8 @@
 module Properties (main) where
 
 import           Arbitrary
-import           Displayable
+import           Defaults
+import           Unparse
 
 import           Network.MPD.Commands.Parse
 import           Network.MPD.Commands.Types
@@ -107,16 +108,16 @@ prop_parseIso8601 :: UTCTime -> Bool
 prop_parseIso8601 t = Just t == (parseIso8601 . UTF8.fromString . formatIso8601) t
 
 prop_parseCount :: Count -> Bool
-prop_parseCount c = Right c == (parseCount . map UTF8.fromString . lines . display) c
+prop_parseCount c = Right c == (parseCount . map UTF8.fromString . lines . unparse) c
 
 prop_parseOutputs :: [Device] -> Bool
 prop_parseOutputs ds =
-    Right ds == (parseOutputs . map UTF8.fromString . lines . concatMap display) ds
+    Right ds == (parseOutputs . map UTF8.fromString . lines . concatMap unparse) ds
 
 deriving instance Ord Value
 
 prop_parseSong :: Song -> Bool
-prop_parseSong s = Right (sortTags s) == sortTags `fmap` (parseSong . toAssocList . map UTF8.fromString . lines . display) s
+prop_parseSong s = Right (sortTags s) == sortTags `fmap` (parseSong . toAssocList . map UTF8.fromString . lines . unparse) s
   where
     -- We consider lists of tag values equal if they contain the same elements.
     -- To ensure that two lists with the same elements are equal, we bring the
@@ -124,4 +125,4 @@ prop_parseSong s = Right (sortTags s) == sortTags `fmap` (parseSong . toAssocLis
     sortTags song = song {sgTags = M.map sort $ sgTags song}
 
 prop_parseStats :: Stats -> Bool
-prop_parseStats s = Right s == (parseStats . map UTF8.fromString . lines . display) s
+prop_parseStats s = Right s == (parseStats . map UTF8.fromString . lines . unparse) s
