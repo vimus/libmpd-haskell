@@ -18,6 +18,9 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 import           Network.MPD.Core
 
+import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.UTF8 as UTF8
+
 -- | An expected request.
 type Expect = String
 
@@ -66,7 +69,7 @@ instance MonadMPD StringMPD where
                  (throwError . MErr . Left
                              $ UnexpectedRequest expected_request request)
             put rest
-            either (throwError . MErr . Right) (return . lines) response
+            either (throwError . MErr . Right) (return . B.lines . UTF8.fromString) response
 
 -- | Run an action against a set of expected requests and responses,
 -- and an expected result. The result is Nothing if everything matched

@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, OverloadedStrings #-}
 
 -- | Module    : Network.MPD.Commands.Parse
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
@@ -19,10 +19,13 @@ import           Data.Maybe (fromMaybe)
 import           Network.MPD.Util
 import           Network.MPD.Core (MonadMPD, MPDError(Unexpected))
 
+import           Data.ByteString.Char8 (ByteString)
+import qualified Data.ByteString.UTF8 as UTF8
+
 -- | Builds a 'Count' instance from an assoc. list.
-parseCount :: [String] -> Either String Count
+parseCount :: [ByteString] -> Either String Count
 parseCount = foldM f defaultCount . toAssocList
-        where f :: Count -> (String, String) -> Either String Count
+        where f :: Count -> (ByteString, ByteString) -> Either String Count
               f a ("songs", x)    = return $ parse parseNum
                                     (\x' -> a { cSongs = x'}) a x
               f a ("playtime", x) = return $ parse parseNum
@@ -30,19 +33,19 @@ parseCount = foldM f defaultCount . toAssocList
               f _ x               = Left $ show x
 
 -- | Builds a list of 'Device' instances from an assoc. list
-parseOutputs :: [String] -> Either String [Device]
+parseOutputs :: [ByteString] -> Either String [Device]
 parseOutputs = mapM (foldM f defaultDevice)
              . splitGroups ["outputid"]
              . toAssocList
     where f a ("outputid", x)      = return $ parse parseNum
                                      (\x' -> a { dOutputID = x' }) a x
-          f a ("outputname", x)    = return a { dOutputName = x }
+          f a ("outputname", x)    = return a { dOutputName = UTF8.toString x }
           f a ("outputenabled", x) = return $ parse parseBool
                                      (\x' -> a { dOutputEnabled = x'}) a x
           f _ x                    = fail $ show x
 
 -- | Builds a 'Stats' instance from an assoc. list.
-parseStats :: [String] -> Either String Stats
+parseStats :: [ByteString] -> Either String Stats
 parseStats = foldM f defaultStats . toAssocList
     where
         f a ("artists", x)     = return $ parse parseNum
@@ -61,18 +64,18 @@ parseStats = foldM f defaultStats . toAssocList
                                  (\x' -> a { stsDbUpdate = x' }) a x
         f _ x = fail $ show x
 
-parseMaybeSong :: [(String, String)] -> Either String (Maybe Song)
+parseMaybeSong :: [(ByteString, ByteString)] -> Either String (Maybe Song)
 parseMaybeSong xs | null xs   = Right Nothing
                   | otherwise = Just `fmap` parseSong xs
 
 -- | Builds a 'Song' instance from an assoc. list.
-parseSong :: [(String, String)] -> Either String Song
+parseSong :: [(ByteString, ByteString)] -> Either String Song
 parseSong xs = case xs of
     ("file", path):ys -> foldM f (defaultSong $ Path path) ys
     _ -> Left "Got a song without a file path! This indicates a bug in either libmpd-haskell or MPD itself!"
 
     where
-        f :: Song -> (String, String) -> Either String Song
+        f :: Song -> (ByteString, ByteString) -> Either String Song
         f s ("Last-Modified", v) =
             return s { sgLastModified = parseIso8601 v }
         f s ("Time", v) =
@@ -103,7 +106,7 @@ parseSong xs = case xs of
         readMeta _ = Nothing
 
 -- | Builds a 'Status' instance from an assoc. list.
-parseStatus :: [String] -> Either String Status
+parseStatus :: [ByteString] -> Either String Status
 parseStatus = foldM f defaultStatus . toAssocList
     where f a ("state", x)
               = return $ parse state     (\x' -> a { stState = x' }) a x
@@ -138,7 +141,7 @@ parseStatus = foldM f defaultStatus . toAssocList
           f a ("updating_db", x)
               = return $ parse parseNum  (\x' -> a { stUpdatingDb = x' }) a x
           f a ("error", x)
-              = return a { stError = Just x }
+              = return a { stError = Just (UTF8.toString x) }
           f a ("single", x)
               = return $ parse parseBool (\x' -> a { stSingle = x' }) a x
           f a ("consume", x)
@@ -169,12 +172,12 @@ runParser f = either (throwError . Unexpected) return . f
 -- | A helper that runs a parser on a string and, depending on the
 -- outcome, either returns the result of some command applied to the
 -- result, or a default value. Used when building structures.
-parse :: (String -> Maybe a) -> (a -> b) -> b -> String -> b
+parse :: (ByteString -> Maybe a) -> (a -> b) -> b -> ByteString -> b
 parse parser f x = maybe x f . parser
 
 -- | A helper for running a parser returning Maybe on a pair of strings.
 -- Returns Just if both strings where parsed successfully, Nothing otherwise.
-pair :: (String -> Maybe a) -> (String, String) -> Maybe (a, a)
+pair :: (ByteString -> Maybe a) -> (ByteString, ByteString) -> Maybe (a, a)
 pair p (x, y) = case (p x, p y) of
                     (Just a, Just b) -> Just (a, b)
                     _                -> Nothing

@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Spec (main, spec) where
 
 import           Test.Hspec.Monadic
