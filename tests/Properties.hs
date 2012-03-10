@@ -3,7 +3,7 @@
 module Properties (main) where
 
 import           Arbitrary
-import           Defaults
+import           Defaults ()
 import           Unparse
 
 import           Network.MPD.Commands.Parse
