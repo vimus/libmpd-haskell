@@ -20,6 +20,8 @@ import qualified Data.Text.Encoding as Text
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString.UTF8 as UTF8
 
+-- The purpose of this class is to allow users to choose the optimal
+-- representation of response values.
 -- | A type class for values that can be converted to `String`s.
 class ToString a where
 
