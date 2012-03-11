@@ -20,17 +20,19 @@ import qualified Data.Text.Encoding as Text
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString.UTF8 as UTF8
 
+-- The purpose of this class is to allow users to choose the optimal
+-- representation of response values.
+-- | A type class for values that can be converted to `String`s.
 class ToString a where
+
+  -- | Convert given value to `String`.
   toString :: a -> String
 
-class ToText a where
-  toText :: a -> Text
+  -- | Convert given value to `Text`.
+  toText   :: a -> Text
 
-instance ToString ByteString where
-  toString = UTF8.toString
-
-instance ToText ByteString where
-  toText = Text.decodeUtf8
+  -- | Convert given value an UTF-8 encoded `ByteString`.
+  toUtf8   :: a -> ByteString
 
 type Artist = Value
 type Album  = Value
@@ -39,7 +41,12 @@ type Title  = Value
 -- | Used for commands which require a playlist name.
 -- If empty, the current playlist is used.
 newtype PlaylistName = PlaylistName ByteString
-  deriving (Eq, Show, ToString, ToText, MPDArg)
+  deriving (Eq, Show, MPDArg)
+
+instance ToString PlaylistName where
+  toString (PlaylistName x) = UTF8.toString x
+  toText   (PlaylistName x) = Text.decodeUtf8 x
+  toUtf8   (PlaylistName x) = x
 
 instance IsString PlaylistName where
   fromString = PlaylistName . UTF8.fromString
@@ -47,7 +54,12 @@ instance IsString PlaylistName where
 -- | Used for commands which require a path within the database.
 -- If empty, the root path is used.
 newtype Path = Path ByteString
-  deriving (Eq, Show, ToString, ToText, MPDArg)
+  deriving (Eq, Show, MPDArg)
+
+instance ToString Path where
+  toString (Path x) = UTF8.toString x
+  toText   (Path x) = Text.decodeUtf8 x
+  toUtf8   (Path x) = x
 
 instance IsString Path where
   fromString = Path . UTF8.fromString
@@ -80,7 +92,12 @@ instance MPDArg Metadata
 
 -- | A metadata value.
 newtype Value = Value ByteString
-  deriving (Eq, Show, ToString, ToText, MPDArg)
+  deriving (Eq, Show, MPDArg)
+
+instance ToString Value where
+  toString (Value x) = UTF8.toString x
+  toText   (Value x) = Text.decodeUtf8 x
+  toUtf8   (Value x) = x
 
 instance IsString Value where
   fromString = Value . UTF8.fromString
