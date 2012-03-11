@@ -22,15 +22,13 @@ import qualified Data.ByteString.UTF8 as UTF8
 
 class ToString a where
   toString :: a -> String
-
-class ToText a where
-  toText :: a -> Text
+  toText   :: a -> Text
+  toUTF8   :: a -> ByteString
 
 instance ToString ByteString where
   toString = UTF8.toString
-
-instance ToText ByteString where
-  toText = Text.decodeUtf8
+  toText   = Text.decodeUtf8
+  toUTF8   = id
 
 type Artist = Value
 type Album  = Value
@@ -39,7 +37,7 @@ type Title  = Value
 -- | Used for commands which require a playlist name.
 -- If empty, the current playlist is used.
 newtype PlaylistName = PlaylistName ByteString
-  deriving (Eq, Show, ToString, ToText, MPDArg)
+  deriving (Eq, Show, ToString, MPDArg)
 
 instance IsString PlaylistName where
   fromString = PlaylistName . UTF8.fromString
@@ -47,7 +45,7 @@ instance IsString PlaylistName where
 -- | Used for commands which require a path within the database.
 -- If empty, the root path is used.
 newtype Path = Path ByteString
-  deriving (Eq, Show, ToString, ToText, MPDArg)
+  deriving (Eq, Show, ToString, MPDArg)
 
 instance IsString Path where
   fromString = Path . UTF8.fromString
@@ -80,7 +78,7 @@ instance MPDArg Metadata
 
 -- | A metadata value.
 newtype Value = Value ByteString
-  deriving (Eq, Show, ToString, ToText, MPDArg)
+  deriving (Eq, Show, ToString, MPDArg)
 
 instance IsString Value where
   fromString = Value . UTF8.fromString
