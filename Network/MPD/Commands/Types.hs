@@ -20,10 +20,17 @@ import qualified Data.Text.Encoding as Text
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString.UTF8 as UTF8
 
+-- | A type clas for values that can be converted to `String`s.
 class ToString a where
+
+  -- | Convert given value to `String`.
   toString :: a -> String
+
+  -- | Convert given value to `Text`.
   toText   :: a -> Text
-  toUTF8   :: a -> ByteString
+
+  -- | Convert given value an UTF-8 encoded `ByteString`.
+  toUtf8   :: a -> ByteString
 
 type Artist = Value
 type Album  = Value
@@ -37,7 +44,7 @@ newtype PlaylistName = PlaylistName ByteString
 instance ToString PlaylistName where
   toString (PlaylistName x) = UTF8.toString x
   toText   (PlaylistName x) = Text.decodeUtf8 x
-  toUTF8   (PlaylistName x) = x
+  toUtf8   (PlaylistName x) = x
 
 instance IsString PlaylistName where
   fromString = PlaylistName . UTF8.fromString
@@ -50,7 +57,7 @@ newtype Path = Path ByteString
 instance ToString Path where
   toString (Path x) = UTF8.toString x
   toText   (Path x) = Text.decodeUtf8 x
-  toUTF8   (Path x) = x
+  toUtf8   (Path x) = x
 
 instance IsString Path where
   fromString = Path . UTF8.fromString
@@ -88,7 +95,7 @@ newtype Value = Value ByteString
 instance ToString Value where
   toString (Value x) = UTF8.toString x
   toText   (Value x) = Text.decodeUtf8 x
-  toUTF8   (Value x) = x
+  toUtf8   (Value x) = x
 
 instance IsString Value where
   fromString = Value . UTF8.fromString
