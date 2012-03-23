@@ -1,84 +1,93 @@
 Name:               libmpd
 Version:            0.8.0
-License:            LGPL
-License-file:       LICENSE
-Copyright:          Ben Sinclair 2005-2009, Joachim Fasting 2012
-Author:             Ben Sinclair
-Maintainer:         Joachim Fasting <joachim.fasting@gmail.com>
-Stability:          beta
-Homepage:           http://github.com/joachifm/libmpd-haskell
-Bug-reports:        http://github.com/joachifm/libmpd-haskell/issues
 Synopsis:           An MPD client library.
 Description:        A client library for MPD, the Music Player Daemon
                     (<http://www.musicpd.org/>).
 Category:           Network, Sound
+
+License:            LGPL
+License-file:       LICENSE
+Copyright:          Ben Sinclair 2005-2009, Joachim Fasting 2012
+Author:             Ben Sinclair
+
+Maintainer:         Joachim Fasting <joachim.fasting@gmail.com>
+Stability:          beta
+Homepage:           http://github.com/joachifm/libmpd-haskell
+Bug-reports:        http://github.com/joachifm/libmpd-haskell/issues
+
 Tested-With:        GHC == 7.0.2
 Build-Type:         Simple
-Cabal-Version:      >= 1.6
+Cabal-Version:      >= 1.10
+
 Extra-Source-Files:
-    README.md NEWS
-    tests/Arbitrary.hs tests/Defaults.hs tests/StringConn.hs
-    tests/TestUtil.hs tests/Unparse.hs
-    tests/EnvSpec.hs tests/ParserSpec.hs tests/UtilSpec.hs
-    tests/CommandSpec.hs
+    README.md
+    NEWS
+    tests/Arbitrary.hs
+    tests/Commands.hs
+    tests/Defaults.hs
+    tests/Properties.hs
+    tests/StringConn.hs
+    tests/Unparse.hs
     tests/Main.hs
-    tests/coverage.lhs tests/run-tests.lhs
-
-flag test
-    Description: Build test driver
-    Default: False
-
-flag coverage
-    Description: Build driver with hpc instrumentation
-    Default: False
 
 Source-Repository head
     type:       git
     location:   git://github.com/joachifm/libmpd-haskell.git
 
 Library
-    ghc-options:        -Wall
-    Build-Depends:      base >= 4 && < 5,
-                        mtl >= 2.0 && < 2.1,
-                        network >= 2.1 && < 2.4,
-                        filepath >= 1.0 && < 1.4,
-                        utf8-string >= 0.3.1 && < 0.4,
-                        old-locale >= 1.0 && < 2.0,
-                        time >= 1.1 && < 2.0,
-                        containers >= 0.3 && < 0.5,
-                        bytestring == 0.9.*,
-                        text == 0.11.*
-    Exposed-Modules:    Network.MPD, Network.MPD.Commands.Extensions,
-                        Network.MPD.Core
-    Other-Modules:      Network.MPD.Core.Class,
-                        Network.MPD.Core.Error,
-                        Network.MPD.Commands,
-                        Network.MPD.Commands.Arg,
-                        Network.MPD.Commands.Parse,
-                        Network.MPD.Commands.Query,
-                        Network.MPD.Commands.Types,
-                        Network.MPD.Commands.Util,
-                        Network.MPD.Util
+    Default-Language:   Haskell2010
+
+    Build-Depends:
+        base >= 4 && < 5
+      , mtl >= 2.0 && < 2.1
+      , network >= 2.1 && < 2.4
+      , filepath >= 1.0 && < 1.4
+      , utf8-string >= 0.3.1 && < 0.4
+      , old-locale >= 1.0 && < 2.0
+      , time >= 1.1 && < 2.0
+      , containers >= 0.3 && < 0.5
+      , bytestring == 0.9.*
+      , text == 0.11.*
+
+    Exposed-Modules:
+        Network.MPD
+      , Network.MPD.Commands.Extensions
+      , Network.MPD.Core
+
+    Other-Modules:
+        Network.MPD.Core.Class
+      , Network.MPD.Core.Error
+      , Network.MPD.Commands
+      , Network.MPD.Commands.Arg
+      , Network.MPD.Commands.Parse
+      , Network.MPD.Commands.Query
+      , Network.MPD.Commands.Types
+      , Network.MPD.Commands.Util
+      , Network.MPD.Util
 
     ghc-prof-options:   -auto-all -prof
+    ghc-options:        -Wall
 
-    if flag(test)
-        Buildable: False
-
-Executable test
-    cpp-options:        -DTEST
-    Hs-Source-Dirs:     . tests
+Test-Suite specs
+    type:               exitcode-stdio-1.0
+    Default-Language:   Haskell2010
     Main-Is:            tests/Main.hs
-    Build-Depends:      base ==4.*, network, mtl, filepath, utf8-string
-    -- Dependencies that are only required by the test-suite:
-    if flag(test)
-        Build-Depends: QuickCheck >= 2.1, time, containers,
-                       hspec, unix, HUnit, data-default
-    ghc-options:        -Wall -fno-warn-warnings-deprecations
-                        -fno-warn-type-defaults
+    Hs-Source-Dirs:     . tests
+    cpp-options:        -DTEST
+    ghc-options:        -fno-warn-missing-signatures
 
-    if flag(coverage)
-        ghc-options:    -fhpc
-
-    if !flag(test)
-        Buildable: False
+    Build-Depends:
+        base
+      , utf8-string
+      , bytestring
+      , old-locale
+      , network
+      , mtl
+      , text
+      , containers
+      , data-default
+      , unix
+      , time
+      , QuickCheck >= 2.1
+      , hspec
+      , HUnit
