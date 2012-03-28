@@ -4,16 +4,11 @@ Compile and run tests.
 Usage: runhaskell run-tests.lhs [arguments]
 
 \begin{code}
-import Control.Monad (when)
-import Data.Maybe (isJust)
-import System.Directory (removeFile)
-import System.Environment (getArgs)
 import System.Exit (ExitCode(..), exitWith)
 import System.IO (hGetContents)
-import System.Process
-import Text.Regex (matchRegex, mkRegex)
+import System.Process (runCommand, system, waitForProcess)
 
-
+main :: IO ()
 main = do
     -- Build the test binary
     run "runhaskell Setup configure -f test --disable-optimization --user"
@@ -23,25 +18,12 @@ main = do
     run "runhaskell Setup configure --user"
     run "runhaskell Setup haddock --hyperlink"
 
-    -- Run test suite and save output to test.log
-    args <- getArgs
-    (_, oh, _, ph) <- runInteractiveProcess "dist/build/test/test" args
-                                            Nothing Nothing
-    waitForProcess ph
-    result <- hGetContents oh
-    putStr result
-    writeFile "test.log" result
-
-    -- Detect failure
-    let re = mkRegex "Falsifiable|\\*\\*\\* FAILURE \\*\\*\\*"
-    when (isJust $ matchRegex re result) $ do
-        putStrLn "Failure detected: see test.log"
-        exitWith (ExitFailure 1)
-
-    -- Cleanup
-    removeFile "test.log"
+    -- Run test suite and report outcome to caller
+    ph <- runCommand "dist/build/test/test"
+    exitWith =<< waitForProcess =<< runCommand "dist/build/test/test"
 
 -- A wrapper for 'system' that halts the program if the command fails.
+run :: String -> IO ()
 run x = system x >>= catchFailure
     where
         catchFailure (ExitFailure _) = exitWith (ExitFailure 1)
