@@ -1,17 +1,14 @@
-{-# OPTIONS_GHC -Wwarn -fno-warn-missing-signatures #-}
--- |
--- GUTD: The Grand Unified Test Driver.
-import qualified Commands
-import qualified Properties
-import qualified Spec
-import           Test.Hspec.Monadic (hspecX)
+module Main (main) where
 
-main = do
-    putStrLn "*** Properties ***"
-    Properties.main
+import qualified CommandSpec
+import qualified EnvSpec
+import qualified ParserSpec
+import qualified UtilSpec
+import           Test.Hspec.Monadic (describe, hspecX)
 
-    putStrLn "\n*** Unit Tests ***"
-    Commands.main
-
-    putStrLn "\n*** Specs ***"
-    hspecX Spec.spec
+main :: IO ()
+main = hspecX $ do
+    describe "CommandSpec" CommandSpec.spec
+    describe "EnvSpec" EnvSpec.spec
+    describe "ParserSpec" ParserSpec.spec
+    describe "UtilSpec" UtilSpec.spec

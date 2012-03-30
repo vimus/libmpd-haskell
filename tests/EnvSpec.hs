@@ -1,36 +1,16 @@
-{-# LANGUAGE OverloadedStrings #-}
-module Spec (main, spec) where
+module EnvSpec (main, spec) where
 
+import           TestUtil
 import           Test.Hspec.Monadic
-import           Test.Hspec.HUnit()
-import           Test.HUnit
 
 import           Network.MPD
-import           Network.MPD.Util
 import           System.Posix.Env hiding (getEnvDefault)
-
-shouldBe :: (Eq a, Show a) => a -> a -> Assertion
-shouldBe = (@?=)
 
 main :: IO ()
 main = hspecX spec
 
 spec :: Specs
 spec = do
-
-  -- * Network.MPD.Util
-  describe "splitGroups" $ do
-    it "breaks an association list into sublists" $ do
-      splitGroups ["1", "5"]
-        [("1","a"),("2","b"),
-         ("5","c"),("6","d"),
-         ("1","z"),("2","y"),("3","x")]
-         `shouldBe`
-         [[("1","a"),("2","b")],
-         [("5","c"),("6","d")],
-         [("1","z"),("2","y"),("3","x")]]
-
-  -- * Network.MPD
   describe "getEnvDefault" $ do
     it "returns the value of an environment variable" $ do
       setEnv "FOO" "foo" True
