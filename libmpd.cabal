@@ -34,7 +34,7 @@ flag coverage
 
 Source-Repository head
     type:       git
-    location:   git://github.com/joachifm/libmpd-haskell.git
+    location:   https://github.com/joachifm/libmpd-haskell
 
 Library
     ghc-options:        -Wall
