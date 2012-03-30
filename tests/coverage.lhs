@@ -25,15 +25,15 @@ main = do
     hpcExists <- doesDirectoryExist ".hpc"
     when hpcExists $ do
         removeDirectoryRecursive ".hpc"
-        removeFile "test.tix"
+        removeFile "specs.tix"
 
     -- Build and generate coverage report
     run "runhaskell Setup clean"
-    run "runhaskell Setup configure -f test -f coverage --disable-optimization --user"
+    run "runhaskell Setup configure --enable-tests --enable-library-coverage --disable-optimization --user"
     run "runhaskell Setup build"
-    run "dist/build/test/test"
-    run ("hpc markup test.tix --destdir=report " ++ exclude)
-    run ("hpc report test.tix " ++ exclude)
+    run "dist/build/specs/specs"
+    run ("hpc markup specs.tix --destdir=coverage-report " ++ exclude)
+    run ("hpc report specs.tix " ++ exclude)
     where
         exclude = unwords (map ("--exclude=" ++) excludeModules)
 

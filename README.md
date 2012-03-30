@@ -27,7 +27,7 @@ To install libmpd-haskell, simply run:
 ## Running tests
 To run the libmpd testsuite, do:
 
-`./tests/run-tests.lhs`
+`cabal configure --enable-tests && cabal build && cabal test`
 
 ## Compiler support
 We try to support the two last major versions of GHC, but only the latest
