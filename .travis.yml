@@ -1,1 +1,2 @@
 language: haskell
+script: runhaskell -itests tests/run-tests.lhs
