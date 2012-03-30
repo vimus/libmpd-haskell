@@ -1,2 +1,7 @@
 language: haskell
+install:
+    - cabal update
+    - cabal install hspec data-default hscolour
+    - cabal install
+
 script: runhaskell -itests tests/run-tests.lhs

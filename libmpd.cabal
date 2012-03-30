@@ -32,7 +32,7 @@ Extra-Source-Files:
 
 Source-Repository head
     type:       git
-    location:   git://github.com/joachifm/libmpd-haskell.git
+    location:   https://github.com/joachifm/libmpd-haskell
 
 Library
     Default-Language:   Haskell2010
