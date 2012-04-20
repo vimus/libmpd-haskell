@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts, GeneralizedNewtypeDeriving, OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- | Module    : Network.MPD.Core
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
@@ -26,6 +27,7 @@ import           Network.MPD.Core.Error
 
 import           Data.Char (isDigit)
 import           Control.Applicative (Applicative(..), (<$>), (<*))
+import           Control.Exception hiding (handle)
 import           Control.Monad (ap, unless)
 import           Control.Monad.Error (ErrorT(..), MonadError(..))
 import           Control.Monad.Reader (ReaderT(..), ask)
@@ -38,7 +40,7 @@ import qualified System.IO.UTF8 as U
 import           Text.Printf (printf)
 
 import qualified Prelude
-import           Prelude hiding (break, drop, dropWhile, read)
+import           Prelude hiding (break, catch, drop, dropWhile, read)
 import           Data.ByteString.Char8 (ByteString, isPrefixOf, break, drop, dropWhile)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8 as UTF8
@@ -111,11 +113,10 @@ mpdOpen = MPD $ do
     where
         safeConnectTo host@('/':_) _ =
             (Just <$> connectTo "" (UnixSocket host))
-            `catch` const (return Nothing)
+            `catch` (\(_ :: SomeException) -> return Nothing)
         safeConnectTo host port =
             (Just <$> connectTo host (PortNumber $ fromInteger port))
-            `catch` const (return Nothing)
-
+            `catch` (\(_ :: SomeException) -> return Nothing)
         checkConn = do
             [msg] <- send ""
             if "OK MPD" `isPrefixOf` msg
