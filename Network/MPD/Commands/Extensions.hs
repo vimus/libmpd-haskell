@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- | Module    : Network.MPD.Commands.Extensions
--- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
+-- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2012
 -- License     : LGPL (see LICENSE)
 -- Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
 -- Stability   : alpha
@@ -41,6 +41,18 @@ addMany plname xs = getResponses (map cmd xs) >> return ()
     where cmd x = case plname of
                       "" -> "add" <$> x
                       pl -> "playlistadd" <$> pl <++> x
+
+-- | Recursive 'addId'. For directories, it will use the given position
+-- for the first file in the directory and use the successor for the remaining
+-- files. It returns a list of playlist ids for the songs added.
+addIdMany :: MonadMPD m => Path -> Maybe Integer -> m [Id]
+addIdMany x (Just p) = do
+    fs <- listAll x
+    let fs' = map (\(a, b) -> (a, Just b)) $ zip fs [p ..]
+    mapM (uncurry addId) fs'
+addIdMany x Nothing = do
+    fs <- listAll x
+    mapM (flip addId Nothing) fs
 
 -- | Delete a list of songs from a playlist.
 -- If there is a duplicate then no further songs will be deleted, so
