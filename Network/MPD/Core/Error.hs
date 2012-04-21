@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 -- | Module    : Network.MPD.Core.Error
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
 -- License     : LGPL (see LICENSE)
@@ -8,7 +10,9 @@
 
 module Network.MPD.Core.Error where
 
+import           Control.Exception
 import           Control.Monad.Error (Error(..))
+import           Data.Typeable
 
 -- | The MPDError type is used to signal errors, both from the MPD and
 -- otherwise.
@@ -20,7 +24,9 @@ data MPDError = NoMPD              -- ^ MPD not responding
               | Custom String      -- ^ Used for misc. errors
               | ACK ACKType String -- ^ ACK type and a message from the
                                    --   server
-                deriving Eq
+                deriving (Eq, Typeable)
+
+instance Exception MPDError
 
 instance Show MPDError where
     show NoMPD          = "Could not connect to MPD"
