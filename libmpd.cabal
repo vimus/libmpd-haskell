@@ -28,6 +28,7 @@ Extra-Source-Files:
     tests/EnvSpec.hs
     tests/ParserSpec.hs
     tests/StringConn.hs
+    tests/TestUtil.hs
     tests/Unparse.hs
     tests/UtilSpec.hs
     tests/Main.hs
