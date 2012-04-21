@@ -23,11 +23,13 @@ Extra-Source-Files:
     README.md
     NEWS
     tests/Arbitrary.hs
-    tests/Commands.hs
+    tests/CommandSpec.hs
     tests/Defaults.hs
-    tests/Properties.hs
+    tests/EnvSpec.hs
+    tests/ParserSpec.hs
     tests/StringConn.hs
     tests/Unparse.hs
+    tests/UtilSpec.hs
     tests/Main.hs
 
 Source-Repository head
@@ -39,7 +41,7 @@ Library
 
     Build-Depends:
         base >= 4 && < 5
-      , mtl >= 2.0 && < 2.1
+      , mtl >= 2.0 && < 2.2
       , network >= 2.1 && < 2.4
       , filepath >= 1.0 && < 1.4
       , utf8-string >= 0.3.1 && < 0.4
