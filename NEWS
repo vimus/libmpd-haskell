@@ -1,3 +1,17 @@
+* v0.8.0, 2012-04-21
+  - Use bytestring for wire communication (sol)
+  - Increased type safety (sol)
+  - Improved memory usage (sol)
+  - `lsinfo` supports playlists (nandykins)
+  - `idle` now takes a list of subsystems (sol)
+  - `currentSong` works when playback is stopped (sol)
+  - Fixes failure on songs without associated paths (sol)
+  - `LsResult` replaces `EntryType` (nandykins)
+  - hspec based testing added to the test-suite
+  - More extensive parser testing
+  - 'MPDError' now has an 'Exception' instance
+  - Lower bound on Cabal bumped to 1.10
+
 * v0.7.2, 2012-02-13
   - Release connections. Reported by Kanisterschleife on GitHub.
   - Some minor internal changes (sol)
