@@ -42,6 +42,7 @@ any deviation from this is a bug.
 ## Usage
 With GHCi:
 
+    > :set -XOverloadedStrings
     > import Network.MPD
     > withMPD $ lsInfo ""
     Right [Left "Tool", Left "Tom Waits",...]
