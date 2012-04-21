@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- | Module    : Network.MPD.Commands.Extensions
--- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
+-- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2012
 -- License     : LGPL (see LICENSE)
 -- Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
 -- Stability   : alpha
