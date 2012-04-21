@@ -45,7 +45,7 @@ With GHCi:
     > :set -XOverloadedStrings
     > import Network.MPD
     > withMPD $ lsInfo ""
-    Right [Left "Tool", Left "Tom Waits",...]
+    Right [LsDirectory "Tool", LsDirectory "Tom Waits",...]
     > withMPD $ add "Tom Waits/Big Time"
     Right ["Tom Waits/Big Time/01 - 16 Shells from a Thirty-Ought-Six.mp3",...]
 
