@@ -265,7 +265,7 @@ data Status =
              --   (see mpd.conf).
            , stAudio           :: (Int, Int, Int)
              -- | Job ID of currently running update (if any).
-           , stUpdatingDb      :: Integer
+           , stUpdatingDb      :: Maybe Integer
              -- | If True, MPD will play only one song and stop after finishing it.
            , stSingle          :: Bool
              -- | If True, a song will be removed after it has been played.
@@ -281,5 +281,5 @@ defaultStatus =
            , stSongPos = Nothing, stSongID = Nothing, stTime = (0,0)
            , stNextSongPos = Nothing, stNextSongID = Nothing
            , stBitrate = 0, stXFadeWidth = 0, stMixRampdB = 0
-           , stMixRampDelay = 0, stAudio = (0,0,0), stUpdatingDb = 0
+           , stMixRampDelay = 0, stAudio = (0,0,0), stUpdatingDb = Nothing
            , stSingle = False, stConsume = False, stError = Nothing }
