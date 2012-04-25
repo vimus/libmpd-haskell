@@ -108,4 +108,4 @@ splitGroups groupHeads = go
 
 -- A helper for running a Parser, turning errors into Nothing.
 parseMaybe :: A.Parser a -> ByteString -> Maybe a
-parseMaybe p s = either (const Nothing) Just $ A.parseOnly p s
+parseMaybe p s = either (const Nothing) Just $ A.parseOnly (p <* A.endOfInput) s
