@@ -139,7 +139,7 @@ parseStatus = foldM f defaultStatus . toAssocList
           f a ("audio", x)
               = return $ parse audio     (\x' -> a { stAudio = x' }) a x
           f a ("updating_db", x)
-              = return $ parse parseNum  (\x' -> a { stUpdatingDb = x' }) a x
+              = return $ parse parseNum  (\x' -> a { stUpdatingDb = Just x' }) a x
           f a ("error", x)
               = return a { stError = Just (UTF8.toString x) }
           f a ("single", x)
