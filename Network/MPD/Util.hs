@@ -13,23 +13,21 @@ module Network.MPD.Util (
     toAssoc, toAssocList, splitGroups, read
     ) where
 
-import           Data.Char (isDigit)
 import           Data.Time.Format (ParseTime, parseTime, FormatTime, formatTime)
 import           System.Locale (defaultTimeLocale)
 
 import qualified Prelude
-import           Prelude hiding        (break, take, drop, takeWhile, dropWhile, read, reads)
-import           Data.ByteString.Char8 (break, take, drop, takeWhile, dropWhile, ByteString)
+import           Prelude hiding        (break, take, drop, dropWhile, read)
+import           Data.ByteString.Char8 (break, drop, dropWhile, ByteString)
 import qualified Data.ByteString.UTF8 as UTF8
 import           Data.String
+
+import           Control.Applicative
+import qualified Data.Attoparsec.ByteString.Char8 as A
 
 -- | Like Prelude.read, but works with ByteString.
 read :: Read a => ByteString -> a
 read = Prelude.read . UTF8.toString
-
--- | Like Prelude.reads, but works with ByteString.
-reads :: Read a => ByteString -> [(a, String)]
-reads = Prelude.reads . UTF8.toString
 
 -- Break a string by character, removing the separator.
 breakChar :: Char -> ByteString -> (ByteString, ByteString)
@@ -40,7 +38,7 @@ breakChar c s = let (x, y) = break (== c) s in (x, drop 1 y)
 -- > parseDate "2008" = Just 2008
 -- > parseDate "2008-03-01" = Just 2008
 parseDate :: ByteString -> Maybe Int
-parseDate = parseNum . takeWhile isDigit
+parseDate = parseNum
 
 -- Parse date in iso 8601 format
 parseIso8601 :: (ParseTime t) => ByteString -> Maybe t
@@ -54,19 +52,16 @@ iso8601Format = "%FT%TZ"
 
 -- Parse a positive or negative integer value, returning 'Nothing' on failure.
 parseNum :: (Read a, Integral a) => ByteString -> Maybe a
-parseNum s = do
-    [(x, "")] <- return (reads s)
-    return x
+parseNum = parseMaybe (A.signed A.decimal)
 
 -- Parse C style floating point value, returning 'Nothing' on failure.
 parseFrac :: (Fractional a, Read a) => ByteString -> Maybe a
-parseFrac s =
-    case s of
-        "nan"  -> return $ Prelude.read "NaN"
-        "inf"  -> return $ Prelude.read "Infinity"
-        "-inf" -> return $ Prelude.read "-Infinity"
-        _      -> do [(x, "")] <- return $ reads s
-                     return x
+parseFrac = parseMaybe p
+    where
+        p = A.string "nan" *> pure (Prelude.read "NaN")
+            <|> A.string "inf" *> pure (Prelude.read "Infinity")
+            <|> A.string "-inf" *> pure (Prelude.read "-Infinity")
+            <|> A.rational
 
 -- Inverts 'parseBool'.
 showBool :: IsString a => Bool -> a
@@ -75,10 +70,9 @@ showBool x = if x then "1" else "0"
 
 -- Parse a boolean response value.
 parseBool :: ByteString -> Maybe Bool
-parseBool s = case take 1 s of
-                  "1" -> Just True
-                  "0" -> Just False
-                  _   -> Nothing
+parseBool = parseMaybe p
+    where
+        p = A.char '1' *> pure True <|> A.char '0' *> pure False
 
 -- Break a string into triple.
 parseTriple :: Char -> (ByteString -> Maybe a) -> ByteString -> Maybe (a, a, a)
@@ -111,3 +105,7 @@ splitGroups groupHeads = go
         (x:ys) : go zs
 
     isGroupHead = (`elem` groupHeads) . fst
+
+-- A helper for running a Parser, turning errors into Nothing.
+parseMaybe :: A.Parser a -> ByteString -> Maybe a
+parseMaybe p s = either (const Nothing) Just $ A.parseOnly p s
