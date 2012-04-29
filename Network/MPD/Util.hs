@@ -33,12 +33,13 @@ read = Prelude.read . UTF8.toString
 breakChar :: Char -> ByteString -> (ByteString, ByteString)
 breakChar c s = let (x, y) = break (== c) s in (x, drop 1 y)
 
--- XXX: need a more robust date parser.
 -- Parse a date value.
 -- > parseDate "2008" = Just 2008
 -- > parseDate "2008-03-01" = Just 2008
 parseDate :: ByteString -> Maybe Int
-parseDate = parseNum
+parseDate = parseMaybe p
+    where
+        p = A.decimal <* A.skipMany (A.char '-' <|> A.digit)
 
 -- Parse date in iso 8601 format
 parseIso8601 :: (ParseTime t) => ByteString -> Maybe t
