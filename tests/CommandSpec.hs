@@ -43,9 +43,22 @@ spec = do
         it "lists available outputs" $ testOutputs
 
     describe "update" $ do
-        it "updates entire collection by default" $ testUpdate0
-        it "can update single paths" $ testUpdate1
-        it "can update multiple paths" $ testUpdateMany
+        it "updates entire collection by default" $ do
+            cmd [("update", Right "updating_db: 23\nOK")] (Right 23)
+                (update Nothing)
+
+        it "can update a specific path" $ do
+            cmd [("update \"foo\"", Right "updating_db: 23\nOK")] (Right 23)
+                (update $ Just "foo")
+
+    describe "rescan" $ do
+        it "returns entire collection by default" $ do
+            cmd [("rescan", Right "updating_db: 23\nOK")] (Right 23)
+                (rescan Nothing)
+
+        it "can rescan a specific path" $ do
+            cmd [("rescan \"foo\"", Right "updating_db: 23\nOK")] (Right 23)
+                (rescan $ Just "foo")
 
     -- * Database commands
 
@@ -160,11 +173,6 @@ spec = do
         it "gets database stats" $ testStats
 
     -- * Extensions
-    
-    describe "updateId" $ do
-        it "returns the job id" $ do
-            testUpdateId0
-            testUpdateId1
     describe "toggle" $ do
         it "starts playback if paused" $ testTogglePlay
         it "stops playback if playing" $ testToggleStop
@@ -191,13 +199,7 @@ testOutputs = do
         resp = concatMap unparse [obj1, obj2] ++ "OK"
     cmd [("outputs", Right resp)] (Right [obj1, obj2]) outputs
 
-testUpdate0 = cmd_ [("update", Right "updating_db: 1\nOK")] (update [])
-testUpdate1 =
-    cmd_ [("update \"foo\"", Right "updating_db: 1\nOK")] (update ["foo"])
 
-testUpdateMany =
-    cmd_ [("command_list_begin\nupdate \"foo\"\nupdate \"bar\"\ncommand_list_end", Right "updating_db: 1\nOK")]
-         (update ["foo","bar"])
 
 --
 -- Database commands
@@ -396,14 +398,6 @@ testStats = cmd [("stats", Right resp)] (Right obj) stats
 --
 -- Extensions\/shortcuts
 --
-
-testUpdateId0 = cmd [("update", Right "updating_db: 1")]
-                (Right 1)
-                (updateId [])
-
-testUpdateId1 = cmd [("update \"foo\"", Right "updating_db: 1")]
-                (Right 1)
-                (updateId ["foo"])
 
 testTogglePlay = cmd_
                [("status", Right resp)
