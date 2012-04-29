@@ -62,7 +62,7 @@ import           Network.MPD.Util
 
 import           Control.Monad (liftM)
 import           Control.Monad.Error (throwError)
-import           Prelude hiding (repeat)
+import           Prelude hiding (repeat, read)
 
 import qualified Data.ByteString.UTF8 as UTF8
 import           Data.ByteString (ByteString)
@@ -400,18 +400,25 @@ search :: MonadMPD m => Query -> m [Song]
 search query = getResponse ("search" <$> query) >>= takeSongs
 
 -- | Update the server's database.
--- If no paths are given, all paths will be scanned.
--- Unreadable or non-existent paths are silently ignored.
-update :: MonadMPD m => [Path] -> m ()
-update  [] = getResponse_ "update"
-update [x] = getResponse_ ("update" <$> x)
-update xs  = getResponses (map ("update" <$>) xs) >> return ()
+--
+-- If no path is given, the whole library will be scanned.  Unreadable or
+-- non-existent paths are silently ignored.
+--
+-- The update job id is returned.
+update :: MonadMPD m => Maybe Path -> m Integer
+update = update_ "update"
 
 -- | Like 'update' but also rescans unmodified files.
-rescan :: MonadMPD m => [Path] -> m ()
-rescan []  = getResponse_ "rescan"
-rescan [x] = getResponse_ ("rescan" <$> x)
-rescan xs  = getResponses (map ("rescan" <$>) xs) >> return ()
+rescan :: MonadMPD m => Maybe Path -> m Integer
+rescan = update_ "rescan"
+
+-- A helper for `update` and `rescan`.
+update_ :: MonadMPD m => Command -> Maybe Path -> m Integer
+update_ cmd mPath = do
+    r <- getResponse (cmd <$> mPath)
+    case toAssocList r of
+        [("updating_db", id_)] -> return (read id_)
+        _                      -> throwError . Unexpected $ show r
 
 --
 -- Stickers

@@ -13,18 +13,13 @@ import           Network.MPD.Core
 import           Network.MPD.Commands
 import           Network.MPD.Commands.Arg
 import           Network.MPD.Commands.Util
-import           Network.MPD.Util (read)
 
-import           Prelude hiding (read)
 import           Control.Monad (liftM)
 
--- | Like 'update', but returns the update job id.
-updateId :: MonadMPD m => [Path] -> m Integer
-updateId paths = liftM (read . head . takeValues) cmd
-  where cmd = case paths of
-                []  -> getResponse  "update"
-                [x] -> getResponse ("update" <$> x)
-                xs  -> getResponses $ map ("update" <$>) xs
+-- | This is exactly the same as `update`.
+updateId :: MonadMPD m => Maybe Path -> m Integer
+updateId = update
+{-# DEPRECATED updateId "use `update` instead" #-}
 
 -- | Toggles play\/pause. Plays if stopped.
 toggle :: MonadMPD m => m ()
