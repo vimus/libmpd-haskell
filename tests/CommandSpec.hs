@@ -257,7 +257,7 @@ testAdd =
 
 testPlaylistAdd =
     cmd_ [("playlistadd \"foo\" \"bar\"", Right "OK")]
-         (playlistAdd_ "foo" "bar")
+         (playlistAdd "foo" "bar")
 
 testAddId =
     cmd [("addid \"dir/Foo-Bar.ogg\"", Right "Id: 20\nOK")]

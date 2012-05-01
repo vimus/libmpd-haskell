@@ -31,7 +31,7 @@ toggle = status >>= \st -> case stState st of Playing -> pause True
 addMany :: MonadMPD m => PlaylistName -> [Path] -> m ()
 addMany _ [] = return ()
 addMany "" [x] = add x
-addMany plname [x] = playlistAdd_ plname x
+addMany plname [x] = playlistAdd plname x
 addMany plname xs = getResponses (map cmd xs) >> return ()
     where cmd x = case plname of
                       "" -> "add" <$> x
@@ -52,6 +52,10 @@ addIdMany x Nothing = do
 -- | Like 'add' but returns a list of the files added.
 addList :: MonadMPD m => Path -> m [Path]
 addList x = add x >> listAll x
+
+-- | Like 'playlistAdd' but returns a list of the files added.
+playlistAddList :: MonadMPD m => PlaylistName -> Path -> m [Path]
+playlistAddList plname path = playlistAdd plname path >> listAll path
 
 -- | Delete a list of songs from a playlist.
 -- If there is a duplicate then no further songs will be deleted, so

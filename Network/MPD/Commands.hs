@@ -31,8 +31,8 @@ module Network.MPD.Commands (
     swapId,
 
     -- * Stored playlist
-    listPlaylist, listPlaylistInfo, listPlaylists, load, playlistAdd,
-    playlistAdd_, playlistClear, playlistDelete, playlistMove, rename, rm,
+    listPlaylist, listPlaylistInfo, listPlaylists, load,
+    playlistAdd, playlistClear, playlistDelete, playlistMove, rename, rm,
     save,
 
     -- * The music database
@@ -311,14 +311,10 @@ listPlaylists = (map PlaylistName . go [] . toAssocList) `liftM` getResponse "li
 load :: MonadMPD m => PlaylistName -> m ()
 load plname = getResponse_ ("load" <$> plname)
 
--- | Like 'playlistAdd' but returns a list of the files added.
-playlistAdd :: MonadMPD m => PlaylistName -> Path -> m [Path]
-playlistAdd plname path = playlistAdd_ plname path >> listAll path
-
 -- | Add a song (or a whole directory) to a stored playlist.
 -- Will create a new playlist if the one specified does not already exist.
-playlistAdd_ :: MonadMPD m => PlaylistName -> Path -> m ()
-playlistAdd_ plname path = getResponse_ ("playlistadd" <$> plname <++> path)
+playlistAdd :: MonadMPD m => PlaylistName -> Path -> m ()
+playlistAdd plname path = getResponse_ ("playlistadd" <$> plname <++> path)
 
 -- | Clear a playlist. If the specified playlist does not exist, it will be
 -- created.
