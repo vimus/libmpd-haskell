@@ -34,8 +34,8 @@ addMany "" [x] = add x
 addMany plname [x] = playlistAdd plname x
 addMany plname xs = getResponses (map cmd xs) >> return ()
     where cmd x = case plname of
-                      "" -> "add" <$> x
-                      pl -> "playlistadd" <$> pl <++> x
+                      "" -> "add" <@> x
+                      pl -> "playlistadd" <@> pl <++> x
 
 -- | Recursive 'addId'. For directories, it will use the given position
 -- for the first file in the directory and use the successor for the remaining
@@ -64,10 +64,10 @@ playlistAddList plname path = playlistAdd plname path >> listAll path
 deleteMany _ [] = return ()
 deleteMany plname [(Pos x)] = playlistDelete plname x
 deleteMany "" xs = getResponses (map cmd xs) >> return ()
-    where cmd (Pos x) = "delete"   <$> x
-          cmd (ID x)  = "deleteid" <$> x
+    where cmd (Pos x) = "delete"   <@> x
+          cmd (ID x)  = "deleteid" <@> x
 deleteMany plname xs = getResponses (map cmd xs) >> return ()
-    where cmd (Pos x) = "playlistdelete" <$> plname <++> x
+    where cmd (Pos x) = "playlistdelete" <@> plname <++> x
           cmd _       = ""
 
 -- | Returns all songs and directories that match the given partial
@@ -121,13 +121,13 @@ findDuplicates =
 lsDirs :: MonadMPD m => Path -> m [Path]
 lsDirs path =
     liftM (extractEntries (const Nothing,const Nothing, Just)) $
-        takeEntries =<< getResponse ("lsinfo" <$> path)
+        takeEntries =<< getResponse ("lsinfo" <@> path)
 
 -- | List files non-recursively.
 lsFiles :: MonadMPD m => Path -> m [Path]
 lsFiles path =
     liftM (extractEntries (Just . sgFilePath, const Nothing, const Nothing)) $
-        takeEntries =<< getResponse ("lsinfo" <$> path)
+        takeEntries =<< getResponse ("lsinfo" <@> path)
 
 -- | List all playlists.
 lsPlaylists :: MonadMPD m => m [PlaylistName]
@@ -142,7 +142,7 @@ listArtists = (map Value . takeValues) `liftM` (getResponse "list artist")
 -- artist.
 listAlbums :: MonadMPD m => Maybe Artist -> m [Album]
 listAlbums artist = (map Value . takeValues) `liftM`
-                    getResponse ("list album" <$> fmap (("artist" :: String) <++>) artist)
+                    getResponse ("list album" <@> fmap (("artist" :: String) <++>) artist)
 
 -- | List the songs in an album of some artist.
 listAlbum :: MonadMPD m => Artist -> Album -> m [Song]
