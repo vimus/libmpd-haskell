@@ -26,7 +26,7 @@ module Network.MPD.Commands (
     next, pause, play, playId, previous, seek, seekId, stop,
 
     -- * The current playlist
-    add, add_, addId, clear, delete, deleteId, move, moveId, playlist, playlistId,
+    add, addId, clear, delete, deleteId, move, moveId, playlist, playlistId,
     playlistFind, playlistInfo, playlistSearch, plChanges, plChangesPosId, shuffle, swap,
     swapId,
 
@@ -202,13 +202,9 @@ addId :: MonadMPD m => Path -> Maybe Integer -- ^ Optional playlist position
 addId p pos = liftM (parse parseNum Id (Id 0) . snd . head . toAssocList)
               $ getResponse1 ("addid" <$> p <++> pos)
 
--- | Like 'add_' but returns a list of the files added.
-add :: MonadMPD m => Path -> m [Path]
-add x = add_ x >> listAll x
-
 -- | Add a song (or a whole directory) to the current playlist.
-add_ :: MonadMPD m => Path -> m ()
-add_ path = getResponse_ ("add" <$> path)
+add :: MonadMPD m => Path -> m ()
+add path = getResponse_ ("add" <$> path)
 
 -- | Clear the current playlist.
 clear :: MonadMPD m => m ()

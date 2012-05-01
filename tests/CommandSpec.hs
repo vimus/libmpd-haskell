@@ -80,11 +80,11 @@ spec = do
 
     -- * Playlist commands
 
-    describe "add" $ do
-        it "adds a url to the current playlist" $ testAdd
+    describe "addList" $ do
+        it "adds a url to the current playlist, returning a list of added items" $ testAddList
 
-    describe "add_" $ do
-        it "adds a url to current playlist, returning nothing" $ testAdd_
+    describe "add" $ do
+        it "adds a url to current playlist" $ testAdd
 
     describe "playlistAdd" $ do
         it "adds a url to a stored playlist" $ testPlaylistAdd
@@ -246,14 +246,14 @@ testCount = do
 -- Playlist commands
 --
 
-testAdd =
+testAddList =
     cmd [("add \"foo\"", Right "OK"),
          ("listall \"foo\"", Right "file: Foo\nfile: Bar\nOK")]
         (Right ["Foo", "Bar"])
-        (add "foo")
+        (addList "foo")
 
-testAdd_ =
-    cmd_ [("add \"foo\"", Right "OK")] (add_ "foo")
+testAdd =
+    cmd_ [("add \"foo\"", Right "OK")] (add "foo")
 
 testPlaylistAdd =
     cmd_ [("playlistadd \"foo\" \"bar\"", Right "OK")]
