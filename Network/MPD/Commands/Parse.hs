@@ -91,17 +91,23 @@ parseSong xs = case xs of
                      readMeta k
 
         -- Custom-made Read instance
+        readMeta "ArtistSort" = Just ArtistSort
         readMeta "Artist" = Just Artist
         readMeta "Album" = Just Album
+        readMeta "AlbumArtist" = Just AlbumArtist
+        readMeta "AlbumArtistSort" = Just AlbumArtistSort
         readMeta "Title" = Just Title
         readMeta "Genre" = Just Genre
         readMeta "Name" = Just Name
         readMeta "Composer" = Just Composer
         readMeta "Performer" = Just Performer
+        readMeta "Comment" = Just Comment
         readMeta "Date" = Just Date
         readMeta "Track" = Just Track
         readMeta "Disc" = Just Disc
         readMeta "MUSICBRAINZ_ARTISTID" = Just MUSICBRAINZ_ARTISTID
+        readMeta "MUSICBRAINZ_ALBUMID" = Just MUSICBRAINZ_ALBUMID
+        readMeta "MUSICBRAINZ_ALBUMARTISTID" = Just MUSICBRAINZ_ALBUMARTISTID
         readMeta "MUSICBRAINZ_TRACKID" = Just MUSICBRAINZ_TRACKID
         readMeta _ = Nothing
 
