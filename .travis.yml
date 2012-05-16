@@ -1,5 +1,5 @@
 language: haskell
 install:
     - cabal update
-    - cabal install hspec data-default
+    - cabal install hspec hspec-discover data-default
     - cabal install
