@@ -1,1 +1,1 @@
-:set -iNetwork/MPD -itests
+:set -itests -DTEST
