@@ -72,7 +72,9 @@ deleteMany "" xs = getResponses (map cmd xs) >> return ()
 deleteMany plname xs = getResponses (map cmd xs) >> return ()
     where cmd (Pos x) = "playlistdelete" <@> plname <++> x
           cmd _       = ""
+-}
 
+{-
 -- | Returns all songs and directories that match the given partial
 -- path name.
 complete :: MonadMPD m => String -> m [Either Path Song]
@@ -84,7 +86,9 @@ complete path = do
     where
         matches = filter (isPrefixOf path . takePath)
         takePath = either id sgFilePath
+-}
 
+{-
 -- | Crop playlist.
 -- The bounds are inclusive.
 -- If 'Nothing' is passed the cropping will leave your playlist alone
@@ -104,7 +108,9 @@ crop x y = do
                        Nothing      -> []
     deleteMany "" . mapMaybe sgIndex $ take x' pl ++ ys
     where findByID i = findIndex ((==) i . (\(ID j) -> j) . fromJust . sgIndex)
+-}
 
+{-
 -- | Remove duplicate playlist entries.
 prune :: MonadMPD m => m ()
 prune = findDuplicates >>= deleteMany ""
@@ -119,23 +125,30 @@ findDuplicates =
               | x `mSong` xs && not (x `mSong` ys) = dups xs (ys, x:dup)
               | otherwise                          = dups xs (x:ys, dup)
           mSong x = let m = sgFilePath x in any ((==) m . sgFilePath)
+-}
 
+{-
 -- | List directories non-recursively.
 lsDirs :: MonadMPD m => Path -> m [Path]
 lsDirs path =
     liftM (extractEntries (const Nothing,const Nothing, Just)) $
         takeEntries =<< getResponse ("lsinfo" <@> path)
+-}
 
+{-
 -- | List files non-recursively.
 lsFiles :: MonadMPD m => Path -> m [Path]
 lsFiles path =
     liftM (extractEntries (Just . sgFilePath, const Nothing, const Nothing)) $
         takeEntries =<< getResponse ("lsinfo" <@> path)
+-}
 
+{-
 -- | List all playlists.
 lsPlaylists :: MonadMPD m => m [PlaylistName]
 lsPlaylists = liftM (extractEntries (const Nothing, Just, const Nothing)) $
-                    takeEntries =<< getResponse "lsinfo" -}
+                    takeEntries =<< getResponse "lsinfo"
+-}
 
 -- | List the artists in the database.
 listArtists :: MonadMPD m => m [Artist]
