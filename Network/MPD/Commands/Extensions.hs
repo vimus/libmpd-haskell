@@ -57,10 +57,11 @@ addList x = add x >> listAll x
 playlistAddList :: MonadMPD m => PlaylistName -> Path -> m [Path]
 playlistAddList plname path = playlistAdd plname path >> listAll path
 
+{-
 -- | Delete a list of songs from a playlist.
 -- If there is a duplicate then no further songs will be deleted, so
 -- take care to avoid them (see 'prune' for this).
-{- deleteMany :: MonadMPD m => PlaylistName -> [PLIndex] -> m ()
+deleteMany :: MonadMPD m => PlaylistName -> [PLIndex] -> m ()
 deleteMany _ [] = return ()
 deleteMany plname [(Pos x)] = playlistDelete plname x
 deleteMany "" xs = getResponses (map cmd xs) >> return ()
