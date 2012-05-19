@@ -52,10 +52,12 @@ addIdMany x Nothing = do
 -- | Like 'add' but returns a list of the files added.
 addList :: MonadMPD m => Path -> m [Path]
 addList x = add x >> listAll x
+{-# DEPRECATED addList "will be removed in a future version" #-}
 
 -- | Like 'playlistAdd' but returns a list of the files added.
 playlistAddList :: MonadMPD m => PlaylistName -> Path -> m [Path]
 playlistAddList plname path = playlistAdd plname path >> listAll path
+{-# DEPRECATED playlistAddList "will be removed in a future version" #-}
 
 {-
 -- | Delete a list of songs from a playlist.
