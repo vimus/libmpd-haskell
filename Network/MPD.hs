@@ -6,7 +6,7 @@
 -- Stability   : alpha
 --
 -- An MPD client library. MPD is a daemon for playing music that is
--- controlled over a network socket. Its site is at <http://www.musicpd.org/>.
+-- controlled over a network socket.
 --
 -- To use the library, do:
 -- 
