@@ -1,3 +1,9 @@
+* v0.8.1, 2012-06-14
+  - Add support for missing metadata keys
+  - Add a recursive version of `addId'
+  - Improved date parsing
+  - Internal cleanups
+
 * v0.8.0, 2012-04-21
   - Use bytestring for wire communication (sol)
   - Increased type safety (sol)
