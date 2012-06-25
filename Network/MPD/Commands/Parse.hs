@@ -12,6 +12,7 @@ module Network.MPD.Commands.Parse where
 
 import           Network.MPD.Commands.Types
 
+import           Control.Applicative
 import           Control.Arrow ((***))
 import           Control.Monad.Error
 import           Data.Maybe (fromMaybe)
@@ -64,9 +65,9 @@ parseStats = foldM f defaultStats . toAssocList
                                  (\x' -> a { stsDbUpdate = x' }) a x
         f _ x = fail $ show x
 
-parseMaybeSong :: [(ByteString, ByteString)] -> Either String (Maybe Song)
+parseMaybeSong :: [ByteString] -> Either String (Maybe Song)
 parseMaybeSong xs | null xs   = Right Nothing
-                  | otherwise = Just `fmap` parseSong xs
+                  | otherwise = Just <$> (parseSong . toAssocList) xs
 
 -- | Builds a 'Song' instance from an assoc. list.
 parseSong :: [(ByteString, ByteString)] -> Either String Song

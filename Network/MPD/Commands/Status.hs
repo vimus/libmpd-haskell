@@ -39,7 +39,7 @@ clearError = getResponse_ "clearerror"
 
 -- | Get the currently playing song.
 currentSong :: (Functor m, MonadMPD m) => m (Maybe Song)
-currentSong = getResponse "currentsong" >>= runParser parseMaybeSong . toAssocList
+currentSong = getResponse "currentsong" >>= runParser parseMaybeSong
 
 -- | Wait until there is a noteworthy change in one or more of MPD's
 -- susbystems.

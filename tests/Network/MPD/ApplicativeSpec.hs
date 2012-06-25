@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# OPTIONS_GHC -w #-}
 module Network.MPD.ApplicativeSpec (main, spec) where
 
-import           Test.Hspec.ShouldBe
+import           Test.Hspec.Monadic
+import           TestUtil
 
 import           StringConn
 import qualified Data.Map as Map
@@ -65,21 +65,27 @@ statsValue = Stats {
   , stsDbUpdate   = 1024
   }
 
-command :: String
-command = unlines [
-    "command_list_ok_begin"
-  , "currentsong"
-  , "stats"
-  , "command_list_end"
-  ]
-
-response :: String
-response = songResponse ++ "list_OK\n" ++ statsResponse ++ "list_OK\nOK\n"
 
 spec :: Spec
 spec = do
   describe "Command as an Applicative" $ do
+    describe "currentSong" $ do
+      it "returns the currently played song" $ do
+        let command = unlines [
+                "command_list_ok_begin"
+              , "currentsong"
+              , "command_list_end"
+              ]
+            response = songResponse ++ "list_OK\nOK\n"
+        testMPD [(command, Right response)] (runCommand currentSong) `shouldBe` Right (Just songValue)
+
     it "can be composed" $ do
-      True
-      -- let action = runCommand $ (,) <$> currentSong <*> stats
-      -- testMPD [(command, Right response)] "" action `shouldBe` Right (Just songValue, statsValue)
+      let command = unlines [
+              "command_list_ok_begin"
+            , "currentsong"
+            , "stats"
+            , "command_list_end"
+            ]
+          response = songResponse ++ "list_OK\n" ++ statsResponse ++ "list_OK\nOK\n"
+      let action = runCommand $ (,) <$> currentSong <*> stats
+      testMPD [(command, Right response)] action `shouldBe` Right (Just songValue, statsValue)
