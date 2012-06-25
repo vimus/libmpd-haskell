@@ -1,0 +1,30 @@
+{- |
+Module      : Network.MPD.Commands.Connection
+Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2012
+License     : LGPL-2 (see LICENSE)
+
+Maintainer  : joachim.fasting@gmail.com
+Stability   : stable
+Portability : unportable
+
+Connection settings.
+-}
+
+module Network.MPD.Commands.Connection
+    ( password
+    , ping
+    ) where
+
+import           Network.MPD.Core
+import           Network.MPD.Commands.Util
+
+-- XXX should the password be quoted? Change "++" to "<@>" if so.  If
+--     it should, it also needs to be fixed in N.M.Core.
+-- | Send password to server to authenticate session.
+-- Password is sent as plain text.
+password :: MonadMPD m => String -> m ()
+password = getResponse_ . ("password " ++)
+
+-- | Check that the server is still responding.
+ping :: MonadMPD m => m ()
+ping = getResponse_ "ping"
