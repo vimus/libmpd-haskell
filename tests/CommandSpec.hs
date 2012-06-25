@@ -19,7 +19,9 @@ import           Unparse
 
 import           Test.Hspec.Monadic
 import           Test.Hspec.HUnit ()
+import           Test.HUnit
 
+import           Network.MPD.Core
 import           Network.MPD.Commands
 import           Network.MPD.Commands.Extensions
 import           Network.MPD.Core (MPDError(..), ACKType(..))
@@ -35,7 +37,7 @@ spec = do
     -- * Admin commands
     describe "enableOutput" $ do
         it "sends an enableoutput command" $ testEnableOutput
-    
+
     describe "disableOutput" $ do
         it "sends an disableoutput command" $ testDisableOutput
 
@@ -181,8 +183,12 @@ spec = do
         it "can also add to stored playlists" $ testAddMany1
     describe "volume" $ do
         it "adjusts volume relative to current volume" $ testVolume
-    
-cmd_ expect f     = cmd expect (Right ()) f 
+
+
+cmd_ :: [(Expect, Response String)] -> StringMPD () -> Assertion
+cmd_ expect f     = cmd expect (Right ()) f
+
+cmd :: (Eq a, Show a) => [(Expect, Response String)] -> Response a -> StringMPD a -> Assertion
 cmd expect resp f = testMPD expect resp "" f `shouldBe` Ok
 
 --
