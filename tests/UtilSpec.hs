@@ -19,9 +19,9 @@ import qualified Data.ByteString.UTF8 as UTF8
 import           Network.MPD.Util
 
 main :: IO ()
-main = hspecX spec
+main = hspec spec
 
-spec :: Specs
+spec :: Spec
 spec = do
     describe "splitGroups" $ do
         it "breaks an association list into sublists" $ do
