@@ -28,9 +28,9 @@ import           Prelude hiding (repeat)
 import           Data.Default (Default(def))
 
 main :: IO ()
-main = hspecX spec
+main = hspec spec
 
-spec :: Specs
+spec :: Spec
 spec = do
     -- * Admin commands
     describe "enableOutput" $ do

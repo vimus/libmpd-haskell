@@ -21,9 +21,9 @@ import qualified Data.Map as M
 import           Data.Time
 
 main :: IO ()
-main = hspecX spec
+main = hspec spec
 
-spec :: Specs
+spec :: Spec
 spec = do
     describe "parseIso8601" $ do
         prop "parses dates in ISO8601 format" prop_parseIso8601

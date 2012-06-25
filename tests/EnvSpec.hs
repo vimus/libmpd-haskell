@@ -7,9 +7,9 @@ import           Network.MPD
 import           System.Posix.Env hiding (getEnvDefault)
 
 main :: IO ()
-main = hspecX spec
+main = hspec spec
 
-spec :: Specs
+spec :: Spec
 spec = do
   describe "getEnvDefault" $ do
     it "returns the value of an environment variable" $ do
