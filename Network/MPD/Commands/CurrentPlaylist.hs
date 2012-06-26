@@ -85,6 +85,7 @@ playlist = mapM f =<< getResponse "playlist"
               , Just pos'   <- parseNum pos
               = return (pos', Path name)
               | otherwise = throwError . Unexpected $ show s
+{-# WARNING playlist "this is deprecated; please use 'playlistInfo' instead." #-}
 
 -- | Search for songs in the current playlist with strict matching.
 playlistFind :: MonadMPD m => Query -> m [Song]
