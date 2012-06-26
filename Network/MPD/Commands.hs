@@ -26,16 +26,16 @@ module Network.MPD.Commands (
     , module Network.MPD.Commands.Reflection
     ) where
 
-import Network.MPD.Commands.Query
-import Network.MPD.Commands.Types
+import           Network.MPD.Commands.Query
+import           Network.MPD.Commands.Types
 
-import Network.MPD.Commands.Status
-import Network.MPD.Commands.PlaybackOptions
-import Network.MPD.Commands.PlaybackControl
-import Network.MPD.Commands.CurrentPlaylist
-import Network.MPD.Commands.StoredPlaylists
-import Network.MPD.Commands.Database
-import Network.MPD.Commands.Stickers
-import Network.MPD.Commands.Connection
-import Network.MPD.Commands.Output
-import Network.MPD.Commands.Reflection
+import           Network.MPD.Commands.Status
+import           Network.MPD.Commands.PlaybackOptions
+import           Network.MPD.Commands.PlaybackControl
+import           Network.MPD.Commands.CurrentPlaylist
+import           Network.MPD.Commands.StoredPlaylists
+import           Network.MPD.Commands.Database
+import           Network.MPD.Commands.Stickers
+import           Network.MPD.Commands.Connection
+import           Network.MPD.Commands.Output
+import           Network.MPD.Commands.Reflection
