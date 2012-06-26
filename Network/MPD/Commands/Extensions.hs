@@ -14,6 +14,7 @@ import           Network.MPD.Commands
 import           Network.MPD.Commands.Arg
 import           Network.MPD.Commands.Util
 import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.CurrentPlaylist as A
 
 import           Control.Monad (liftM)
 import           Data.Traversable (for)

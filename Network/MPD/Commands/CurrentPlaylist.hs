@@ -40,8 +40,8 @@ import           Network.MPD.Commands.Util
 import           Network.MPD.Core
 import           Network.MPD.Util
 import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.CurrentPlaylist as A
 
-import           Control.Monad (liftM)
 import           Control.Monad.Error (throwError)
 
 -- | Like 'add', but returns a playlist id.
@@ -50,11 +50,11 @@ addId path = A.runCommand . A.addId path
 
 -- | Add a song (or a whole directory) to the current playlist.
 add :: MonadMPD m => Path -> m ()
-add path = getResponse_ ("add" <@> path)
+add = A.runCommand . A.add
 
 -- | Clear the current playlist.
 clear :: MonadMPD m => m ()
-clear = getResponse_ "clear"
+clear = A.runCommand A.clear
 
 -- | Remove a song from the current playlist.
 delete :: MonadMPD m => Position -> m ()

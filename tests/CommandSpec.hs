@@ -17,7 +17,6 @@ import           StringConn
 import           TestUtil
 import           Unparse
 
-import           Test.Hspec.Monadic
 import           Test.Hspec.HUnit ()
 import           Test.HUnit
 
@@ -84,32 +83,11 @@ spec = do
     describe "addList" $ do
         it "adds a url to the current playlist, returning a list of added items" $ testAddList
 
-    describe "add" $ do
-        it "adds a url to current playlist" $ testAdd
-
     describe "playlistAdd" $ do
         it "adds a url to a stored playlist" $ testPlaylistAdd
 
-    describe "addId" $ do
-
-        let with = flip testMPD
-
-        it "adds a song to the playlist (non-recursive) and returns the song id" $ do
-            addId "dir/Foo-Bar.ogg" Nothing
-                `with` [("addid \"dir/Foo-Bar.ogg\"", Right "Id: 20\nOK")]
-                `shouldBe` (Right $ Id 20)
-
-        it "takes and optional position" $ do
-            addId "dir/Foo-Bar.ogg" (Just 5)
-                `with` [("addid \"dir/Foo-Bar.ogg\" 5", Right "Id: 20\nOK")]
-                `shouldBe` (Right $ Id 20)
-
-
     describe "playlistClear" $ do
         it "clears a stored playlist" $ testPlaylistClear
-
-    describe "clear" $ do
-        it "clears current play list" $ testClear
 
     describe "plChangesPosid" $ do
         it "does something ..." $ testPlChangesPosId
@@ -269,9 +247,6 @@ testAddList =
         (Right ["Foo", "Bar"])
         (addList "foo")
 
-testAdd =
-    cmd_ [("add \"foo\"", Right "OK")] (add "foo")
-
 testPlaylistAdd =
     cmd_ [("playlistadd \"foo\" \"bar\"", Right "OK")]
          (playlistAdd "foo" "bar")
@@ -279,9 +254,6 @@ testPlaylistAdd =
 testPlaylistClear =
     cmd_ [("playlistclear \"foo\"", Right "OK")]
          (playlistClear "foo")
-
-testClear =
-    cmd_ [("clear", Right "OK")] clear
 
 testPlChangesPosId =
     cmd [("plchangesposid 10", Right "OK")]

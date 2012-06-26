@@ -1,7 +1,6 @@
 module EnvSpec (main, spec) where
 
 import           TestUtil
-import           Test.Hspec.Monadic
 
 import           Network.MPD
 import           System.Posix.Env hiding (getEnvDefault)

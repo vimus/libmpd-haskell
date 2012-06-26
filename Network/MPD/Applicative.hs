@@ -5,14 +5,11 @@ import           Control.Applicative
 import           Control.Monad
 import           Data.ByteString.Char8 (ByteString)
 
-import           Network.MPD.Commands.Arg hiding (Command)
 import           Network.MPD.Commands.Types
 import           Network.MPD.Commands.Parse hiding (runParser)
 import qualified Network.MPD.Commands.Parse as P
 import           Network.MPD.Core hiding (getResponse)
 import qualified Network.MPD.Core as Core
-import           Network.MPD.Util
-
 
 newtype Parser a = Parser {runParser :: [ByteString] -> Either String (a, [ByteString])}
   deriving Functor
@@ -36,6 +33,13 @@ getResponse :: Parser [ByteString]
 getResponse = Parser $ \input -> case break (== "list_OK") input of
   (xs, ys) -> Right (xs, drop 1 ys)
 
+emptyResponse :: Parser ()
+emptyResponse = do
+  r <- getResponse
+  unless (null r) $
+    unexpected r
+
+
 unexpected :: [ByteString] -> Parser a
 unexpected = fail . ("unexpected Response: " ++) . show
 
@@ -53,16 +57,6 @@ currentSong = Command (liftParser parseMaybeSong) ["currentsong"]
 
 stats :: Command Stats
 stats = Command (liftParser parseStats) ["stats"]
-
-addId :: Path -> Maybe Position -> Command Id
-addId path pos = Command p c
-  where
-    c = ["addid" <@> path <++> pos]
-    p = do
-      r <- getResponse
-      case toAssocList r of
-        [("Id", n)] -> maybe (unexpected r) (return . Id) (parseNum n)
-        _         -> unexpected r
 
 runCommand :: MonadMPD m => Command a -> m a
 runCommand (Command p c) = Core.getResponse command >>= (P.runParser $ \r ->

@@ -1,9 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Network.MPD.ApplicativeSpec (main, spec) where
 
-import           Test.Hspec.Monadic
 import           TestUtil
-import           StringConn
 
 import qualified Data.Map as Map
 import           Control.Applicative
