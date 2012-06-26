@@ -35,22 +35,11 @@ data Result a
     | BadRequest StringMPDError
       deriving (Show, Eq)
 
-newtype MatchError = MErr (Either StringMPDError MPDError)
-instance Error MatchError where
-    strMsg = MErr . Right . strMsg
-
 newtype StringMPD a =
-    SMPD { runSMPD :: ErrorT MatchError
+    SMPD { runSMPD :: ErrorT MPDError
                       (StateT [(Expect, Response String)]
                        (ReaderT Password Identity)) a
-         } deriving (Functor, Monad)
-
-instance MonadError MPDError StringMPD where
-    throwError = SMPD . throwError . MErr . Right
-    catchError m f = SMPD $ catchError (runSMPD m) handler
-        where
-            handler err@(MErr (Left _)) = throwError err
-            handler (MErr (Right err))  = runSMPD (f err)
+         } deriving (Functor, Monad, MonadError MPDError)
 
 instance MonadMPD StringMPD where
     getVersion  = error "StringConn.getVersion: undefined"
@@ -64,33 +53,24 @@ instance MonadMPD StringMPD where
         SMPD $ do
             ~pairs@((expected_request,response):rest) <- get
             when (null pairs)
-                 (throwError . MErr $ Left TooManyRequests)
+                 (throwError $ Custom "too many requests")
             when (expected_request /= request)
-                 (throwError . MErr . Left
-                             $ UnexpectedRequest expected_request request)
+                 (throwError . Custom $ "unexpected request: " ++ show request ++ ", expected: " ++ show expected_request)
             put rest
-            either (throwError . MErr . Right) (return . B.lines . UTF8.fromString) response
+            either throwError (return . B.lines . UTF8.fromString) response
+
+testMPD :: (Eq a) => [(Expect, Response String)] -> StringMPD a -> Response a
+testMPD pairs m = testMPDWithPassword pairs "" m
 
 -- | Run an action against a set of expected requests and responses,
 -- and an expected result. The result is Nothing if everything matched
 -- what was expected. If anything differed the result of the
 -- computation is returned along with pairs of expected and received
 -- requests.
-testMPD :: (Eq a)
+testMPDWithPassword :: (Eq a)
         => [(Expect, Response String)] -- ^ The expected requests and their
                                        -- ^ corresponding responses.
-        -> Response a                  -- ^ The expected final result.
         -> Password                    -- ^ A password to be supplied.
         -> StringMPD a                 -- ^ The MPD action to run.
-        -> Result a
-testMPD pairs expected passwd m =
-    let result = runIdentity
-               $ runReaderT (evalStateT (runErrorT $ runSMPD m) pairs) passwd
-    in case result of
-           Right r
-               | Right r == expected -> Ok
-               | otherwise           -> BadResult expected (Right r)
-           Left (MErr (Right r))
-               | Left r == expected -> Ok
-               | otherwise          -> BadResult expected (Left r)
-           Left (MErr (Left e)) -> BadRequest e
+        -> Response a
+testMPDWithPassword pairs passwd m = runIdentity $ runReaderT (evalStateT (runErrorT $ runSMPD m) pairs) passwd

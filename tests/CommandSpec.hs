@@ -19,10 +19,11 @@ import           Unparse
 
 import           Test.Hspec.Monadic
 import           Test.Hspec.HUnit ()
+import           Test.HUnit
 
+import           Network.MPD.Core
 import           Network.MPD.Commands
 import           Network.MPD.Commands.Extensions
-import           Network.MPD.Core (MPDError(..), ACKType(..))
 
 import           Prelude hiding (repeat)
 import           Data.Default (Default(def))
@@ -35,7 +36,7 @@ spec = do
     -- * Admin commands
     describe "enableOutput" $ do
         it "sends an enableoutput command" $ testEnableOutput
-    
+
     describe "disableOutput" $ do
         it "sends an disableoutput command" $ testDisableOutput
 
@@ -181,9 +182,13 @@ spec = do
         it "can also add to stored playlists" $ testAddMany1
     describe "volume" $ do
         it "adjusts volume relative to current volume" $ testVolume
-    
-cmd_ expect f     = cmd expect (Right ()) f 
-cmd expect resp f = testMPD expect resp "" f `shouldBe` Ok
+
+
+cmd_ :: [(Expect, Response String)] -> StringMPD () -> Assertion
+cmd_ expect f     = cmd expect (Right ()) f
+
+cmd :: (Eq a, Show a) => [(Expect, Response String)] -> Response a -> StringMPD a -> Assertion
+cmd expect resp f = testMPD expect f `shouldBe` resp
 
 --
 -- Admin commands
@@ -295,7 +300,7 @@ testPlaylistDelete =
 testLoad =
     cmd_ [("load \"foo\"", Right "OK")] (load "foo")
 
-testMove2 = cmd_ [("playlistmove \"foo\" 1 2", Right "OK")] (playlistMove "foo" 1 2)
+testMove2 = cmd_ [("playlistmove \"foo\" 23 2", Right "OK")] (playlistMove "foo" (Id 23) 2)
 
 testRm = cmd_ [("rm \"foo\"", Right "OK")] (rm "foo")
 
@@ -367,7 +372,7 @@ testUrlHandlers =
 testPassword = cmd_ [("password foo", Right "OK")] (password "foo")
 
 testPasswordSucceeds =
-    testMPD convo expected_resp "foo" cmd_in `shouldBe` Ok
+    testMPDWithPassword convo "foo" cmd_in `shouldBe` expected_resp
     where
         convo = [("lsinfo \"/\"", Right "ACK [4@0] {play} you don't have \
                                         \permission for \"play\"")
@@ -377,7 +382,7 @@ testPasswordSucceeds =
         cmd_in = lsInfo "/"
 
 testPasswordFails =
-    testMPD convo expected_resp "foo" cmd_in `shouldBe` Ok
+    testMPDWithPassword convo "foo" cmd_in `shouldBe` expected_resp
     where
         convo = [("play", Right "ACK [4@0] {play} you don't have \
                                 \permission for \"play\"")

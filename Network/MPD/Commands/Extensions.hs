@@ -40,7 +40,7 @@ addMany plname xs = getResponses (map cmd xs) >> return ()
 -- | Recursive 'addId'. For directories, it will use the given position
 -- for the first file in the directory and use the successor for the remaining
 -- files. It returns a list of playlist ids for the songs added.
-addIdMany :: MonadMPD m => Path -> Maybe Integer -> m [Id]
+addIdMany :: MonadMPD m => Path -> Maybe Position -> m [Id]
 addIdMany x (Just p) = do
     fs <- listAll x
     let fs' = map (\(a, b) -> (a, Just b)) $ zip fs [p ..]

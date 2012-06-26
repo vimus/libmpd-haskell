@@ -189,8 +189,11 @@ data Song = Song
          -- | Id in playlist
          , sgId           :: Maybe Id
          -- | Position in playlist
-         , sgIndex        :: Maybe Int
+         , sgIndex        :: Maybe Position
          } deriving (Eq, Show)
+
+-- | The position of a song in a playlist.
+type Position = Int
 
 newtype Id = Id Int
     deriving (Eq, Show)
@@ -242,11 +245,11 @@ data Status =
              -- | The number of items in the current playlist.
            , stPlaylistLength  :: Integer
              -- | Current song's position in the playlist.
-           , stSongPos         :: Maybe Int
+           , stSongPos         :: Maybe Position
              -- | Current song's playlist ID.
            , stSongID          :: Maybe Id
              -- | Next song's position in the playlist.
-           , stNextSongPos     :: Maybe Int
+           , stNextSongPos     :: Maybe Position
              -- | Next song's playlist ID.
            , stNextSongID      :: Maybe Id
              -- | Time elapsed\/total time.
