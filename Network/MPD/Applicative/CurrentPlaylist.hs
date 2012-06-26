@@ -31,3 +31,12 @@ deleteRange range = Command emptyResponse ["delete" <@> range]
 
 deleteId :: Id -> Command ()
 deleteId i = Command emptyResponse ["deleteid" <@> i]
+
+move :: Position -> Position -> Command ()
+move pos to = Command emptyResponse ["move" <@> pos <++> to]
+
+moveRange :: (Position, Position) -> Position -> Command ()
+moveRange range to = Command emptyResponse ["move" <@> range <++> to]
+
+moveId :: Id -> Position -> Command ()
+moveId i to = Command emptyResponse ["moveid" <@> i <++> to]

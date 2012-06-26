@@ -51,3 +51,21 @@ spec = do
       deleteId (Id 23)
         `with` [("deleteid 23", Right "OK")]
         `shouldBe` Right ()
+
+  describe "move" $ do
+    it "moves a song to a given position in the playlist" $ do
+      move 23 42
+        `with` [("move 23 42", Right "OK")]
+        `shouldBe` Right ()
+
+  describe "moveRange" $ do
+    it "moves a range of songs to a given position in the playlist" $ do
+      moveRange (10, 20) 23
+        `with` [("move 10:20 23", Right "OK")]
+        `shouldBe` Right ()
+
+  describe "moveId" $ do
+    it "move song with given id within the playlist" $ do
+      moveId (Id 23) 10
+        `with` [("moveid 23 10", Right "OK")]
+        `shouldBe` Right ()

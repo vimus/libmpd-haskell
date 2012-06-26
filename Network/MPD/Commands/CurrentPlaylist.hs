@@ -66,12 +66,12 @@ deleteId = A.runCommand . A.deleteId
 
 -- | Move a song to a given position in the current playlist.
 move :: MonadMPD m => Position -> Position -> m ()
-move pos to = getResponse_ ("move" <@> pos <++> to)
+move pos = A.runCommand . A.move pos
 
 -- | Move a song from (songid) to (playlist index) in the playlist. If to is
 -- negative, it is relative to the current song in the playlist (if there is one).
 moveId :: MonadMPD m => Id -> Position -> m ()
-moveId id' to = getResponse_ ("moveid" <@> id' <++> to)
+moveId i = A.runCommand . A.moveId i
 
 -- | Retrieve file paths and positions of songs in the current playlist.
 -- Note that this command is only included for completeness sake; it's
