@@ -61,6 +61,8 @@ Library
     Other-Modules:
         Network.MPD.Core.Class
       , Network.MPD.Core.Error
+      , Network.MPD.Applicative
+      , Network.MPD.Applicative.CurrentPlaylist
       , Network.MPD.Commands
       , Network.MPD.Commands.Arg
       , Network.MPD.Commands.Parse

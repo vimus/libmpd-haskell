@@ -58,11 +58,11 @@ clear = A.runCommand A.clear
 
 -- | Remove a song from the current playlist.
 delete :: MonadMPD m => Position -> m ()
-delete pos = getResponse_ ("delete" <@> pos)
+delete = A.runCommand . A.delete
 
 -- | Remove a song from the current playlist.
 deleteId :: MonadMPD m => Id -> m ()
-deleteId id' = getResponse_ ("deleteid" <@> id')
+deleteId = A.runCommand . A.deleteId
 
 -- | Move a song to a given position in the current playlist.
 move :: MonadMPD m => Position -> Position -> m ()

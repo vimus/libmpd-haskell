@@ -22,3 +22,12 @@ addId path pos = Command p c
 
 clear :: Command ()
 clear = Command emptyResponse ["clear"]
+
+delete :: Position -> Command ()
+delete pos = Command emptyResponse ["delete" <@> pos]
+
+deleteRange :: (Position, Position) -> Command ()
+deleteRange range = Command emptyResponse ["delete" <@> range]
+
+deleteId :: Id -> Command ()
+deleteId i = Command emptyResponse ["deleteid" <@> i]
