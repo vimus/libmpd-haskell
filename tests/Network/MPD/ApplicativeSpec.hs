@@ -3,8 +3,8 @@ module Network.MPD.ApplicativeSpec (main, spec) where
 
 import           Test.Hspec.Monadic
 import           TestUtil
-
 import           StringConn
+
 import qualified Data.Map as Map
 import           Control.Applicative
 import           Network.MPD.Commands.Types
@@ -71,13 +71,8 @@ spec = do
   describe "Command as an Applicative" $ do
     describe "currentSong" $ do
       it "returns the currently played song" $ do
-        let command = unlines [
-                "command_list_ok_begin"
-              , "currentsong"
-              , "command_list_end"
-              ]
-            response = songResponse ++ "list_OK\nOK\n"
-        testMPD [(command, Right response)] (runCommand currentSong) `shouldBe` Right (Just songValue)
+        let response = songResponse ++ "list_OK\nOK\n"
+        testMPD [("currentsong", Right response)] (runCommand currentSong) `shouldBe` Right (Just songValue)
 
     it "can be composed" $ do
       let command = unlines [

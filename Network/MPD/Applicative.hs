@@ -50,4 +50,6 @@ runCommand (Command p c) = getResponse command >>= (P.runParser $ \r ->
     Right (_, xs) -> Left ("superfluous input: " ++ show xs)
   )
   where
-    command = unlines (["command_list_ok_begin"] ++ c ++ ["command_list_end"])
+    command = case c of
+      [x] -> x
+      xs  -> unlines (["command_list_ok_begin"] ++ xs ++ ["command_list_end"])
