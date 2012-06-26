@@ -19,6 +19,7 @@ import           Data.List (intersperse)
 import           Data.Maybe (mapMaybe)
 
 import           Data.ByteString.Char8 (ByteString)
+import qualified Data.ByteString.UTF8 as UTF8
 
 -- Run getResponse but discard the response.
 getResponse_ :: MonadMPD m => String -> m ()
@@ -67,3 +68,7 @@ takeSongs :: MonadMPD m => [ByteString] -> m [Song]
 takeSongs = mapM (runParser parseSong)
           . splitGroups ["file"]
           . toAssocList
+
+-- an internal helper function
+decodePair :: (ByteString, ByteString) -> (String, String)
+decodePair (x, y) = (UTF8.toString x, UTF8.toString y)
