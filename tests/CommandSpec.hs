@@ -79,10 +79,6 @@ spec = do
         it "returns a count of items matching a query" $ testCount
 
     -- * Playlist commands
-
-    describe "addList" $ do
-        it "adds a url to the current playlist, returning a list of added items" $ testAddList
-
     describe "playlistAdd" $ do
         it "adds a url to a stored playlist" $ testPlaylistAdd
 
@@ -240,13 +236,6 @@ testCount = do
 --
 -- Playlist commands
 --
-
-testAddList =
-    cmd [("add \"foo\"", Right "OK"),
-         ("listall \"foo\"", Right "file: Foo\nfile: Bar\nOK")]
-        (Right ["Foo", "Bar"])
-        (addList "foo")
-
 testPlaylistAdd =
     cmd_ [("playlistadd \"foo\" \"bar\"", Right "OK")]
          (playlistAdd "foo" "bar")
