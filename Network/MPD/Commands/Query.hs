@@ -1,10 +1,14 @@
--- | Module    : Network.MPD.Commands.Query
--- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
--- License     : LGPL (see LICENSE)
--- Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
--- Stability   : alpha
---
--- Query interface.
+{- |
+Module      : Network.MPD.Commands.Query
+Copyright   : (c) Joachim Fasting 2012
+License     : MIT
+
+Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
+Stability   : unstable
+Portability : unportable
+
+Query interface.
+-}
 
 module Network.MPD.Commands.Query (Query, (=?), (<&>), anything) where
 

@@ -3,7 +3,7 @@
 
 -- | Module    : Network.MPD.Core
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
--- License     : LGPL (see LICENSE)
+-- License     : MIT (see LICENSE)
 -- Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
 -- Stability   : alpha
 --

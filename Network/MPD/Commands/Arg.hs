@@ -1,12 +1,16 @@
 {-# LANGUAGE FlexibleInstances, TypeSynonymInstances, GeneralizedNewtypeDeriving #-}
 
--- | Module    : Network.MPD.Commands.Arg
--- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
--- License     : LGPL (see LICENSE)
--- Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
--- Stability   : alpha
---
--- Prepare command arguments.
+{- |
+Module      : Network.MPD.Commands.Arg
+Copyright   : (c) Joachim Fasting, Simon Hengel 2012
+License     : MIT
+
+Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
+Stability   : alpha
+Portability : unportable
+
+Prepare command arguments.
+-}
 
 module Network.MPD.Commands.Arg (Command, Args(..), MPDArg(..), (<++>), (<@>)) where
 

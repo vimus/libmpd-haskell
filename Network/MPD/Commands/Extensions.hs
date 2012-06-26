@@ -1,11 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
--- | Module    : Network.MPD.Commands.Extensions
--- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2012
--- License     : LGPL (see LICENSE)
--- Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
--- Stability   : alpha
---
--- Extensions and shortcuts to the standard MPD command set.
+
+{- |
+Module      : Network.MPD.Commands.Extensions
+Copyright   : (c) Joachim Fasting 2012
+License     : MIT
+
+Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
+Stability   : unstable
+Portability : unportable
+
+Extensions and shortcuts to the standard MPD command set.
+-}
 
 module Network.MPD.Commands.Extensions where
 

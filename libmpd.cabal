@@ -4,7 +4,7 @@ Synopsis:           An MPD client library.
 Description:        A client library for MPD, the Music Player Daemon.
 Category:           Network, Sound
 
-License:            LGPL
+License:            MIT
 License-file:       LICENSE
 Copyright:          Ben Sinclair 2005-2009, Joachim Fasting 2012
 Author:             Ben Sinclair
