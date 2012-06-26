@@ -13,8 +13,10 @@ import           Network.MPD.Core
 import           Network.MPD.Commands
 import           Network.MPD.Commands.Arg
 import           Network.MPD.Commands.Util
+import qualified Network.MPD.Applicative as A
 
 import           Control.Monad (liftM)
+import           Data.Traversable (for)
 
 -- | This is exactly the same as `update`.
 updateId :: MonadMPD m => Maybe Path -> m Integer
@@ -44,10 +46,10 @@ addIdMany :: MonadMPD m => Path -> Maybe Position -> m [Id]
 addIdMany x (Just p) = do
     fs <- listAll x
     let fs' = map (\(a, b) -> (a, Just b)) $ zip fs [p ..]
-    mapM (uncurry addId) fs'
+    A.runCommand $ for fs' (uncurry A.addId)
 addIdMany x Nothing = do
     fs <- listAll x
-    mapM (flip addId Nothing) fs
+    A.runCommand $ for fs (`A.addId` Nothing)
 
 -- | Like 'add' but returns a list of the files added.
 addList :: MonadMPD m => Path -> m [Path]
