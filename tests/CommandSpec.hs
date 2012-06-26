@@ -295,7 +295,7 @@ testPlaylistDelete =
 testLoad =
     cmd_ [("load \"foo\"", Right "OK")] (load "foo")
 
-testMove2 = cmd_ [("playlistmove \"foo\" 1 2", Right "OK")] (playlistMove "foo" 1 2)
+testMove2 = cmd_ [("playlistmove \"foo\" 23 2", Right "OK")] (playlistMove "foo" (Id 23) 2)
 
 testRm = cmd_ [("rm \"foo\"", Right "OK")] (rm "foo")
 
