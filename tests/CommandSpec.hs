@@ -91,7 +91,19 @@ spec = do
         it "adds a url to a stored playlist" $ testPlaylistAdd
 
     describe "addId" $ do
-        it "adds a url to a stored playlist, returning the pl index" $ testAddId
+
+        let with = flip testMPD
+
+        it "adds a song to the playlist (non-recursive) and returns the song id" $ do
+            addId "dir/Foo-Bar.ogg" Nothing
+                `with` [("addid \"dir/Foo-Bar.ogg\"", Right "Id: 20\nOK")]
+                `shouldBe` (Right $ Id 20)
+
+        it "takes and optional position" $ do
+            addId "dir/Foo-Bar.ogg" (Just 5)
+                `with` [("addid \"dir/Foo-Bar.ogg\" 5", Right "Id: 20\nOK")]
+                `shouldBe` (Right $ Id 20)
+
 
     describe "playlistClear" $ do
         it "clears a stored playlist" $ testPlaylistClear
@@ -263,11 +275,6 @@ testAdd =
 testPlaylistAdd =
     cmd_ [("playlistadd \"foo\" \"bar\"", Right "OK")]
          (playlistAdd "foo" "bar")
-
-testAddId =
-    cmd [("addid \"dir/Foo-Bar.ogg\"", Right "Id: 20\nOK")]
-        (Right $ Id 20)
-        (addId "dir/Foo-Bar.ogg" Nothing)
 
 testPlaylistClear =
     cmd_ [("playlistclear \"foo\"", Right "OK")]
