@@ -39,16 +39,14 @@ import           Network.MPD.Commands.Types
 import           Network.MPD.Commands.Util
 import           Network.MPD.Core
 import           Network.MPD.Util
+import qualified Network.MPD.Applicative as A
 
 import           Control.Monad (liftM)
 import           Control.Monad.Error (throwError)
 
--- This might do better to throw an exception than silently return 0.
 -- | Like 'add', but returns a playlist id.
-addId :: MonadMPD m => Path -> Maybe Position -- ^ Optional playlist position
-      -> m Id
-addId p pos = liftM (parse parseNum Id (Id 0) . snd . head . toAssocList)
-              $ getResponse1 ("addid" <@> p <++> pos)
+addId :: MonadMPD m => Path -> Maybe Position -> m Id
+addId path = A.runCommand . A.addId path
 
 -- | Add a song (or a whole directory) to the current playlist.
 add :: MonadMPD m => Path -> m ()

@@ -27,6 +27,7 @@ import           Network.MPD.Commands.Types
 import           Network.MPD.Commands.Util
 import           Network.MPD.Core
 import           Network.MPD.Util
+import qualified Network.MPD.Applicative as A
 
 import           Control.Monad (liftM)
 import           Prelude hiding (repeat, read)
@@ -38,8 +39,8 @@ clearError :: MonadMPD m => m ()
 clearError = getResponse_ "clearerror"
 
 -- | Get the currently playing song.
-currentSong :: (Functor m, MonadMPD m) => m (Maybe Song)
-currentSong = getResponse "currentsong" >>= runParser parseMaybeSong
+currentSong :: MonadMPD m => m (Maybe Song)
+currentSong = A.runCommand A.currentSong
 
 -- | Wait until there is a noteworthy change in one or more of MPD's
 -- susbystems.
@@ -74,7 +75,8 @@ noidle = getResponse_ "noidle"
 
 -- | Get server statistics.
 stats :: MonadMPD m => m Stats
-stats = getResponse "stats" >>= runParser parseStats
+stats = A.runCommand A.stats
+
 
 -- | Get the server's status.
 status :: MonadMPD m => m Status
