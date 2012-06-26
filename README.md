@@ -92,6 +92,10 @@ See our [bug tracker]. Test cases are highly appreciated.
 ## License
 LGPL version 2.1 (see LICENSE)
 
+New contributions (as of 2012/06/26) are required to be licensed under the [MIT license].
+
+[MIT license]: http://www.opensource.org/licenses/MIT
+
 ## Contributors (in order of appearance)
 Ben Sinclair \<ben.d.sinclair@gmail.com\>
 
