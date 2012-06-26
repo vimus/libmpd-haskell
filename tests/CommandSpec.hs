@@ -188,7 +188,7 @@ cmd_ :: [(Expect, Response String)] -> StringMPD () -> Assertion
 cmd_ expect f     = cmd expect (Right ()) f
 
 cmd :: (Eq a, Show a) => [(Expect, Response String)] -> Response a -> StringMPD a -> Assertion
-cmd expect resp f = testMPD expect "" f `shouldBe` resp
+cmd expect resp f = testMPD expect f `shouldBe` resp
 
 --
 -- Admin commands
@@ -372,7 +372,7 @@ testUrlHandlers =
 testPassword = cmd_ [("password foo", Right "OK")] (password "foo")
 
 testPasswordSucceeds =
-    testMPD convo "foo" cmd_in `shouldBe` expected_resp
+    testMPDWithPassword convo "foo" cmd_in `shouldBe` expected_resp
     where
         convo = [("lsinfo \"/\"", Right "ACK [4@0] {play} you don't have \
                                         \permission for \"play\"")
@@ -382,7 +382,7 @@ testPasswordSucceeds =
         cmd_in = lsInfo "/"
 
 testPasswordFails =
-    testMPD convo "foo" cmd_in `shouldBe` expected_resp
+    testMPDWithPassword convo "foo" cmd_in `shouldBe` expected_resp
     where
         convo = [("play", Right "ACK [4@0] {play} you don't have \
                                 \permission for \"play\"")

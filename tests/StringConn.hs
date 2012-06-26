@@ -59,15 +59,18 @@ instance MonadMPD StringMPD where
             put rest
             either throwError (return . B.lines . UTF8.fromString) response
 
+testMPD :: (Eq a) => [(Expect, Response String)] -> StringMPD a -> Response a
+testMPD pairs m = testMPDWithPassword pairs "" m
+
 -- | Run an action against a set of expected requests and responses,
 -- and an expected result. The result is Nothing if everything matched
 -- what was expected. If anything differed the result of the
 -- computation is returned along with pairs of expected and received
 -- requests.
-testMPD :: (Eq a)
+testMPDWithPassword :: (Eq a)
         => [(Expect, Response String)] -- ^ The expected requests and their
                                        -- ^ corresponding responses.
         -> Password                    -- ^ A password to be supplied.
         -> StringMPD a                 -- ^ The MPD action to run.
         -> Response a
-testMPD pairs passwd m = runIdentity $ runReaderT (evalStateT (runErrorT $ runSMPD m) pairs) passwd
+testMPDWithPassword pairs passwd m = runIdentity $ runReaderT (evalStateT (runErrorT $ runSMPD m) pairs) passwd
