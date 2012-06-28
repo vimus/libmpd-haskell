@@ -66,6 +66,7 @@ Library
       , Network.MPD.Applicative.Database
       , Network.MPD.Applicative.Output
       , Network.MPD.Applicative.Status
+      , Network.MPD.Applicative.Stickers
       , Network.MPD.Commands
       , Network.MPD.Commands.Arg
       , Network.MPD.Commands.Parse
