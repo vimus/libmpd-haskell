@@ -1,9 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Network.MPD.Applicative.CurrentPlaylistSpec (main, spec) where
 
 import           TestUtil
+import           Unparse
 
 import           Network.MPD.Applicative.CurrentPlaylist
+import           Network.MPD.Commands.Query
 import           Network.MPD.Commands.Types
 
 main :: IO ()
@@ -68,4 +71,105 @@ spec = do
     it "move song with given id within the playlist" $ do
       moveId (Id 23) 10
         `with` [("moveid 23 10", Right "OK")]
+        `shouldBe` Right ()
+
+  -- XXX: generalize to arbitrary SongS and Query
+  describe "playlistFind" $ do
+    it "searches for songs in the current playlist" $ do
+      let obj = defaultSong "Foo.ogg"
+          resp = unparse obj
+      playlistFind (Artist =? "Foo")
+        `with` [("playlistfind Artist \"Foo\"", Right $ resp ++ "\nOK")]
+        `shouldBe` Right [obj]
+
+  -- XXX: generalize to arbitrary SongS
+  describe "playlistInfo" $ do
+    it "retrieves metadata for all songs in the current playlist" $ do
+      let obj = defaultSong "Foo.ogg"
+          resp = unparse obj
+      playlistInfo Nothing
+        `with` [("playlistinfo", Right $ resp ++ "\nOK")]
+        `shouldBe` Right [obj]
+
+    it "can optionally return only songs within a range" $ do
+      let obj = [ defaultSong "Foo.ogg"
+                , defaultSong "Bar.ogg"
+                ]
+          resp = unlines $ map unparse obj
+      playlistInfo (Just (0, 1))
+        `with` [("playlistinfo 0:1", Right $ resp ++ "\nOK")]
+        `shouldBe` Right [ obj !! 0
+                         , obj !! 1
+                         ]
+
+  -- XXX: generlize to arbitrary SongS
+  describe "playlistId" $ do
+    it "retrieves metadata for all songs in the current playlist" $ do
+      let obj = defaultSong "Foo.ogg"
+          resp = unparse obj
+      playlistId Nothing
+        `with` [("playlistid", Right $ resp ++ "\nOK")]
+        `shouldBe` Right [obj]
+
+    it "can optionally return info only for a position" $ do
+      let obj = defaultSong "Foo.ogg"
+          resp = unparse obj
+      playlistId (Just $ Id 0)
+        `with` [("playlistid 0", Right $ resp ++ "\nOK")]
+        `shouldBe` Right [obj]
+
+  describe "playlistSearch" $ do
+    it "returns songs matching an inexact query" $ do
+      let obj = defaultSong "Foo.ogg"
+          resp = unparse obj
+      playlistSearch (Title =? "Foo")
+        `with` [("playlistsearch Title \"Foo\"", Right $ resp ++ "\nOK")]
+        `shouldBe` Right [obj]
+
+  describe "plChanges" $ do
+    it "returns songs that have changed since the given playlist version" $ do
+      let obj = defaultSong "foo.ogg"
+      plChanges 1
+        `with` [("plchanges 1"
+               , Right (unparse obj ++ "OK"))
+               ]
+        `shouldBe` Right [obj]
+
+  describe "plChangesPosId" $ do
+    it "is like plChanges but only returns positions and ids" $ do
+      plChangesPosId 1
+        `with` [("plchangesposid 1"
+               , Right "cpos: 0\n\
+                       \Id: 0\n\
+                       \OK")]
+        `shouldBe` Right [(0, Id 0)]
+
+{- XXX: doesn't work
+    it "fails on weird input" $ do
+      plChangesPosId 10
+        `with` [("plchangesposid 10", Right "cpos: foo\nId: bar\nOK")]
+        `shouldBe` Left (Unexpected "[(\"cpos\",\"foo\"),(\"Id\",\"bar\")]")
+-}
+
+  describe "shuffle" $ do
+    it "shuffles the current playlist" $ do
+      shuffle Nothing
+        `with` [("shuffle", Right "OK")]
+        `shouldBe` Right ()
+
+    it "optionally shuffles a selection of the playlist" $ do
+      shuffle (Just (15, 25))
+        `with` [("shuffle 15:25", Right "OK")]
+        `shouldBe` Right ()
+
+  describe "swap" $ do
+    it "swaps two playlist positions" $ do
+      swap 1 2
+      `with` [("swap 1 2", Right "OK")]
+      `shouldBe` Right ()
+
+  describe "swapId" $ do
+    it "swaps two playlist ids" $ do
+      swapId (Id 1) (Id 2)
+        `with` [("swapid 1 2", Right "OK")]
         `shouldBe` Right ()

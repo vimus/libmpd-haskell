@@ -32,15 +32,12 @@ module Network.MPD.Commands.CurrentPlaylist
     , swapId
     ) where
 
-import           Network.MPD.Commands.Arg
-import           Network.MPD.Commands.Parse
-import           Network.MPD.Commands.Query
-import           Network.MPD.Commands.Types
-import           Network.MPD.Commands.Util
-import           Network.MPD.Core
-import           Network.MPD.Util
 import qualified Network.MPD.Applicative as A
 import qualified Network.MPD.Applicative.CurrentPlaylist as A
+import           Network.MPD.Commands.Query
+import           Network.MPD.Commands.Types
+import           Network.MPD.Core
+import           Network.MPD.Util
 
 import           Control.Monad.Error (throwError)
 
@@ -86,49 +83,40 @@ playlist = mapM f =<< getResponse "playlist"
 
 -- | Search for songs in the current playlist with strict matching.
 playlistFind :: MonadMPD m => Query -> m [Song]
-playlistFind q = takeSongs =<< getResponse ("playlistfind" <@> q)
+playlistFind = A.runCommand . A.playlistFind
 
 -- | Retrieve metadata for songs in the current playlist.
 playlistInfo :: MonadMPD m => Maybe (Position, Position) -> m [Song]
-playlistInfo range = takeSongs =<< getResponse ("playlistinfo" <@> range)
+playlistInfo = A.runCommand . A.playlistInfo
 
 -- | Displays a list of songs in the playlist.
 -- If id is specified, only its info is returned.
-{-# WARNING playlistId "this function does not do what it looks like, and we will probably remove it!" #-}
 playlistId :: MonadMPD m => Maybe Id -> m [Song]
--- FIXME: playlistinfo is used with an id here, but playlistinfo either takes a
--- range or a position, but never an id!
-playlistId id' = takeSongs =<< getResponse ("playlistinfo" <@> id')
+playlistId = A.runCommand . A.playlistId
 
 -- | Search case-insensitively with partial matches for songs in the
 -- current playlist.
 playlistSearch :: MonadMPD m => Query -> m [Song]
-playlistSearch q = takeSongs =<< getResponse ("playlistsearch" <@> q)
+playlistSearch = A.runCommand . A.playlistSearch
 
 -- | Retrieve a list of changed songs currently in the playlist since
 -- a given playlist version.
 plChanges :: MonadMPD m => Integer -> m [Song]
-plChanges version = takeSongs =<< getResponse ("plchanges" <@> version)
+plChanges = A.runCommand . A.plChanges
 
 -- | Like 'plChanges' but only returns positions and ids.
 plChangesPosId :: MonadMPD m => Integer -> m [(Position, Id)]
-plChangesPosId plver =
-    getResponse ("plchangesposid" <@> plver) >>=
-    mapM f . splitGroups ["cpos"] . toAssocList
-    where f xs | [("cpos", x), ("Id", y)] <- xs
-               , Just (x', y') <- pair parseNum (x, y)
-               = return (x', Id y')
-               | otherwise = throwError . Unexpected $ show xs
+plChangesPosId = A.runCommand . A.plChangesPosId
 
 -- | Shuffle the playlist.
 shuffle :: MonadMPD m => Maybe (Position, Position) -- ^ Optional range (start, end)
         -> m ()
-shuffle range = getResponse_ ("shuffle" <@> range)
+shuffle = A.runCommand . A.shuffle
 
 -- | Swap the positions of two songs.
 swap :: MonadMPD m => Position -> Position -> m ()
-swap pos1 pos2 = getResponse_ ("swap" <@> pos1 <++> pos2)
+swap pos1 = A.runCommand . A.swap pos1
 
 -- | Swap the positions of two songs (Id version)
 swapId :: MonadMPD m => Id -> Id -> m ()
-swapId id1 id2 = getResponse_ ("swapid" <@> id1 <++> id2)
+swapId id1 = A.runCommand . A.swapId id1
