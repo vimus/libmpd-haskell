@@ -20,36 +20,26 @@ module Network.MPD.Commands.Reflection
     , decoders
     ) where
 
-import           Network.MPD.Commands.Util
+import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.Reflection as A
 import           Network.MPD.Core
-import           Network.MPD.Util
-
-import           Control.Monad (liftM)
-import           Prelude hiding (repeat, read)
-
-import qualified Data.ByteString.UTF8 as UTF8
 
 -- | Retrieve a list of available commands.
 commands :: MonadMPD m => m [String]
-commands = (map UTF8.toString . takeValues) `liftM` getResponse "commands"
+commands = A.runCommand A.commands
 
 -- | Retrieve a list of unavailable (due to access restrictions) commands.
 notCommands :: MonadMPD m => m [String]
-notCommands = (map UTF8.toString . takeValues) `liftM` getResponse "notcommands"
+notCommands = A.runCommand A.notCommands
 
 -- | Retrieve a list of available song metadata.
 tagTypes :: MonadMPD m => m [String]
-tagTypes = (map UTF8.toString . takeValues) `liftM` (getResponse "tagtypes")
+tagTypes = A.runCommand A.tagTypes
 
 -- | Retrieve a list of supported urlhandlers.
 urlHandlers :: MonadMPD m => m [String]
-urlHandlers = (map UTF8.toString . takeValues) `liftM` (getResponse "urlhandlers")
+urlHandlers = A.runCommand A.urlHandlers
 
 -- | Retreive a list of decoder plugins with associated suffix and mime types.
 decoders :: MonadMPD m => m [(String, [(String, String)])]
-decoders = (takeDecoders . toAssocList) `liftM` getResponse "decoders"
-    where
-        takeDecoders [] = []
-        takeDecoders ((_, p):xs) =
-            let (info, rest) = break ((==) "plugin" . fst) xs
-            in (UTF8.toString p, map decodePair info) : takeDecoders rest
+decoders = A.runCommand A.decoders

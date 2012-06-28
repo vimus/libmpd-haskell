@@ -65,6 +65,7 @@ Library
       , Network.MPD.Applicative.CurrentPlaylist
       , Network.MPD.Applicative.Database
       , Network.MPD.Applicative.Output
+      , Network.MPD.Applicative.Reflection
       , Network.MPD.Applicative.Status
       , Network.MPD.Applicative.Stickers
       , Network.MPD.Commands
