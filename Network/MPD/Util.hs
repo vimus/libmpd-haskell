@@ -13,6 +13,8 @@ module Network.MPD.Util (
     toAssoc, toAssocList, splitGroups, read
     ) where
 
+import           Control.Arrow
+
 import           Data.Time.Format (ParseTime, parseTime, FormatTime, formatTime)
 import           System.Locale (defaultTimeLocale)
 
@@ -83,11 +85,9 @@ parseTriple c f s = let (u, u') = breakChar c s
         (Just a, Just b, Just c') -> Just (a, b, c')
         _                        -> Nothing
 
--- Break a string into an key-value pair, separating at the first ':'.
+-- Break a string into a key-value pair, separating at the first ':'.
 toAssoc :: ByteString -> (ByteString, ByteString)
-toAssoc x = (k, dropWhile (== ' ') $ drop 1 v)
-    where
-        (k,v) = break (== ':') x
+toAssoc = second (dropWhile (== ' ') . drop 1) . break (== ':')
 
 toAssocList :: [ByteString] -> [(ByteString, ByteString)]
 toAssocList = map toAssoc
