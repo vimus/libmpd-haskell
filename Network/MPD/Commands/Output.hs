@@ -18,20 +18,19 @@ module Network.MPD.Commands.Output
     , outputs
     ) where
 
+import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.Output as A
 import           Network.MPD.Core
-import           Network.MPD.Commands.Arg
-import           Network.MPD.Commands.Parse
 import           Network.MPD.Commands.Types
-import           Network.MPD.Commands.Util
 
 -- | Turn off an output device.
 disableOutput :: MonadMPD m => Int -> m ()
-disableOutput = getResponse_ . ("disableoutput" <@>)
+disableOutput = A.runCommand . A.disableOutput
 
 -- | Turn on an output device.
 enableOutput :: MonadMPD m => Int -> m ()
-enableOutput = getResponse_ . ("enableoutput" <@>)
+enableOutput = A.runCommand . A.enableOutput
 
 -- | Retrieve information for all output devices.
 outputs :: MonadMPD m => m [Device]
-outputs = getResponse "outputs" >>= runParser parseOutputs
+outputs = A.runCommand A.outputs
