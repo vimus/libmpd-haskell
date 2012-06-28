@@ -28,6 +28,7 @@ import           Network.MPD.Commands.Util
 import           Network.MPD.Core
 import           Network.MPD.Util
 import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.Status as A
 
 import           Control.Monad (liftM)
 import           Prelude hiding (repeat, read)

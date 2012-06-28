@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Network.MPD.ApplicativeSpec (main, spec) where
+
+module Network.MPD.Applicative.StatusSpec (main, spec) where
 
 import           TestUtil
 
-import qualified Data.Map as Map
-import           Control.Applicative
-import           Network.MPD.Commands.Types
 import           Network.MPD.Applicative
+import           Network.MPD.Applicative.Status
+import           Network.MPD.Commands.Types
 
-main :: IO ()
-main = hspec spec
+import           Control.Applicative
+import qualified Data.Map as M
 
 songResponse :: String
 songResponse = unlines [
@@ -28,7 +28,7 @@ songResponse = unlines [
 songValue :: Song
 songValue = Song {
     sgFilePath      = "Trip-Hop/Morcheeba/Morcheeba - 2010 - Blood Like Lemonade/03 - Blood Like Lemonade.mp3"
-  , sgTags          = Map.fromList [
+  , sgTags          = M.fromList [
                           (Artist,[Value "Morcheeba"])
                         , (Album,[Value "Blood Like Lemonade"])
                         , (Title,[Value "Blood Like Lemonade"])
@@ -63,6 +63,8 @@ statsValue = Stats {
   , stsDbUpdate   = 1024
   }
 
+main :: IO ()
+main = hspec spec
 
 spec :: Spec
 spec = do
@@ -72,6 +74,7 @@ spec = do
         let response = songResponse ++ "list_OK\nOK\n"
         testMPD [("currentsong", Right response)] (runCommand currentSong) `shouldBe` Right (Just songValue)
 
+    -- XXX: move this to ApplicativeSpec
     it "can be composed" $ do
       let command = unlines [
               "command_list_ok_begin"

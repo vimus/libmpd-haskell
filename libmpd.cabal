@@ -64,6 +64,7 @@ Library
       , Network.MPD.Applicative
       , Network.MPD.Applicative.CurrentPlaylist
       , Network.MPD.Applicative.Database
+      , Network.MPD.Applicative.Status
       , Network.MPD.Commands
       , Network.MPD.Commands.Arg
       , Network.MPD.Commands.Parse

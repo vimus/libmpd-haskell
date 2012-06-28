@@ -52,12 +52,6 @@ instance Applicative Command where
   pure a = Command (pure a) []
   (Command p1 c1) <*> (Command p2 c2) = Command (p1 <*> p2) (c1 ++ c2)
 
-currentSong :: Command (Maybe Song)
-currentSong = Command (liftParser parseMaybeSong) ["currentsong"]
-
-stats :: Command Stats
-stats = Command (liftParser parseStats) ["stats"]
-
 runCommand :: MonadMPD m => Command a -> m a
 runCommand (Command p c) = Core.getResponse command >>= (P.runParser $ \r ->
   case runParser p r of
