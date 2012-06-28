@@ -97,11 +97,8 @@ playlistInfo range = takeSongs =<< getResponse ("playlistinfo" <@> range)
 
 -- | Displays a list of songs in the playlist.
 -- If id is specified, only its info is returned.
-{-# WARNING playlistId "this function does not do what it looks like, and we will probably remove it!" #-}
 playlistId :: MonadMPD m => Maybe Id -> m [Song]
--- FIXME: playlistinfo is used with an id here, but playlistinfo either takes a
--- range or a position, but never an id!
-playlistId id' = takeSongs =<< getResponse ("playlistinfo" <@> id')
+playlistId id' = takeSongs =<< getResponse ("playlistid" <@> id')
 
 -- | Search case-insensitively with partial matches for songs in the
 -- current playlist.
