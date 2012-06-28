@@ -21,23 +21,14 @@ module Network.MPD.Commands.Status
     , status
     ) where
 
-import           Network.MPD.Commands.Arg
-import           Network.MPD.Commands.Parse
-import           Network.MPD.Commands.Types
-import           Network.MPD.Commands.Util
-import           Network.MPD.Core
-import           Network.MPD.Util
 import qualified Network.MPD.Applicative as A
 import qualified Network.MPD.Applicative.Status as A
-
-import           Control.Monad (liftM)
-import           Prelude hiding (repeat, read)
-
-import qualified Data.ByteString.UTF8 as UTF8
+import           Network.MPD.Commands.Types
+import           Network.MPD.Core
 
 -- | Clear the current error message in status.
 clearError :: MonadMPD m => m ()
-clearError = getResponse_ "clearerror"
+clearError = A.runCommand A.clearError
 
 -- | Get the currently playing song.
 currentSong :: MonadMPD m => m (Maybe Song)
@@ -54,31 +45,16 @@ currentSong = A.runCommand A.currentSong
 -- Note that running this command will block until either 'idle' returns or is
 -- cancelled by 'noidle'.
 idle :: MonadMPD m => [Subsystem] -> m [Subsystem]
-idle subsystems =
-    mapM f =<< toAssocList `liftM` getResponse ("idle" <@> foldr (<++>) (Args []) subsystems)
-    where
-        f ("changed", system) =
-            case system of
-                "database"        -> return DatabaseS
-                "update"          -> return UpdateS
-                "stored_playlist" -> return StoredPlaylistS
-                "playlist"        -> return PlaylistS
-                "player"          -> return PlayerS
-                "mixer"           -> return MixerS
-                "output"          -> return OutputS
-                "options"         -> return OptionsS
-                k                 -> fail ("Unknown subsystem: " ++ UTF8.toString k)
-        f x                       =  fail ("idle: Unexpected " ++ show x)
+idle = A.runCommand . A.idle
 
 -- | Cancel 'idle'.
 noidle :: MonadMPD m => m ()
-noidle = getResponse_ "noidle"
+noidle = A.runCommand A.noidle
 
 -- | Get server statistics.
 stats :: MonadMPD m => m Stats
 stats = A.runCommand A.stats
 
-
 -- | Get the server's status.
 status :: MonadMPD m => m Status
-status = getResponse "status" >>= runParser parseStatus
+status = A.runCommand A.status
