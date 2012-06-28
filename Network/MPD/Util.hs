@@ -33,7 +33,7 @@ read = Prelude.read . UTF8.toString
 
 -- Break a string by character, removing the separator.
 breakChar :: Char -> ByteString -> (ByteString, ByteString)
-breakChar c s = let (x, y) = break (== c) s in (x, drop 1 y)
+breakChar c = second (drop 1) . break (== c)
 
 -- Parse a date value.
 -- > parseDate "2008" = Just 2008
