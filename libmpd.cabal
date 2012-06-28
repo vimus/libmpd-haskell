@@ -65,6 +65,7 @@ Library
       , Network.MPD.Applicative.CurrentPlaylist
       , Network.MPD.Applicative.Database
       , Network.MPD.Applicative.Output
+      , Network.MPD.Applicative.PlaybackControl
       , Network.MPD.Applicative.PlaybackOptions
       , Network.MPD.Applicative.Reflection
       , Network.MPD.Applicative.Status
