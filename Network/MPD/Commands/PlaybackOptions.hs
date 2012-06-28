@@ -23,44 +23,41 @@ module Network.MPD.Commands.PlaybackOptions
     , replayGainStatus
     ) where
 
-import           Network.MPD.Commands.Arg
+import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.PlaybackOptions as A
 import           Network.MPD.Commands.Types
-import           Network.MPD.Commands.Util
 import           Network.MPD.Core
 
-import           Control.Monad (liftM)
 import           Prelude hiding (repeat)
-
-import qualified Data.ByteString.UTF8 as UTF8
 
 -- | Set consume mode
 consume :: MonadMPD m => Bool -> m ()
-consume = getResponse_ . ("consume" <@>)
+consume = A.runCommand . A.consume
 
 -- | Set crossfading between songs.
 crossfade :: MonadMPD m => Seconds -> m ()
-crossfade secs = getResponse_ ("crossfade" <@> secs)
+crossfade = A.runCommand . A.crossfade
 
 -- | Set random playing.
 random :: MonadMPD m => Bool -> m ()
-random = getResponse_ . ("random" <@>)
+random = A.runCommand . A.random
 
 -- | Set repeating.
 repeat :: MonadMPD m => Bool -> m ()
-repeat = getResponse_ . ("repeat" <@>)
+repeat = A.runCommand . A.repeat
 
 -- | Set the volume (0-100 percent).
 setVolume :: MonadMPD m => Int -> m ()
-setVolume = getResponse_ . ("setvol" <@>)
+setVolume = A.runCommand . A.setVolume
 
 -- | Set single mode
 single :: MonadMPD m => Bool -> m ()
-single = getResponse_ . ("single" <@>)
+single = A.runCommand . A.single
 
 -- | Set the replay gain mode.
 replayGainMode :: MonadMPD m => ReplayGainMode -> m ()
-replayGainMode = getResponse_ . ("replay_gain_mode" <@>)
+replayGainMode = A.runCommand . A.replayGainMode
 
 -- | Get the replay gain options.
 replayGainStatus :: MonadMPD m => m [String]
-replayGainStatus = map UTF8.toString `liftM` getResponse "replay_gain_status"
+replayGainStatus = A.runCommand A.replayGainStatus
