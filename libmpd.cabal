@@ -70,6 +70,7 @@ Library
       , Network.MPD.Applicative.Reflection
       , Network.MPD.Applicative.Status
       , Network.MPD.Applicative.Stickers
+      , Network.MPD.Applicative.StoredPlaylists
       , Network.MPD.Commands
       , Network.MPD.Commands.Arg
       , Network.MPD.Commands.Parse
