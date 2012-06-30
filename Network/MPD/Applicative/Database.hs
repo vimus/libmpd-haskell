@@ -42,16 +42,18 @@ find q = Command p ["find" <@> q]
 findAdd :: Query -> Command ()
 findAdd q = Command emptyResponse ["findadd" <@> q]
 
--- XXX: note this is probably incorrect.
--- list {TYPE} [ARTIST] where ARTIST is used only when TYPE is album and
--- specifies to list albums by an artist.
 -- | Lists all tags of the specified type.
-list :: Metadata -> Query -> Command [Value]
-list m q = Command p ["list" <@> m <++> q]
+--
+-- Note that the optional artist value is only ever used if the
+-- metadata type is 'Album', and is then taken to mean that the albums
+-- by that artist be listed.
+list :: Metadata -> Maybe Artist -> Command [Value]
+list m q = Command p c
     where
-        p :: Parser [Value]
         p = map Value . takeValues <$> getResponse
-{-# WARNING list "this command does not do what you think" #-}
+        c = case m of
+                Album -> ["list Album" <@> q]
+                _     -> ["list" <@> m]
 
 -- | List all songs and directories in a database path.
 listAll :: Path -> Command [Path]

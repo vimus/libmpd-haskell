@@ -35,18 +35,24 @@ spec = do
                 `shouldBe` Right ()
 
     describe "list" $ do
-        it "lists all tags of the specified type matching any song" $ do
-            list Title anything
+        it "lists all tags of the specified type" $ do
+            list Title Nothing
                 `with` [("list Title"
                        , Right "Title: Foo\nTitle: Bar\nOK"
                        )]
                 `shouldBe` Right ["Foo", "Bar"]
 
-        it "lists all tags of the specified type matching a query" $ do
-            list Title (Artist =? "Muzz")
-                `with` [("list Title Artist \"Muzz\""
-                       , Right "Title: Foo\nOK")]
+        it "can list albums by an artist" $ do
+            list Album (Just "Muzz")
+                `with` [("list Album \"Muzz\""
+                       , Right "Album: Foo\nOK")]
                 `shouldBe` Right ["Foo"]
+
+        it "only uses the artist value for the album metadata type" $ do
+            list Title (Just "Foo")
+                 `with` [("list Title"
+                         , Right "Title: Foo\nOK")]
+                 `shouldBe` Right ["Foo"]
 
     describe "listAll" $ do
         it "recursively lists songs in a database directory" $ do

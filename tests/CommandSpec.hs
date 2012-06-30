@@ -62,9 +62,11 @@ spec = do
 
     -- * Database commands
 
+{- XXX: incorrect; fixed in the applicative version
     describe "list" $ do
         it "returns a list of values for a given metadata type" $ testListAny
         it "can constrain listing to entries matching a query" $ testListQuery
+-}
 
     describe "listAll" $ do
         it "lists everything" $ testListAll
@@ -198,6 +200,7 @@ testOutputs = do
 -- Database commands
 --
 
+{- XXX: this is incorrect
 -- XXX: generalize to arbitrary Metadata values
 testListAny = cmd [("list Title", Right "Title: Foo\nTitle: Bar\nOK")]
                   (Right ["Foo", "Bar"])
@@ -206,6 +209,7 @@ testListAny = cmd [("list Title", Right "Title: Foo\nTitle: Bar\nOK")]
 testListQuery = cmd [("list Title Artist \"Muzz\"", Right "Title: Foo\nOK")]
                     (Right ["Foo"])
                     (list Title (Artist =? "Muzz"))
+-}
 
 testListAll =
     cmd [("listall \"\"", Right "directory: FooBand\n\
