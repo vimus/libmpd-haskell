@@ -62,6 +62,7 @@ Library
         Network.MPD.Core.Class
       , Network.MPD.Core.Error
       , Network.MPD.Applicative
+      , Network.MPD.Applicative.Connection
       , Network.MPD.Applicative.CurrentPlaylist
       , Network.MPD.Applicative.Database
       , Network.MPD.Applicative.Output
