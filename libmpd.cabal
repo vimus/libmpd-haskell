@@ -55,12 +55,6 @@ Library
 
     Exposed-Modules:
         Network.MPD
-      , Network.MPD.Commands.Extensions
-      , Network.MPD.Core
-
-    Other-Modules:
-        Network.MPD.Core.Class
-      , Network.MPD.Core.Error
       , Network.MPD.Applicative
       , Network.MPD.Applicative.Connection
       , Network.MPD.Applicative.CurrentPlaylist
@@ -72,6 +66,12 @@ Library
       , Network.MPD.Applicative.Status
       , Network.MPD.Applicative.Stickers
       , Network.MPD.Applicative.StoredPlaylists
+      , Network.MPD.Commands.Extensions
+      , Network.MPD.Core
+
+    Other-Modules:
+        Network.MPD.Core.Class
+      , Network.MPD.Core.Error
       , Network.MPD.Commands
       , Network.MPD.Commands.Arg
       , Network.MPD.Commands.Parse
