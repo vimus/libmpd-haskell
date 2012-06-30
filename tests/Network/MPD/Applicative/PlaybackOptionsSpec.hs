@@ -69,3 +69,15 @@ spec = do
         it "returns the replay gain status" $ do
             replayGainStatus `with` [("replay_gain_status", Right "OK")]
                 `shouldBe` Right []
+
+    describe "mixrampDb" $ do
+        it "sends a mixrampdb request" $ do
+            mixrampDb (-17)
+                `with` [("mixrampdb -17", Right "OK")]
+                `shouldBe` Right ()
+
+    describe "mixrampDelay" $ do
+         it "sends a mixrampdelay request" $ do
+            mixrampDelay 20
+                `with` [("mixrampdelay 20", Right "OK")]
+                `shouldBe` Right ()

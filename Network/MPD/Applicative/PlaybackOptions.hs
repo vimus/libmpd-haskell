@@ -21,6 +21,8 @@ module Network.MPD.Applicative.PlaybackOptions
     , single
     , replayGainMode
     , replayGainStatus
+    , mixrampDb
+    , mixrampDelay
     ) where
 
 import           Network.MPD.Applicative
@@ -65,3 +67,17 @@ replayGainStatus :: Command [String]
 replayGainStatus = Command p ["replay_gain_status"]
     where
         p = map UTF8.toString <$> getResponse
+
+-- | Set MixRamp overlap threshold.
+-- 0dB is the normalized maximum value; use negative values to adjust it.
+--
+-- Songs must have MixRamp tags set by an external tool for this to
+-- work; crossfading is used if no tags are present.
+mixrampDb :: Decibels -> Command ()
+mixrampDb db = Command emptyResponse ["mixrampdb" <@> db]
+
+-- | Additional time subtracted from the overlap calculated by
+-- 'mixrampDb'.
+-- "NaN" disables MixRamp overlapping and reverts to crossfading.
+mixrampDelay :: Seconds -> Command ()
+mixrampDelay sec = Command emptyResponse ["mixrampdelay" <@> sec]

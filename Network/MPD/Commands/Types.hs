@@ -109,6 +109,8 @@ instance MPDArg ObjectType where
 
 type Seconds = Integer
 
+type Decibels = Integer
+
 -- | Represents the different playback states.
 data State = Playing
            | Stopped
