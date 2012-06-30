@@ -46,7 +46,7 @@ findAdd = A.runCommand . A.findAdd
 -- | List all tags of the specified type.
 list :: MonadMPD m
      => Metadata -- ^ Metadata to list
-     -> Query -> m [Value]
+     -> Maybe Artist -> m [Value]
 list m = A.runCommand . A.list m
 
 -- | List the songs (without metadata) in a database directory recursively.
