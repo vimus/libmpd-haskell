@@ -203,6 +203,19 @@ newtype Id = Id Int
 instance (MPDArg Id) where
     prep (Id x) = prep x
 
+-- For Id literals
+instance (Num Id) where
+    fromInteger = Id . fromIntegral
+
+    Id a + Id b = Id (a + b)
+    Id a * Id b = Id (a * b)
+    Id a - Id b = Id (a - b)
+
+    -- XXX: these don't really make a lot of sense here ...
+    negate = id
+    abs = id
+    signum _ = 1
+
 -- | Get list of specific tag type
 sgGetTag :: Metadata -> Song -> Maybe [Value]
 sgGetTag meta s = M.lookup meta $ sgTags s
