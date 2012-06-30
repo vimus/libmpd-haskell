@@ -25,57 +25,45 @@ module Network.MPD.Commands.Database
     , rescan
     ) where
 
-import           Network.MPD.Commands.Arg
-import           Network.MPD.Commands.Parse
+import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.Database as A
 import           Network.MPD.Commands.Query
 import           Network.MPD.Commands.Types
-import           Network.MPD.Commands.Util
 import           Network.MPD.Core
-import           Network.MPD.Util
-
-import           Control.Monad (liftM)
-import           Control.Monad.Error (throwError)
-
-import           Prelude hiding (read)
 
 -- | Count the number of entries matching a query.
 count :: MonadMPD m => Query -> m Count
-count query = getResponse ("count" <@>  query) >>= runParser parseCount
+count = A.runCommand . A.count
 
 -- | Search the database for entries exactly matching a query.
 find :: MonadMPD m => Query -> m [Song]
-find query = getResponse ("find" <@> query) >>= takeSongs
+find = A.runCommand . A.find
 
 -- | Adds songs matching a query to the current playlist.
 findAdd :: MonadMPD m => Query -> m ()
-findAdd q = getResponse_ ("findadd" <@> q)
+findAdd = A.runCommand . A.findAdd
 
 -- | List all tags of the specified type.
 list :: MonadMPD m
      => Metadata -- ^ Metadata to list
      -> Query -> m [Value]
-list mtype query = (map Value . takeValues) `liftM` getResponse ("list" <@> mtype <++> query)
+list m = A.runCommand . A.list m
 
 -- | List the songs (without metadata) in a database directory recursively.
 listAll :: MonadMPD m => Path -> m [Path]
-listAll path = liftM (map (Path . snd) . filter ((== "file") . fst) . toAssocList)
-                     (getResponse $ "listall" <@> path)
-
--- Helper for lsInfo and listAllInfo.
-lsInfo' :: MonadMPD m => Command -> Path -> m [LsResult]
-lsInfo' cmd path = getResponse (cmd <@> path) >>= takeEntries
+listAll = A.runCommand . A.listAll
 
 -- | Recursive 'lsInfo'.
 listAllInfo :: MonadMPD m => Path -> m [LsResult]
-listAllInfo = lsInfo' "listallinfo"
+listAllInfo = A.runCommand . A.listAllInfo
 
 -- | Non-recursively list the contents of a database directory.
 lsInfo :: MonadMPD m => Path -> m [LsResult]
-lsInfo = lsInfo' "lsinfo"
+lsInfo = A.runCommand . A.lsInfo
 
 -- | Search the database using case insensitive matching.
 search :: MonadMPD m => Query -> m [Song]
-search query = getResponse ("search" <@> query) >>= takeSongs
+search = A.runCommand . A.search
 
 -- | Update the server's database.
 --
@@ -84,16 +72,8 @@ search query = getResponse ("search" <@> query) >>= takeSongs
 --
 -- The update job id is returned.
 update :: MonadMPD m => Maybe Path -> m Integer
-update = update_ "update"
+update = A.runCommand . A.update
 
 -- | Like 'update' but also rescans unmodified files.
 rescan :: MonadMPD m => Maybe Path -> m Integer
-rescan = update_ "rescan"
-
--- A helper for `update` and `rescan`.
-update_ :: MonadMPD m => Command -> Maybe Path -> m Integer
-update_ cmd mPath = do
-    r <- getResponse (cmd <@> mPath)
-    case toAssocList r of
-        [("updating_db", id_)] -> return (read id_)
-        _                      -> throwError . Unexpected $ show r
+rescan = A.runCommand . A.rescan

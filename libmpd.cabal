@@ -54,6 +54,17 @@ Library
 
     Exposed-Modules:
         Network.MPD
+      , Network.MPD.Applicative
+      , Network.MPD.Applicative.Connection
+      , Network.MPD.Applicative.CurrentPlaylist
+      , Network.MPD.Applicative.Database
+      , Network.MPD.Applicative.Output
+      , Network.MPD.Applicative.PlaybackControl
+      , Network.MPD.Applicative.PlaybackOptions
+      , Network.MPD.Applicative.Reflection
+      , Network.MPD.Applicative.Status
+      , Network.MPD.Applicative.Stickers
+      , Network.MPD.Applicative.StoredPlaylists
       , Network.MPD.Commands.Extensions
       , Network.MPD.Core
 
@@ -76,6 +87,7 @@ Library
       , Network.MPD.Commands.Connection
       , Network.MPD.Commands.Output
       , Network.MPD.Commands.Reflection
+      , Network.MPD.Applicative.Util
       , Network.MPD.Util
 
     ghc-prof-options:   -auto-all -prof

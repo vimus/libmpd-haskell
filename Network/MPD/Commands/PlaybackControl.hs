@@ -23,40 +23,39 @@ module Network.MPD.Commands.PlaybackControl
     , stop
     ) where
 
-import           Network.MPD.Commands.Arg
+import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.PlaybackControl as A
 import           Network.MPD.Commands.Types
-import           Network.MPD.Commands.Util
 import           Network.MPD.Core
 
 -- | Play the next song.
 next :: MonadMPD m => m ()
-next = getResponse_ "next"
+next = A.runCommand A.next
 
 -- | Pause playing.
 pause :: MonadMPD m => Bool -> m ()
-pause = getResponse_ . ("pause" <@>)
+pause = A.runCommand . A.pause
 
 -- | Begin\/continue playing.
 play :: MonadMPD m => Maybe Position -> m ()
-play (Just pos) = getResponse_ ("play" <@> pos)
-play _          = getResponse_  "play"
+play = A.runCommand . A.play
 
 -- | Play a file with given id.
 playId :: MonadMPD m => Id -> m ()
-playId id' = getResponse_ ("playid" <@> id')
+playId = A.runCommand . A.playId
 
 -- | Play the previous song.
 previous :: MonadMPD m => m ()
-previous = getResponse_ "previous"
+previous = A.runCommand A.previous
 
 -- | Seek to some point in a song.
 seek :: MonadMPD m => Position -> Seconds -> m ()
-seek pos time = getResponse_ ("seek" <@> pos <++> time)
+seek pos = A.runCommand . A.seek pos
 
 -- | Seek to some point in a song (id version)
 seekId :: MonadMPD m => Id -> Seconds -> m ()
-seekId id' time = getResponse_ ("seekid" <@> id' <++> time)
+seekId id' = A.runCommand . A.seekId id'
 
 -- | Stop playing.
 stop :: MonadMPD m => m ()
-stop = getResponse_ "stop"
+stop = A.runCommand A.stop

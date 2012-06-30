@@ -29,8 +29,8 @@ instance Arbitrary ByteString where
   arbitrary = UTF8.fromString <$> arbitrary
 
 -- No longer provided by QuickCheck 2
-two :: Monad m => m a -> m (a, a)
-two m = liftM2 (,) m m
+-- two :: Monad m => m a -> m (a, a)
+-- two m = liftM2 (,) m m
 
 three :: Monad m => m a -> m (a, a, a)
 three m = liftM3 (,,) m m m
