@@ -91,16 +91,20 @@ spec = do
         `with` [("playlistinfo", Right $ resp ++ "\nOK")]
         `shouldBe` Right [obj]
 
-    it "can optionally return only songs within a range" $ do
-      let obj = [ defaultSong "Foo.ogg"
-                , defaultSong "Bar.ogg"
-                ]
-          resp = unlines $ map unparse obj
-      playlistInfo (Just (0, 1))
-        `with` [("playlistinfo 0:1", Right $ resp ++ "\nOK")]
-        `shouldBe` Right [ obj !! 0
-                         , obj !! 1
-                         ]
+    it "can optionally return only metadata for a position" $ do
+      let obj = defaultSong "Foo.ogg"
+          resp = unparse obj ++ "OK"
+      playlistInfo (Just 1)
+        `with` [("playlistinfo 1", Right resp)]
+        `shouldBe` Right [obj]
+
+  describe "playlistInfoRange" $ do
+    it "is like playlistInfo but can restrict to a range of songs" $ do
+      let obj = defaultSong "Foo.ogg"
+          resp = unparse obj ++ "OK"
+      playlistInfoRange (Just (0, 1))
+        `with` [("playlistinfo 0:1", Right resp)]
+        `shouldBe` Right [obj]
 
   -- XXX: generlize to arbitrary SongS
   describe "playlistId" $ do

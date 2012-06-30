@@ -23,6 +23,7 @@ module Network.MPD.Commands.CurrentPlaylist
     , playlist
     , playlistFind
     , playlistInfo
+    , playlistInfoRange
     , playlistId
     , playlistSearch
     , plChanges
@@ -87,8 +88,12 @@ playlistFind :: MonadMPD m => Query -> m [Song]
 playlistFind = A.runCommand . A.playlistFind
 
 -- | Retrieve metadata for songs in the current playlist.
-playlistInfo :: MonadMPD m => Maybe (Position, Position) -> m [Song]
+playlistInfo :: MonadMPD m => Maybe Position -> m [Song]
 playlistInfo = A.runCommand . A.playlistInfo
+
+-- | Like 'playlistInfo' but can restrict to a range of songs.
+playlistInfoRange :: MonadMPD m => Maybe (Position, Position) -> m [Song]
+playlistInfoRange = A.runCommand . A.playlistInfoRange
 
 -- | Displays a list of songs in the playlist.
 -- If id is specified, only its info is returned.

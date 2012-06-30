@@ -24,6 +24,7 @@ module Network.MPD.Applicative.CurrentPlaylist
     , moveRange
     , playlistFind
     , playlistInfo
+    , playlistInfoRange
     , playlistId
     , playlistSearch
     , plChanges
@@ -89,6 +90,7 @@ moveId i to = Command emptyResponse ["moveid" <@> i <++> to]
 
 -- Note: 'playlist' deliberately not defined here
 
+-- Internal helper for playlist* commands
 playlist' :: MPDArg a => Arg.Command -> a -> Command [Song]
 playlist' cmd q = Command (liftParser takeSongs) [cmd <@> q]
 
@@ -97,9 +99,14 @@ playlistFind :: Query -> Command [Song]
 playlistFind = playlist' "playlistfind"
 
 -- | Get song metadata for all items in the current playlist.
--- Optionally restrict selection to a range of songs.
-playlistInfo :: Maybe (Position, Position) -> Command [Song]
+-- Optionally restrict listing the song at the given position.
+playlistInfo :: Maybe Position -> Command [Song]
 playlistInfo = playlist' "playlistinfo"
+
+-- | Like 'playlistInfo' but can restrict listing to a range
+-- of songs.
+playlistInfoRange :: Maybe (Position, Position) -> Command [Song]
+playlistInfoRange = playlist' "playlistinfo"
 
 -- | Get song metadata for all items in the current playlist.
 -- Optionally restrict selection to a single song id.
