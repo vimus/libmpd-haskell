@@ -7,9 +7,37 @@
 --
 -- Various MPD data structures and types
 
-module Network.MPD.Commands.Types where
+module Network.MPD.Commands.Types
+    ( ToString(..)
+    , Artist
+    , Album
+    , Title
+    , PlaylistName(..)
+    , Path(..)
+    , Metadata(..)
+    , Value(..)
+    , ObjectType(..)
+    , Seconds
+    , Decibels
+    , State(..)
+    , Subsystem(..)
+    , ReplayGainMode(..)
+    , Count(..)
+    , LsResult(..)
+    , Device(..)
+    , Song(..)
+    , Position
+    , Id(..)
+    , sgGetTag
+    , sgAddTag
+    , Stats(..)
+    , Status(..)
+    , def
+    ) where
 
 import           Network.MPD.Commands.Arg (MPDArg(prep), Args(Args))
+
+import           Data.Default
 
 import qualified Data.Map as M
 import           Data.Time.Clock (UTCTime)
@@ -160,6 +188,9 @@ data Count =
 defaultCount :: Count
 defaultCount = Count { cSongs = 0, cPlaytime = 0 }
 
+instance Default Count where
+    def = defaultCount
+
 -- | Result of the lsInfo operation
 data LsResult
     = LsDirectory Path        -- ^ Directory
@@ -178,6 +209,9 @@ data Device =
 defaultDevice :: Device
 defaultDevice =
     Device { dOutputID = 0, dOutputName = "", dOutputEnabled = False }
+
+instance Default Device where
+    def = defaultDevice
 
 -- | Represents a single song item.
 data Song = Song
@@ -216,6 +250,10 @@ defaultSong path =
     Song { sgFilePath = path, sgTags = M.empty, sgLastModified = Nothing
          , sgLength = 0, sgId = Nothing, sgIndex = Nothing }
 
+-- XXX: warning; sgFilePath must be set before using this
+instance Default Song where
+    def = defaultSong undefined
+
 -- | Container for database statistics.
 data Stats =
     Stats { stsArtists    :: Integer -- ^ Number of artists.
@@ -233,6 +271,9 @@ defaultStats :: Stats
 defaultStats =
      Stats { stsArtists = 0, stsAlbums = 0, stsSongs = 0, stsUptime = 0
            , stsPlaytime = 0, stsDbPlaytime = 0, stsDbUpdate = 0 }
+
+instance Default Stats where
+    def = defaultStats
 
 -- | Container for MPD status.
 data Status =
@@ -286,3 +327,6 @@ defaultStatus =
            , stBitrate = 0, stXFadeWidth = 0, stMixRampdB = 0
            , stMixRampDelay = 0, stAudio = (0,0,0), stUpdatingDb = Nothing
            , stSingle = False, stConsume = False, stError = Nothing }
+
+instance Default Status where
+    def = defaultStatus

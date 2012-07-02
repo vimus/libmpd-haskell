@@ -2,7 +2,6 @@
 
 module Network.MPD.Applicative.StatusSpec (main, spec) where
 
-import           Defaults ()
 import           TestUtil
 import           Unparse
 

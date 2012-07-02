@@ -12,7 +12,6 @@
 module CommandSpec (main, spec) where
 
 import           Arbitrary ()
-import           Defaults ()
 import           StringConn
 import           TestUtil
 import           Unparse
@@ -25,7 +24,6 @@ import           Network.MPD.Commands
 import           Network.MPD.Commands.Extensions
 
 import           Prelude hiding (repeat)
-import           Data.Default (Default(def))
 
 main :: IO ()
 main = hspec spec
@@ -222,7 +220,7 @@ testListAll =
 
 -- XXX: generalize to arbitrary input
 testLsInfo = do
-    let song = defaultSong "Bar.ogg"
+    let song = def { sgFilePath = "Bar.ogg" }
     cmd [("lsinfo \"\"", Right $ "directory: Foo\n" ++ unparse song ++ "playlist: Quux\nOK")]
         (Right [LsDirectory "Foo", LsSong song, LsPlaylist "Quux"])
         (lsInfo "")

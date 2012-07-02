@@ -25,7 +25,7 @@ import qualified Data.ByteString.UTF8 as UTF8
 
 -- | Builds a 'Count' instance from an assoc. list.
 parseCount :: [ByteString] -> Either String Count
-parseCount = foldM f defaultCount . toAssocList
+parseCount = foldM f def . toAssocList
         where f :: Count -> (ByteString, ByteString) -> Either String Count
               f a ("songs", x)    = return $ parse parseNum
                                     (\x' -> a { cSongs = x'}) a x
@@ -35,7 +35,7 @@ parseCount = foldM f defaultCount . toAssocList
 
 -- | Builds a list of 'Device' instances from an assoc. list
 parseOutputs :: [ByteString] -> Either String [Device]
-parseOutputs = mapM (foldM f defaultDevice)
+parseOutputs = mapM (foldM f def)
              . splitGroups ["outputid"]
              . toAssocList
     where f a ("outputid", x)      = return $ parse parseNum
@@ -47,7 +47,7 @@ parseOutputs = mapM (foldM f defaultDevice)
 
 -- | Builds a 'Stats' instance from an assoc. list.
 parseStats :: [ByteString] -> Either String Stats
-parseStats = foldM f defaultStats . toAssocList
+parseStats = foldM f def . toAssocList
     where
         f a ("artists", x)     = return $ parse parseNum
                                  (\x' -> a { stsArtists  = x' }) a x
@@ -72,7 +72,7 @@ parseMaybeSong xs | null xs   = Right Nothing
 -- | Builds a 'Song' instance from an assoc. list.
 parseSong :: [(ByteString, ByteString)] -> Either String Song
 parseSong xs = case xs of
-    ("file", path):ys -> foldM f (defaultSong $ Path path) ys
+    ("file", path):ys -> foldM f (def { sgFilePath = Path path}) ys
     _ -> Left "Got a song without a file path! This indicates a bug in either libmpd-haskell or MPD itself!"
 
     where
@@ -114,7 +114,7 @@ parseSong xs = case xs of
 
 -- | Builds a 'Status' instance from an assoc. list.
 parseStatus :: [ByteString] -> Either String Status
-parseStatus = foldM f defaultStatus . toAssocList
+parseStatus = foldM f def . toAssocList
     where f a ("state", x)
               = return $ parse state     (\x' -> a { stState = x' }) a x
           f a ("volume", x)

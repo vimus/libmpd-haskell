@@ -23,7 +23,6 @@ Extra-Source-Files:
     NEWS
     tests/Arbitrary.hs
     tests/CommandSpec.hs
-    tests/Defaults.hs
     tests/EnvSpec.hs
     tests/ParserSpec.hs
     tests/StringConn.hs
@@ -48,6 +47,7 @@ Library
       , old-locale >= 1.0 && < 2.0
       , time >= 1.1 && < 2.0
       , containers >= 0.3 && < 0.5
+      , data-default >= 0.4.0 && < 0.5
       , bytestring >= 0.9 && < 1
       , text >= 0.11 && < 0.12
       , attoparsec >= 0.10.1 && < 0.11
