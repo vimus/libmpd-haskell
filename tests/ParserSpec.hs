@@ -4,7 +4,6 @@
 module ParserSpec (main, spec) where
 
 import           Arbitrary ()
-import           Defaults ()
 import           Unparse
 
 import           Test.Hspec.Monadic
