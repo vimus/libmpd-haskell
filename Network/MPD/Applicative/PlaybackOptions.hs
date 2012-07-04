@@ -28,11 +28,11 @@ module Network.MPD.Applicative.PlaybackOptions
 import           Network.MPD.Applicative
 import           Network.MPD.Commands.Arg hiding (Command)
 import           Network.MPD.Commands.Types
+import           Network.MPD.Commands.Util (decodePair)
+import           Network.MPD.Util (toAssocList)
 
 import           Control.Applicative
 import           Prelude hiding (repeat)
-
-import qualified Data.ByteString.UTF8 as UTF8
 
 -- | Toggle consume mode.
 consume :: Bool -> Command ()
@@ -62,11 +62,11 @@ single f = Command emptyResponse ["single" <@> f]
 replayGainMode :: ReplayGainMode -> Command ()
 replayGainMode f = Command emptyResponse ["replay_gain_mode" <@> f]
 
--- | Get replay gain status.
-replayGainStatus :: Command [String]
+-- | Get replay gain status: option name and its value.
+replayGainStatus :: Command [(String, String)]
 replayGainStatus = Command p ["replay_gain_status"]
     where
-        p = map UTF8.toString <$> getResponse
+        p = map decodePair . toAssocList <$> getResponse
 
 -- | Set MixRamp overlap threshold.
 -- 0dB is the normalized maximum value; use negative values to adjust it.

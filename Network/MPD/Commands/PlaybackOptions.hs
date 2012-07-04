@@ -59,5 +59,5 @@ replayGainMode :: MonadMPD m => ReplayGainMode -> m ()
 replayGainMode = A.runCommand . A.replayGainMode
 
 -- | Get the replay gain options.
-replayGainStatus :: MonadMPD m => m [String]
+replayGainStatus :: MonadMPD m => m [(String, String)]
 replayGainStatus = A.runCommand A.replayGainStatus

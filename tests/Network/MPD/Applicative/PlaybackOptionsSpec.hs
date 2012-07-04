@@ -71,7 +71,7 @@ spec = do
             replayGainStatus
                 `with` [("replay_gain_status"
                         , Right "replay_gain_mode: off\nOK")]
-                `shouldBe` Right ["replay_gain_mode: off"]
+                `shouldBe` Right [("replay_gain_mode", "off")]
 
     describe "mixrampDb" $ do
         it "sends a mixrampdb request" $ do
