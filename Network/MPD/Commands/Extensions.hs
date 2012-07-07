@@ -153,7 +153,7 @@ lsPlaylists = liftM (extractEntries (const Nothing, Just, const Nothing)) $
 
 -- | List the artists in the database.
 listArtists :: MonadMPD m => m [Artist]
-listArtists = (map Value . takeValues) `liftM` (getResponse "list artist")
+listArtists = list Artist Nothing
 
 -- | List the albums in the database, optionally matching a given
 -- artist.
