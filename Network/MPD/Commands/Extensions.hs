@@ -15,9 +15,11 @@ import           Network.MPD.Commands.Arg
 import           Network.MPD.Commands.Util
 import qualified Network.MPD.Applicative as A
 import qualified Network.MPD.Applicative.CurrentPlaylist as A
+import qualified Network.MPD.Applicative.StoredPlaylists as A
 
 import           Control.Monad (liftM)
 import           Data.Traversable (for)
+import           Data.Foldable (for_)
 
 -- | This is exactly the same as `update`.
 updateId :: MonadMPD m => Maybe Path -> m Integer
@@ -32,13 +34,9 @@ toggle = status >>= \st -> case stState st of Playing -> pause True
 -- | Add a list of songs\/folders to a playlist.
 -- Should be more efficient than running 'add' many times.
 addMany :: MonadMPD m => PlaylistName -> [Path] -> m ()
-addMany _ [] = return ()
-addMany "" [x] = add x
-addMany plname [x] = playlistAdd plname x
-addMany plname xs = getResponses (map cmd xs) >> return ()
-    where cmd x = case plname of
-                      "" -> "add" <@> x
-                      pl -> "playlistadd" <@> pl <++> x
+addMany plname xs = A.runCommand (for_ xs cmd)
+    where cmd | plname == "" = A.add
+              | otherwise    = A.playlistAdd plname
 
 -- | Recursive 'addId'. For directories, it will use the given position
 -- for the first file in the directory and use the successor for the remaining

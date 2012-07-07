@@ -21,24 +21,6 @@ import           Data.Maybe (mapMaybe)
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.UTF8 as UTF8
 
--- Run getResponse but discard the response.
-getResponse_ :: MonadMPD m => String -> m ()
-getResponse_ x = getResponse x >> return ()
-
--- Get the lines of the daemon's response to a list of commands.
-getResponses :: MonadMPD m => [String] -> m [ByteString]
-getResponses cmds = getResponse . concat $ intersperse "\n" cmds'
-    where cmds' = "command_list_begin" : cmds ++ ["command_list_end"]
-
--- Helper that throws unexpected error if input is empty.
-failOnEmpty :: MonadMPD m => [ByteString] -> m [ByteString]
-failOnEmpty [] = throwError $ Unexpected "Non-empty response expected."
-failOnEmpty xs = return xs
-
--- A wrapper for getResponse that fails on non-empty responses.
-getResponse1 :: MonadMPD m => String -> m [ByteString]
-getResponse1 x = getResponse x >>= failOnEmpty
-
 -- Run 'toAssocList' and return only the values.
 takeValues :: [ByteString] -> [ByteString]
 takeValues = snd . unzip . toAssocList
