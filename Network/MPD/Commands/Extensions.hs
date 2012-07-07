@@ -11,13 +11,13 @@ module Network.MPD.Commands.Extensions where
 
 import           Network.MPD.Core
 import           Network.MPD.Commands
-import           Network.MPD.Commands.Arg
-import           Network.MPD.Commands.Util
-import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.Internal as A
 import qualified Network.MPD.Applicative.CurrentPlaylist as A
+import qualified Network.MPD.Applicative.StoredPlaylists as A
 
 import           Control.Monad (liftM)
 import           Data.Traversable (for)
+import           Data.Foldable (for_)
 
 -- | This is exactly the same as `update`.
 updateId :: MonadMPD m => Maybe Path -> m Integer
@@ -32,13 +32,9 @@ toggle = status >>= \st -> case stState st of Playing -> pause True
 -- | Add a list of songs\/folders to a playlist.
 -- Should be more efficient than running 'add' many times.
 addMany :: MonadMPD m => PlaylistName -> [Path] -> m ()
-addMany _ [] = return ()
-addMany "" [x] = add x
-addMany plname [x] = playlistAdd plname x
-addMany plname xs = getResponses (map cmd xs) >> return ()
-    where cmd x = case plname of
-                      "" -> "add" <@> x
-                      pl -> "playlistadd" <@> pl <++> x
+addMany plname xs = A.runCommand (for_ xs cmd)
+    where cmd | plname == "" = A.add
+              | otherwise    = A.playlistAdd plname
 
 -- | Recursive 'addId'. For directories, it will use the given position
 -- for the first file in the directory and use the successor for the remaining
@@ -63,21 +59,6 @@ playlistAddList plname path = playlistAdd plname path >> listAll path
 {-# DEPRECATED playlistAddList "will be removed in a future version" #-}
 
 {-
--- | Delete a list of songs from a playlist.
--- If there is a duplicate then no further songs will be deleted, so
--- take care to avoid them (see 'prune' for this).
-deleteMany :: MonadMPD m => PlaylistName -> [PLIndex] -> m ()
-deleteMany _ [] = return ()
-deleteMany plname [(Pos x)] = playlistDelete plname x
-deleteMany "" xs = getResponses (map cmd xs) >> return ()
-    where cmd (Pos x) = "delete"   <@> x
-          cmd (ID x)  = "deleteid" <@> x
-deleteMany plname xs = getResponses (map cmd xs) >> return ()
-    where cmd (Pos x) = "playlistdelete" <@> plname <++> x
-          cmd _       = ""
--}
-
-{-
 -- | Returns all songs and directories that match the given partial
 -- path name.
 complete :: MonadMPD m => String -> m [Either Path Song]
@@ -91,77 +72,14 @@ complete path = do
         takePath = either id sgFilePath
 -}
 
-{-
--- | Crop playlist.
--- The bounds are inclusive.
--- If 'Nothing' is passed the cropping will leave your playlist alone
--- on that side.
--- Using 'ID' will automatically find the absolute playlist position and use
--- that as the cropping boundary.
-crop :: MonadMPD m => Maybe PLIndex -> Maybe PLIndex -> m ()
-crop x y = do
-    pl <- playlistInfo Nothing
-    let x' = case x of Just (Pos p) -> fromInteger p
-                       Just (ID i)  -> fromMaybe 0 (findByID i pl)
-                       Nothing      -> 0
-        -- ensure that no songs are deleted twice with 'max'.
-        ys = case y of Just (Pos p) -> drop (max (fromInteger p) x') pl
-                       Just (ID i)  -> maybe [] (flip drop pl . max x' . (+1))
-                                      (findByID i pl)
-                       Nothing      -> []
-    deleteMany "" . mapMaybe sgIndex $ take x' pl ++ ys
-    where findByID i = findIndex ((==) i . (\(ID j) -> j) . fromJust . sgIndex)
--}
-
-{-
--- | Remove duplicate playlist entries.
-prune :: MonadMPD m => m ()
-prune = findDuplicates >>= deleteMany ""
-
--- Find duplicate playlist entries.
-findDuplicates :: MonadMPD m => m [PLIndex]
-findDuplicates =
-    liftM (map ((\(ID x) -> ID x) . fromJust . sgIndex) . flip dups ([],[])) $
-        playlistInfo Nothing
-    where dups [] (_, dup) = dup
-          dups (x:xs) (ys, dup)
-              | x `mSong` xs && not (x `mSong` ys) = dups xs (ys, x:dup)
-              | otherwise                          = dups xs (x:ys, dup)
-          mSong x = let m = sgFilePath x in any ((==) m . sgFilePath)
--}
-
-{-
--- | List directories non-recursively.
-lsDirs :: MonadMPD m => Path -> m [Path]
-lsDirs path =
-    liftM (extractEntries (const Nothing,const Nothing, Just)) $
-        takeEntries =<< getResponse ("lsinfo" <@> path)
--}
-
-{-
--- | List files non-recursively.
-lsFiles :: MonadMPD m => Path -> m [Path]
-lsFiles path =
-    liftM (extractEntries (Just . sgFilePath, const Nothing, const Nothing)) $
-        takeEntries =<< getResponse ("lsinfo" <@> path)
--}
-
-{-
--- | List all playlists.
-lsPlaylists :: MonadMPD m => m [PlaylistName]
-lsPlaylists = liftM (extractEntries (const Nothing, Just, const Nothing)) $
-                    takeEntries =<< getResponse "lsinfo"
--}
-
 -- | List the artists in the database.
 listArtists :: MonadMPD m => m [Artist]
-listArtists = (map Value . takeValues) `liftM` (getResponse "list artist")
+listArtists = list Artist Nothing
 
 -- | List the albums in the database, optionally matching a given
 -- artist.
 listAlbums :: MonadMPD m => Maybe Artist -> m [Album]
-listAlbums artist = (map Value . takeValues) `liftM`
-                    getResponse ("list album" <@> fmap (("artist" :: String) <++>) artist)
+listAlbums = list Album
 
 -- | List the songs in an album of some artist.
 listAlbum :: MonadMPD m => Artist -> Album -> m [Song]

@@ -18,7 +18,7 @@ module Network.MPD.Applicative.Output
     , outputs
     ) where
 
-import           Network.MPD.Applicative
+import           Network.MPD.Applicative.Internal
 import           Network.MPD.Commands.Arg hiding (Command)
 import           Network.MPD.Commands.Parse
 import           Network.MPD.Commands.Types

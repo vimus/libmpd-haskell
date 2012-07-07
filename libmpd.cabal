@@ -76,7 +76,6 @@ Library
       , Network.MPD.Commands.Parse
       , Network.MPD.Commands.Query
       , Network.MPD.Commands.Types
-      , Network.MPD.Commands.Util
       , Network.MPD.Commands.Status
       , Network.MPD.Commands.PlaybackOptions
       , Network.MPD.Commands.PlaybackControl
@@ -88,6 +87,7 @@ Library
       , Network.MPD.Commands.Output
       , Network.MPD.Commands.Reflection
       , Network.MPD.Applicative.Util
+      , Network.MPD.Applicative.Internal
       , Network.MPD.Util
 
     ghc-prof-options:   -auto-all -prof

@@ -25,10 +25,10 @@ module Network.MPD.Applicative.PlaybackOptions
     , mixrampDelay
     ) where
 
-import           Network.MPD.Applicative
+import           Network.MPD.Applicative.Internal
+import           Network.MPD.Applicative.Util
 import           Network.MPD.Commands.Arg hiding (Command)
 import           Network.MPD.Commands.Types
-import           Network.MPD.Commands.Util (decodePair)
 import           Network.MPD.Util (toAssocList)
 
 import           Control.Applicative

@@ -40,7 +40,7 @@ import           Network.MPD.Util
 import           Network.MPD.Commands.Query
 import           Network.MPD.Commands.Parse
 import           Network.MPD.Commands.Types
-import           Network.MPD.Applicative
+import           Network.MPD.Applicative.Internal
 import           Network.MPD.Applicative.Util
 
 -- | Add a song (or a whole directory) to the current playlist.

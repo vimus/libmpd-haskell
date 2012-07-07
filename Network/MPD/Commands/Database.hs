@@ -25,7 +25,7 @@ module Network.MPD.Commands.Database
     , rescan
     ) where
 
-import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.Internal as A
 import qualified Network.MPD.Applicative.Database as A
 import           Network.MPD.Commands.Query
 import           Network.MPD.Commands.Types

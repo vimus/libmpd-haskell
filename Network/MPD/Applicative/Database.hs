@@ -20,10 +20,9 @@ import qualified Network.MPD.Commands.Arg as Arg
 import           Network.MPD.Commands.Arg hiding (Command)
 import           Network.MPD.Commands.Parse
 import           Network.MPD.Commands.Query
-import           Network.MPD.Commands.Util hiding (takeEntries, takeSongs)
 import           Network.MPD.Util
 import           Network.MPD.Commands.Types
-import           Network.MPD.Applicative
+import           Network.MPD.Applicative.Internal
 import           Network.MPD.Applicative.Util
 
 -- | Get a count of songs and their total playtime that exactly match the

@@ -20,7 +20,7 @@ module Network.MPD.Commands.Reflection
     , decoders
     ) where
 
-import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.Internal as A
 import qualified Network.MPD.Applicative.Reflection as A
 import           Network.MPD.Core
 

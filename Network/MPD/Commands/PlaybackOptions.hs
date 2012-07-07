@@ -23,7 +23,7 @@ module Network.MPD.Commands.PlaybackOptions
     , replayGainStatus
     ) where
 
-import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.Internal as A
 import qualified Network.MPD.Applicative.PlaybackOptions as A
 import           Network.MPD.Commands.Types
 import           Network.MPD.Core
