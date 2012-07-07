@@ -123,7 +123,7 @@ status = Command (liftParser parseStatus) ["status"]
               f a ("nextsongid", x)
                   = return $ parse parseNum  (\x' -> a { stNextSongID = Just $ Id x' }) a x
               f _ x
-                  = fail $ show x
+                  = Left ("unexpected key-value pair: " ++ show x)
 
               state "play"  = Just Playing
               state "pause" = Just Paused
