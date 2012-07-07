@@ -22,7 +22,7 @@ module Network.MPD.Applicative.Reflection
 
 import           Network.MPD.Util
 import           Network.MPD.Commands.Util (decodePair, takeValues)
-import           Network.MPD.Applicative
+import           Network.MPD.Applicative.Internal
 
 import           Control.Applicative
 import           Prelude hiding (repeat, read)

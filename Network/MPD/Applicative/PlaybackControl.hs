@@ -23,7 +23,7 @@ module Network.MPD.Applicative.PlaybackControl
     , stop
     ) where
 
-import           Network.MPD.Applicative
+import           Network.MPD.Applicative.Internal
 import           Network.MPD.Commands.Arg hiding (Command)
 import           Network.MPD.Commands.Types
 

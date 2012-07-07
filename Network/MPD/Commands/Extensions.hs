@@ -11,7 +11,7 @@ module Network.MPD.Commands.Extensions where
 
 import           Network.MPD.Core
 import           Network.MPD.Commands
-import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.Internal as A
 import qualified Network.MPD.Applicative.CurrentPlaylist as A
 import qualified Network.MPD.Applicative.StoredPlaylists as A
 

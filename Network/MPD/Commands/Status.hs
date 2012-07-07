@@ -21,7 +21,7 @@ module Network.MPD.Commands.Status
     , status
     ) where
 
-import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.Internal as A
 import qualified Network.MPD.Applicative.Status as A
 import           Network.MPD.Commands.Types
 import           Network.MPD.Core

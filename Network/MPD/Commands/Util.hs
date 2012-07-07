@@ -15,7 +15,6 @@ import           Network.MPD.Core
 import           Network.MPD.Util
 
 import           Control.Monad.Error
-import           Data.List (intersperse)
 import           Data.Maybe (mapMaybe)
 
 import           Data.ByteString.Char8 (ByteString)

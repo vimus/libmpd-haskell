@@ -17,7 +17,7 @@ module Network.MPD.Applicative.Connection
     , ping
     ) where
 
-import           Network.MPD.Applicative
+import           Network.MPD.Applicative.Internal
 import           Network.MPD.Core
 
 -- | Authenticate session. The password is sent in plain text.

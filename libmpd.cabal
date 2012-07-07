@@ -88,6 +88,7 @@ Library
       , Network.MPD.Commands.Output
       , Network.MPD.Commands.Reflection
       , Network.MPD.Applicative.Util
+      , Network.MPD.Applicative.Internal
       , Network.MPD.Util
 
     ghc-prof-options:   -auto-all -prof

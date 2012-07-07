@@ -18,7 +18,7 @@ module Network.MPD.Commands.Output
     , outputs
     ) where
 
-import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.Internal as A
 import qualified Network.MPD.Applicative.Output as A
 import           Network.MPD.Core
 import           Network.MPD.Commands.Types

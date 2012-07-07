@@ -33,7 +33,7 @@ module Network.MPD.Commands.CurrentPlaylist
     , swapId
     ) where
 
-import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.Internal as A
 import qualified Network.MPD.Applicative.CurrentPlaylist as A
 import           Network.MPD.Commands.Query
 import           Network.MPD.Commands.Types
