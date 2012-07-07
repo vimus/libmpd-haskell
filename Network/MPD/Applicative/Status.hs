@@ -79,59 +79,44 @@ status = Command (liftParser parseStatus) ["status"]
   where
     -- Builds a 'Status' instance from an assoc. list.
     parseStatus :: [ByteString] -> Either String Status
-    parseStatus = foldM f def . toAssocList
-        where f a ("state", x)
-                  = return $ parse state     (\x' -> a { stState = x' }) a x
-              f a ("volume", x)
-                  = return $ parse parseNum  (\x' -> a { stVolume = x' }) a x
-              f a ("repeat", x)
-                  = return $ parse parseBool (\x' -> a { stRepeat = x' }) a x
-              f a ("random", x)
-                  = return $ parse parseBool (\x' -> a { stRandom = x' }) a x
-              f a ("playlist", x)
-                  = return $ parse parseNum  (\x' -> a { stPlaylistVersion = x' }) a x
-              f a ("playlistlength", x)
-                  = return $ parse parseNum  (\x' -> a { stPlaylistLength = x' }) a x
-              f a ("xfade", x)
-                  = return $ parse parseNum  (\x' -> a { stXFadeWidth = x' }) a x
-              f a ("mixrampdb", x)
-                  = return $ parse parseFrac (\x' -> a { stMixRampdB = x' }) a x
-              f a ("mixrampdelay", x)
-                  = return $ parse parseFrac (\x' -> a { stMixRampDelay = x' }) a x
-              f a ("song", x)
-                  = return $ parse parseNum  (\x' -> a { stSongPos = Just x' }) a x
-              f a ("songid", x)
-                  = return $ parse parseNum  (\x' -> a { stSongID = Just $ Id x' }) a x
-              f a ("time", x)
-                  = return $ parse time      (\x' -> a { stTime = x' }) a x
-              f a ("elapsed", x)
-                  = return $ parse parseFrac (\x' -> a { stTime = (x', snd $ stTime a) }) a x
-              f a ("bitrate", x)
-                  = return $ parse parseNum  (\x' -> a { stBitrate = x' }) a x
-              f a ("audio", x)
-                  = return $ parse audio     (\x' -> a { stAudio = x' }) a x
-              f a ("updating_db", x)
-                  = return $ parse parseNum  (\x' -> a { stUpdatingDb = Just x' }) a x
-              f a ("error", x)
-                  = return a { stError = Just (UTF8.toString x) }
-              f a ("single", x)
-                  = return $ parse parseBool (\x' -> a { stSingle = x' }) a x
-              f a ("consume", x)
-                  = return $ parse parseBool (\x' -> a { stConsume = x' }) a x
-              f a ("nextsong", x)
-                  = return $ parse parseNum  (\x' -> a { stNextSongPos = Just x' }) a x
-              f a ("nextsongid", x)
-                  = return $ parse parseNum  (\x' -> a { stNextSongID = Just $ Id x' }) a x
-              f _ x
-                  = Left ("unexpected key-value pair: " ++ show x)
+    parseStatus = foldM go def . toAssocList
+        where
+            go a p@(k, v) = case k of
+                "volume"         -> num   $ \x -> a { stVolume          = x }
+                "repeat"         -> bool  $ \x -> a { stRepeat          = x }
+                "random"         -> bool  $ \x -> a { stRandom          = x }
+                "single"         -> bool  $ \x -> a { stSingle          = x }
+                "consume"        -> bool  $ \x -> a { stConsume         = x }
+                "playlist"       -> num   $ \x -> a { stPlaylistVersion = x }
+                "playlistlength" -> num   $ \x -> a { stPlaylistLength  = x }
+                "state"          -> state $ \x -> a { stState           = x}
+                "song"           -> num   $ \x -> a { stSongPos         = Just x }
+                "songid"         -> num   $ \x -> a { stSongID          = Just $ Id x }
+                "nextsong"       -> num   $ \x -> a { stNextSongPos     = Just x }
+                "nextsongid"     -> num   $ \x -> a { stNextSongID      = Just $ Id x }
+                "time"           -> time  $ \x -> a { stTime            = x }
+                "elapsed"        -> frac  $ \x -> a { stTime            = (x, snd $ stTime a) }
+                "bitrate"        -> num   $ \x -> a { stBitrate         = x }
+                "xfade"          -> num   $ \x -> a { stXFadeWidth      = x }
+                "mixrampdb"      -> frac  $ \x -> a { stMixRampdB       = x }
+                "mixrampdelay"   -> frac  $ \x -> a { stMixRampDelay    = x }
+                "audio"          -> audio $ \x -> a { stAudio           = x }
+                "updating_db"    -> num   $ \x -> a { stUpdatingDb      = Just x }
+                "error"          -> Right         a { stError           = Just (UTF8.toString v) }
+                _                -> unexpectedPair
+                where
+                    unexpectedPair = Left ("unexpected key-value pair: " ++ show p)
+                    num   f = maybe unexpectedPair (Right . f) (parseNum  v)
+                    bool  f = maybe unexpectedPair (Right . f) (parseBool v)
+                    frac  f = maybe unexpectedPair (Right . f) (parseFrac v)
+                    audio f = maybe unexpectedPair (Right . f) (parseTriple ':' parseNum v)
 
-              state "play"  = Just Playing
-              state "pause" = Just Paused
-              state "stop"  = Just Stopped
-              state _       = Nothing
+                    time f = case parseFrac *** parseNum $ breakChar ':' v of
+                                 (Just a_, Just b) -> (Right . f) (a_, b)
+                                 _                 -> unexpectedPair
 
-              time s = case parseFrac *** parseNum $ breakChar ':' s of
-                           (Just a, Just b) -> Just (a, b)
-                           _                -> Nothing
-
-              audio = parseTriple ':' parseNum
+                    state f = case v of
+                        "play"  -> (Right . f) Playing
+                        "pause" -> (Right . f) Paused
+                        "stop"  -> (Right . f) Stopped
+                        _       -> unexpectedPair

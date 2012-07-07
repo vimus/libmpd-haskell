@@ -39,6 +39,13 @@ spec = do
             ]
       status `with` [("status", Right resp)] `shouldBe` Left (Unexpected $ "unexpected key-value pair: (\"foo\",\"bar\")")
 
+    it "fails on unexpected value" $ do
+      let resp = unlines [
+              "volume: foo"
+            , "OK\n"
+            ]
+      status `with` [("status", Right resp)] `shouldBe` Left (Unexpected $ "unexpected key-value pair: (\"volume\",\"foo\")")
+
   describe "clearError" $ do
     it "sends a clearerror request" $ do
       clearError `with` [("clearerror", Right "OK")] `shouldBe` Right ()
