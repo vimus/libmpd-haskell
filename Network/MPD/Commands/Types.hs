@@ -59,7 +59,7 @@ class ToString a where
   -- | Convert given value to `Text`.
   toText   :: a -> Text
 
-  -- | Convert given value an UTF-8 encoded `ByteString`.
+  -- | Convert given value to a UTF-8 encoded `ByteString`.
   toUtf8   :: a -> ByteString
 
 type Artist = Value

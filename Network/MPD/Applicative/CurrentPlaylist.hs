@@ -132,8 +132,8 @@ plChangesPosId ver = Command p ["plchangesposid" <@> ver]
         p = liftParser $ mapM f . splitGroups ["cpos"] . toAssocList
         f xs | [("cpos", x), ("Id", y)] <- xs
              , Just (x', y') <- pair parseNum (x, y)
-             = return (x', Id y')
-             | otherwise = fail ""
+             = Right (x', Id y')
+             | otherwise = Left ""
 
 -- | Shuffle the current playlist.
 -- Optionally restrict to a range of songs.

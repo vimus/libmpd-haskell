@@ -34,7 +34,6 @@ module Network.MPD.Applicative (
 ) where
 
 import Network.MPD.Applicative.Internal
-import Network.MPD.Applicative.Util
 
 import Network.MPD.Applicative.Connection
 import Network.MPD.Applicative.CurrentPlaylist

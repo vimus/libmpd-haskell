@@ -9,6 +9,7 @@ import           Data.Default
 
 import           Network.MPD.Applicative.Status
 import           Network.MPD.Commands.Types
+import           Network.MPD.Core
 
 main :: IO ()
 main = hspec spec
@@ -30,6 +31,20 @@ spec = do
       let obj = def :: Status
           resp = unparse obj ++ "OK"
       status `with` [("status", Right resp)] `shouldBe` Right obj
+
+    it "fails on unexpected key-value pairs" $ do
+      let resp = unparse (def :: Status) ++ unlines [
+              "foo: bar"
+            , "OK\n"
+            ]
+      status `with` [("status", Right resp)] `shouldBe` Left (Unexpected $ "unexpected key-value pair: (\"foo\",\"bar\")")
+
+    it "fails on unexpected value" $ do
+      let resp = unlines [
+              "volume: foo"
+            , "OK\n"
+            ]
+      status `with` [("status", Right resp)] `shouldBe` Left (Unexpected $ "unexpected key-value pair: (\"volume\",\"foo\")")
 
   describe "clearError" $ do
     it "sends a clearerror request" $ do
