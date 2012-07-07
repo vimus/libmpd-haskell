@@ -20,7 +20,7 @@ module Network.MPD.Commands.Stickers
     , stickerFind
     ) where
 
-import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.Internal as A
 import qualified Network.MPD.Applicative.Stickers as A
 import           Network.MPD.Commands.Types
 import           Network.MPD.Core

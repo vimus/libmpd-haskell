@@ -15,7 +15,7 @@ module Network.MPD.Commands.Connection
     , ping
     ) where
 
-import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.Internal as A
 import qualified Network.MPD.Applicative.Connection as A
 import           Network.MPD.Core
 

@@ -26,7 +26,7 @@ module Network.MPD.Commands.StoredPlaylists
     , save
     ) where
 
-import qualified Network.MPD.Applicative as A
+import qualified Network.MPD.Applicative.Internal as A
 import qualified Network.MPD.Applicative.StoredPlaylists as A
 import           Network.MPD.Commands.Types
 import           Network.MPD.Core

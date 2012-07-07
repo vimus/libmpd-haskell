@@ -26,11 +26,10 @@ module Network.MPD.Applicative.StoredPlaylists
     , save
     ) where
 
-import           Network.MPD.Applicative
+import           Network.MPD.Applicative.Internal
 import           Network.MPD.Applicative.Util
 import           Network.MPD.Commands.Arg hiding (Command)
 import           Network.MPD.Commands.Types
-import           Network.MPD.Commands.Util (takeValues)
 import           Network.MPD.Util
 
 import           Control.Applicative
