@@ -31,7 +31,13 @@ instance Exception MPDError
 instance Show MPDError where
     show NoMPD          = "Could not connect to MPD"
     show TimedOut       = "MPD connection timed out"
-    show (Unexpected s) = "MPD returned an unexpected response: " ++ s
+    show (Unexpected s) = "MPD returned an unexpected response: " ++ unlines [
+                            s
+                          , ""
+                          , "This is most likely a bug in libmpd! Please report it here:"
+                          , ""
+                          , "https://github.com/joachifm/libmpd-haskell/issues/new"
+                          ]
     show (Custom s)     = s
     show (ACK _ s)      = s
 

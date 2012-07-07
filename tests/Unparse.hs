@@ -66,10 +66,10 @@ instance Unparse Status where
 
         , "audio: " ++ (let (x, y, z) = stAudio s in show x ++ ":" ++ show y ++
                                        ":" ++ show z)
-        , "updating_db: " ++ show (stUpdatingDb s)
         , "single: " ++ showBool (stSingle s)
         , "consume: " ++ showBool (stConsume s) 
         ]
+        ++ maybe [] (\n -> ["updating_db: " ++ show n]) (stUpdatingDb s)
         ++ maybe [] (\n -> ["song: " ++ show n]) (stSongPos s)
         ++ maybe [] (\n -> ["songid: " ++ show n]) (stSongID s)
         ++ maybe [] (\n -> ["error: " ++ show n]) (stError s)
