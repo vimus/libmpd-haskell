@@ -20,6 +20,8 @@ module Network.MPD.Applicative.Status
     , status
     , stats
     ) where
+import           Control.Monad
+import           Control.Arrow ((***))
 
 import           Network.MPD.Util
 import           Network.MPD.Applicative.Internal
@@ -74,3 +76,62 @@ stats = Command (liftParser parseStats) ["stats"]
 -- | Get the current status of the player.
 status :: Command Status
 status = Command (liftParser parseStatus) ["status"]
+  where
+    -- Builds a 'Status' instance from an assoc. list.
+    parseStatus :: [ByteString] -> Either String Status
+    parseStatus = foldM f def . toAssocList
+        where f a ("state", x)
+                  = return $ parse state     (\x' -> a { stState = x' }) a x
+              f a ("volume", x)
+                  = return $ parse parseNum  (\x' -> a { stVolume = x' }) a x
+              f a ("repeat", x)
+                  = return $ parse parseBool (\x' -> a { stRepeat = x' }) a x
+              f a ("random", x)
+                  = return $ parse parseBool (\x' -> a { stRandom = x' }) a x
+              f a ("playlist", x)
+                  = return $ parse parseNum  (\x' -> a { stPlaylistVersion = x' }) a x
+              f a ("playlistlength", x)
+                  = return $ parse parseNum  (\x' -> a { stPlaylistLength = x' }) a x
+              f a ("xfade", x)
+                  = return $ parse parseNum  (\x' -> a { stXFadeWidth = x' }) a x
+              f a ("mixrampdb", x)
+                  = return $ parse parseFrac (\x' -> a { stMixRampdB = x' }) a x
+              f a ("mixrampdelay", x)
+                  = return $ parse parseFrac (\x' -> a { stMixRampDelay = x' }) a x
+              f a ("song", x)
+                  = return $ parse parseNum  (\x' -> a { stSongPos = Just x' }) a x
+              f a ("songid", x)
+                  = return $ parse parseNum  (\x' -> a { stSongID = Just $ Id x' }) a x
+              f a ("time", x)
+                  = return $ parse time      (\x' -> a { stTime = x' }) a x
+              f a ("elapsed", x)
+                  = return $ parse parseFrac (\x' -> a { stTime = (x', snd $ stTime a) }) a x
+              f a ("bitrate", x)
+                  = return $ parse parseNum  (\x' -> a { stBitrate = x' }) a x
+              f a ("audio", x)
+                  = return $ parse audio     (\x' -> a { stAudio = x' }) a x
+              f a ("updating_db", x)
+                  = return $ parse parseNum  (\x' -> a { stUpdatingDb = Just x' }) a x
+              f a ("error", x)
+                  = return a { stError = Just (UTF8.toString x) }
+              f a ("single", x)
+                  = return $ parse parseBool (\x' -> a { stSingle = x' }) a x
+              f a ("consume", x)
+                  = return $ parse parseBool (\x' -> a { stConsume = x' }) a x
+              f a ("nextsong", x)
+                  = return $ parse parseNum  (\x' -> a { stNextSongPos = Just x' }) a x
+              f a ("nextsongid", x)
+                  = return $ parse parseNum  (\x' -> a { stNextSongID = Just $ Id x' }) a x
+              f _ x
+                  = fail $ show x
+
+              state "play"  = Just Playing
+              state "pause" = Just Paused
+              state "stop"  = Just Stopped
+              state _       = Nothing
+
+              time s = case parseFrac *** parseNum $ breakChar ':' s of
+                           (Just a, Just b) -> Just (a, b)
+                           _                -> Nothing
+
+              audio = parseTriple ':' parseNum
