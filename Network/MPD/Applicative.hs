@@ -96,5 +96,5 @@ runCommand (Command p c) = Core.getResponse command >>= (P.runParser $ \r ->
     where
         command = case c of
             [x] -> x
-            xs  -> unlines (["command_list_ok_begin"] ++ xs
-                   ++ ["command_list_end"])
+            xs  -> unlines ("command_list_ok_begin" : xs)
+                   ++ "command_list_end"

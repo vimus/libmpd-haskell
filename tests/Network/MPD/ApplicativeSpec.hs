@@ -4,6 +4,7 @@ module Network.MPD.ApplicativeSpec (main, spec) where
 
 import           TestUtil
 
+import           Data.List (intercalate)
 import           Network.MPD.Applicative
 import           Network.MPD.Applicative.Status
 import           Network.MPD.Commands.Types
@@ -23,7 +24,7 @@ spec = do
         testMPD [("currentsong", Right response)] (runCommand currentSong) `shouldBe` Right (Just songValue)
 
     it "can be composed" $ do
-      let command = unlines [
+      let command = intercalate "\n" [
               "command_list_ok_begin"
             , "currentsong"
             , "stats"
