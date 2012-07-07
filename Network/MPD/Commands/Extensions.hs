@@ -11,8 +11,6 @@ module Network.MPD.Commands.Extensions where
 
 import           Network.MPD.Core
 import           Network.MPD.Commands
-import           Network.MPD.Commands.Arg
-import           Network.MPD.Commands.Util
 import qualified Network.MPD.Applicative as A
 import qualified Network.MPD.Applicative.CurrentPlaylist as A
 import qualified Network.MPD.Applicative.StoredPlaylists as A
@@ -158,8 +156,7 @@ listArtists = list Artist Nothing
 -- | List the albums in the database, optionally matching a given
 -- artist.
 listAlbums :: MonadMPD m => Maybe Artist -> m [Album]
-listAlbums artist = (map Value . takeValues) `liftM`
-                    getResponse ("list album" <@> fmap (("artist" :: String) <++>) artist)
+listAlbums = list Album
 
 -- | List the songs in an album of some artist.
 listAlbum :: MonadMPD m => Artist -> Album -> m [Song]
