@@ -21,9 +21,9 @@ module Network.MPD.Applicative.Stickers
     ) where
 
 import           Network.MPD.Applicative.Internal
+import           Network.MPD.Applicative.Util
 import           Network.MPD.Commands.Arg hiding (Command)
 import           Network.MPD.Commands.Types
-import           Network.MPD.Commands.Util (decodePair, takeValues)
 import           Network.MPD.Util
 
 import           Control.Applicative

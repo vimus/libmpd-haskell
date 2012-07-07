@@ -9,6 +9,7 @@ import           Network.MPD.Util
 import           Control.Monad (liftM)
 
 import           Data.ByteString.Char8 (ByteString)
+import qualified Data.ByteString.UTF8 as UTF8
 
 -- Separate the result of an lsinfo\/listallinfo call into directories,
 -- playlists, and songs.
@@ -23,3 +24,11 @@ takeEntries = mapM toEntry . splitGroups groupHeads . toAssocList
 
 takeSongs :: [ByteString] -> Either String [Song]
 takeSongs = mapM parseSong . splitGroups ["file"] . toAssocList
+
+-- Run 'toAssocList' and return only the values.
+takeValues :: [ByteString] -> [ByteString]
+takeValues = snd . unzip . toAssocList
+
+-- an internal helper function
+decodePair :: (ByteString, ByteString) -> (String, String)
+decodePair (x, y) = (UTF8.toString x, UTF8.toString y)

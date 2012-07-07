@@ -20,7 +20,6 @@ import qualified Network.MPD.Commands.Arg as Arg
 import           Network.MPD.Commands.Arg hiding (Command)
 import           Network.MPD.Commands.Parse
 import           Network.MPD.Commands.Query
-import           Network.MPD.Commands.Util hiding (takeEntries, takeSongs)
 import           Network.MPD.Util
 import           Network.MPD.Commands.Types
 import           Network.MPD.Applicative.Internal
