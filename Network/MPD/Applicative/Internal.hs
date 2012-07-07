@@ -35,9 +35,9 @@ import           Control.Applicative
 import           Control.Monad
 import           Data.ByteString.Char8 (ByteString)
 
-import qualified Network.MPD.Commands.Parse as P
 import           Network.MPD.Core hiding (getResponse)
 import qualified Network.MPD.Core as Core
+import           Control.Monad.Error
 
 -- | A line-oriented parser that returns a value along with any remaining input.
 newtype Parser a
@@ -87,12 +87,12 @@ instance Applicative Command where
 
 -- | Execute a 'Command'.
 runCommand :: MonadMPD m => Command a -> m a
-runCommand (Command p c) = Core.getResponse command >>= (P.runParser $ \r ->
+runCommand (Command p c) = do
+    r <- Core.getResponse command
     case runParser p r of
-        Left err      -> Left err
-        Right (a, []) -> Right a
-        Right (_, xs) -> Left ("superfluous input: " ++ show xs)
-    )
+        Left err      -> throwError (Unexpected err)
+        Right (a, []) -> return a
+        Right (_, xs) -> throwError (Unexpected $ "superfluous input: " ++ show xs)
     where
         command = case c of
             [x] -> x

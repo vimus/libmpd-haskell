@@ -18,7 +18,6 @@ import           Control.Monad.Error
 import           Data.Maybe (fromMaybe)
 
 import           Network.MPD.Util
-import           Network.MPD.Core (MonadMPD, MPDError(Unexpected))
 
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.UTF8 as UTF8
@@ -170,11 +169,6 @@ parseStatus = foldM f def . toAssocList
                        _                -> Nothing
 
           audio = parseTriple ':' parseNum
-
--- | Run a parser and lift the result into the 'MPD' monad
-runParser :: (MonadMPD m, MonadError MPDError m)
-          => (input -> Either String a) -> input -> m a
-runParser f = either (throwError . Unexpected) return . f
 
 -- | A helper that runs a parser on a string and, depending on the
 -- outcome, either returns the result of some command applied to the
