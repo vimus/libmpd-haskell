@@ -41,7 +41,7 @@ parseOutputs = mapM (foldM f def)
           f a ("outputname", x)    = return a { dOutputName = UTF8.toString x }
           f a ("outputenabled", x) = return $ parse parseBool
                                      (\x' -> a { dOutputEnabled = x'}) a x
-          f _ x                    = fail $ show x
+          f _ x                    = Left $ show x
 
 -- | Builds a 'Stats' instance from an assoc. list.
 parseStats :: [ByteString] -> Either String Stats
@@ -61,7 +61,7 @@ parseStats = foldM f def . toAssocList
                                  (\x' -> a { stsDbPlaytime = x' }) a x
         f a ("db_update", x)   = return $ parse parseNum
                                  (\x' -> a { stsDbUpdate = x' }) a x
-        f _ x = fail $ show x
+        f _ x = Left $ show x
 
 parseMaybeSong :: [ByteString] -> Either String (Maybe Song)
 parseMaybeSong xs | null xs   = Right Nothing

@@ -46,16 +46,16 @@ takeSubsystems = mapM f . toAssocList
         f :: (ByteString, ByteString) -> Either String Subsystem
         f ("changed", system) =
             case system of
-                "database"        -> return DatabaseS
-                "update"          -> return UpdateS
-                "stored_playlist" -> return StoredPlaylistS
-                "playlist"        -> return PlaylistS
-                "player"          -> return PlayerS
-                "mixer"           -> return MixerS
-                "output"          -> return OutputS
-                "options"         -> return OptionsS
-                k                 -> fail ("Unknown subsystem: " ++ UTF8.toString k)
-        f x                       =  fail ("idle: Unexpected " ++ show x)
+                "database"        -> Right DatabaseS
+                "update"          -> Right UpdateS
+                "stored_playlist" -> Right StoredPlaylistS
+                "playlist"        -> Right PlaylistS
+                "player"          -> Right PlayerS
+                "mixer"           -> Right MixerS
+                "output"          -> Right OutputS
+                "options"         -> Right OptionsS
+                k                 -> Left ("Unknown subsystem: " ++ UTF8.toString k)
+        f x                       =  Left ("idle: Unexpected " ++ show x)
 
 -- | Wait until there is noteworthy change in one or more of MPD's
 -- subsystems.
