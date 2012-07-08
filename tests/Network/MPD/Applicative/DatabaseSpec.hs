@@ -93,6 +93,18 @@ spec = do
                 `with` [("search Title \"Foo\"", Right resp)]
                 `shouldBe` Right [obj]
 
+    describe "searchAdd" $ do
+        it "sends a searchadd request" $ do
+            searchAdd (Title =? "Foo")
+                `with` [("searchadd Title \"Foo\"", Right "OK")]
+                `shouldBe` Right ()
+
+    describe "searchAddPl" $ do
+        it "sends a searchaddpl request" $ do
+            searchAddPl "Foo" (Title =? "Bar")
+                `with` [("searchaddpl \"Foo\" Title \"Bar\"", Right "OK")]
+                `shouldBe` Right ()
+
     describe "update" $ do
         it "updates the entire collection by default" $ do
             update Nothing

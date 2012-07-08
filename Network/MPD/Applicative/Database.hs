@@ -84,6 +84,18 @@ search q = Command p ["search" <@> q]
         p :: Parser [Song]
         p = liftParser takeSongs
 
+-- | Like 'search' but adds the results to the current playlist.
+--
+-- Since MPD 0.17.
+searchAdd :: Query -> Command ()
+searchAdd q = Command emptyResponse ["searchadd" <@> q]
+
+-- | Like 'searchAdd' but adds results to the named playlist.
+--
+-- Since MPD 0.17.
+searchAddPl :: PlaylistName -> Query -> Command ()
+searchAddPl pl q = Command emptyResponse ["searchaddpl" <@> pl <++> q]
+
 -- | Update the music database.
 -- If no path is supplied, the entire database is updated.
 update :: Maybe Path -> Command Integer
