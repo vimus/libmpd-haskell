@@ -109,7 +109,10 @@ status = Command (liftParser parseStatus) ["status"]
                     num   f = maybe unexpectedPair (Right . f) (parseNum  v)
                     bool  f = maybe unexpectedPair (Right . f) (parseBool v)
                     frac  f = maybe unexpectedPair (Right . f) (parseFrac v)
-                    audio f = maybe unexpectedPair (Right . f) (parseTriple ':' parseNum v)
+
+                    -- This is sometimes "audio: 0:?:0", so we ignore any parse
+                    -- errors.
+                    audio f = Right $ maybe a f (parseTriple ':' parseNum v)
 
                     time f = case parseFrac *** parseNum $ breakChar ':' v of
                                  (Just a_, Just b) -> (Right . f) (a_, b)
