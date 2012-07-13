@@ -98,7 +98,7 @@ Test-Suite specs
     Default-Language:   Haskell2010
     Main-Is:            tests/Main.hs
     Hs-Source-Dirs:     . tests
-    cpp-options:        -DTEST
+    cpp-options:        -DTEST -Wall -Werror
     ghc-options:        -fno-warn-missing-signatures
 
     Build-Depends:
@@ -115,6 +115,4 @@ Test-Suite specs
       , unix
       , time
       , QuickCheck >= 2.1
-      , hspec >= 1.2
-      , hspec-discover
-      , HUnit
+      , hspec >= 1.3

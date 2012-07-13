@@ -6,7 +6,6 @@ import           TestUtil
 
 import           Data.List (intercalate)
 import           Network.MPD.Applicative
-import           Network.MPD.Applicative.Status
 import           Network.MPD.Commands.Types
 
 import           Control.Applicative
