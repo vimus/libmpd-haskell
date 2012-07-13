@@ -115,6 +115,4 @@ Test-Suite specs
       , unix
       , time
       , QuickCheck >= 2.1
-      , hspec >= 1.2
-      , hspec-discover
-      , HUnit
+      , hspec >= 1.3

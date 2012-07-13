@@ -16,9 +16,6 @@ import           StringConn
 import           TestUtil
 import           Unparse
 
-import           Test.Hspec.HUnit ()
-import           Test.HUnit
-
 import           Network.MPD.Core
 import           Network.MPD.Commands
 import           Network.MPD.Commands.Extensions
@@ -172,10 +169,10 @@ spec = do
         it "adjusts volume relative to current volume" $ testVolume
 
 
-cmd_ :: [(Expect, Response String)] -> StringMPD () -> Assertion
+cmd_ :: [(Expect, Response String)] -> StringMPD () -> Expectation
 cmd_ expect f     = cmd expect (Right ()) f
 
-cmd :: (Eq a, Show a) => [(Expect, Response String)] -> Response a -> StringMPD a -> Assertion
+cmd :: (Eq a, Show a) => [(Expect, Response String)] -> Response a -> StringMPD a -> Expectation
 cmd expect resp f = testMPD expect f `shouldBe` resp
 
 --
