@@ -31,7 +31,7 @@ import           Control.Exception hiding (handle)
 import           Control.Monad (ap, unless)
 import           Control.Monad.Error (ErrorT(..), MonadError(..))
 import           Control.Monad.Reader (ReaderT(..), ask)
-import           Control.Monad.State (StateT, MonadIO(..), modify, get, evalStateT)
+import           Control.Monad.State (StateT, MonadIO(..), modify, gets, evalStateT)
 import qualified Data.Foldable as F
 import           Network (PortID(..), withSocketsDo, connectTo)
 import           System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
@@ -81,10 +81,10 @@ instance MonadMPD MPD where
     open  = mpdOpen
     close = mpdClose
     send  = mpdSend
-    getHandle      = MPD $ stHandle <$> get
-    getPassword    = MPD $ stPassword <$> get
+    getHandle      = MPD $ gets stHandle
+    getPassword    = MPD $ gets stPassword
     setPassword pw = MPD $ modify (\st -> st { stPassword = pw })
-    getVersion     = MPD $ stVersion <$> get
+    getVersion     = MPD $ gets stVersion
 
 -- | Inner state for MPD
 data MPDState =
@@ -144,7 +144,7 @@ mpdOpen = MPD $ do
 mpdClose :: MPD ()
 mpdClose =
     MPD $ do
-        get >>= F.mapM_ (liftIO . sendClose) . stHandle
+        gets stHandle >>= F.mapM_ (liftIO . sendClose)
         modify (\st -> st { stHandle = Nothing })
     where
         sendClose handle =
@@ -161,7 +161,8 @@ mpdSend str = send' `catchError` handler
         handler TimedOut = mpdOpen >> send'
         handler err      = throwError err
 
-        send' = MPD $ get >>= maybe (throwError NoMPD) go . stHandle
+        send' :: MPD [ByteString]
+        send' = MPD $ gets stHandle >>= maybe (throwError NoMPD) go
 
         go handle = do
             unless (null str) $
