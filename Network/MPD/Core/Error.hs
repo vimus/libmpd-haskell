@@ -17,7 +17,7 @@ import           Data.Typeable
 -- | The MPDError type is used to signal errors, both from the MPD and
 -- otherwise.
 data MPDError = NoMPD              -- ^ MPD not responding
-              | TimedOut           -- ^ The connection timed out
+              | ConnectionError IOException -- ^ An error occurred while talking to MPD.
               | Unexpected String  -- ^ MPD returned an unexpected response.
                                    --   This is a bug, either in the library or
                                    --   in MPD itself.
@@ -30,7 +30,7 @@ instance Exception MPDError
 
 instance Show MPDError where
     show NoMPD          = "Could not connect to MPD"
-    show TimedOut       = "MPD connection timed out"
+    show (ConnectionError e) = "Connection error (" ++ show e ++ ")"
     show (Unexpected s) = "MPD returned an unexpected response: " ++ unlines [
                             s
                           , ""

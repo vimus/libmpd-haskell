@@ -158,8 +158,9 @@ mpdClose =
 mpdSend :: String -> MPD [ByteString]
 mpdSend str = send' `catchError` handler
     where
-        handler TimedOut = mpdOpen >> send'
-        handler err      = throwError err
+        handler err
+          | ConnectionError e <- err, isEOFError e =  mpdOpen >> send'
+          | otherwise = throwError err
 
         send' :: MPD [ByteString]
         send' = MPD $ gets stHandle >>= maybe (throwError NoMPD) go
@@ -168,10 +169,8 @@ mpdSend str = send' `catchError` handler
             unless (null str) $
                 liftIO $ U.hPutStrLn handle str >> hFlush handle
             liftIO ((Right <$> getLines handle []) `catch` (return . Left))
-                >>= either (\err -> if isEOFError err then
-                                        modify (\st -> st { stHandle = Nothing })
-                                        >> throwError TimedOut
-                                      else liftIO (ioError err))
+                >>= either (\err -> modify (\st -> st { stHandle = Nothing })
+                                 >> throwError (ConnectionError err))
                            return
 
         getLines :: Handle -> [ByteString] -> IO [ByteString]
