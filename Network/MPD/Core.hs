@@ -186,14 +186,9 @@ mpdSend str = send' `catchError` handler
 -- Other operations.
 --
 
-ignore :: (Monad m) => m a -> m ()
-ignore x = x >> return ()
-
 -- | Kill the server. Obviously, the connection is then invalid.
 kill :: (MonadMPD m) => m ()
-kill = ignore (send "kill") `catchError` cleanup
-    where
-        cleanup e = if e == TimedOut then close else throwError e
+kill = send "kill" >> return ()
 
 -- | Send a command to the MPD server and return the result.
 getResponse :: (MonadMPD m) => String -> m [ByteString]
