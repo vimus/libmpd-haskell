@@ -43,7 +43,6 @@ newtype StringMPD a =
 
 instance MonadMPD StringMPD where
     getVersion  = error "StringConn.getVersion: undefined"
-    getHandle   = error "StringConn.getHandle: undefined"
     setPassword = error "StringConn.setPassword: undefined"
 
     open  = return ()

@@ -81,7 +81,6 @@ instance MonadMPD MPD where
     open  = mpdOpen
     close = mpdClose
     send  = mpdSend
-    getHandle      = MPD $ gets stHandle
     getPassword    = MPD $ gets stPassword
     setPassword pw = MPD $ modify (\st -> st { stPassword = pw })
     getVersion     = MPD $ gets stVersion
