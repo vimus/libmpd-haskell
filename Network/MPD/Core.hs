@@ -144,16 +144,19 @@ mpdOpen = MPD $ do
 mpdClose :: MPD ()
 mpdClose =
     MPD $ do
-        gets stHandle >>= F.mapM_ (liftIO . sendClose)
-        modify (\st -> st { stHandle = Nothing })
+        mHandle <- gets stHandle
+        F.forM_ mHandle $ \h -> do
+          modify $ \st -> st{stHandle = Nothing}
+          r <- liftIO $ sendClose h
+          F.forM_ r throwError
     where
         sendClose handle =
-            (hPutStrLn handle "close" >> hReady handle >> hClose handle)
-            `catch` whenEOF (return ())
+            (hPutStrLn handle "close" >> hReady handle >> hClose handle >> return Nothing)
+            `catch` handler
 
-        whenEOF result err
-            | isEOFError err = result
-            | otherwise      = ioError err
+        handler err
+            | isEOFError err = return Nothing
+            | otherwise      = (return . Just . ConnectionError) err
 
 mpdSend :: String -> MPD [ByteString]
 mpdSend str = send' `catchError` handler
