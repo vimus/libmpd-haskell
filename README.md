@@ -86,7 +86,7 @@ See our [bug tracker]. Test cases are highly appreciated.
 [GitHub]: http://www.github.com
 [repository]: http://www.github.com/joachifm/libmpd-haskell
 [API documentation]: http://hackage.haskell.org/packages/archive/libmpd/latest/doc/html/Network-MPD.html
-[Protocol reference]: http://sol.github.com/libmpd-haskell/protocol/
+[Protocol reference]: http://www.musicpd.org/doc/protocol/
 [Using GitHub]: http://help.github.com
 
 ## License
