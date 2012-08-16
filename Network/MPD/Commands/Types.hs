@@ -216,7 +216,7 @@ instance Default Device where
 -- | Represents a single song item.
 data Song = Song
          { sgFilePath     :: Path
-         -- | Map of available tags (multiple occurences of one tag type allowed)
+         -- | Map of available tags (multiple occurrences of one tag type allowed)
          , sgTags         :: M.Map Metadata [Value]
          -- | Last modification date
          , sgLastModified :: Maybe UTCTime
