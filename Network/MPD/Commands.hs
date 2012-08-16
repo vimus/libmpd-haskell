@@ -12,7 +12,32 @@ Interface to the user commands supported by MPD.
 
 module Network.MPD.Commands (
       module Network.MPD.Commands.Query
-    , module Network.MPD.Commands.Types
+
+    , ToString(..)
+    , Artist
+    , Album
+    , Title
+    , PlaylistName(..)
+    , Path
+    , Metadata(..)
+    , Value
+    , ObjectType(..)
+    , Seconds
+    , Decibels
+    , State(..)
+    , Subsystem(..)
+    , ReplayGainMode(..)
+    , Count(..)
+    , LsResult(..)
+    , Device(..)
+    , Song(..)
+    , Position
+    , Id(..)
+    , sgGetTag
+    , sgAddTag
+    , Stats(..)
+    , Status(..)
+    , def
 
     , module Network.MPD.Commands.Status
     , module Network.MPD.Commands.PlaybackOptions
