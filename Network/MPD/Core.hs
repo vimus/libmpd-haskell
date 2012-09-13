@@ -31,7 +31,7 @@ import           Control.Exception hiding (handle)
 import           Control.Monad (ap, unless)
 import           Control.Monad.Error (ErrorT(..), MonadError(..))
 import           Control.Monad.Reader (ReaderT(..), ask)
-import           Control.Monad.State (StateT, MonadIO(..), modify, get, evalStateT)
+import           Control.Monad.State (StateT, MonadIO(..), modify, gets, evalStateT)
 import qualified Data.Foldable as F
 import           Network (PortID(..), withSocketsDo, connectTo)
 import           System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
@@ -81,10 +81,10 @@ instance MonadMPD MPD where
     open  = mpdOpen
     close = mpdClose
     send  = mpdSend
-    getHandle      = MPD $ stHandle <$> get
-    getPassword    = MPD $ stPassword <$> get
+    getHandle      = MPD $ gets stHandle
+    getPassword    = MPD $ gets stPassword
     setPassword pw = MPD $ modify (\st -> st { stPassword = pw })
-    getVersion     = MPD $ stVersion <$> get
+    getVersion     = MPD $ gets stVersion
 
 -- | Inner state for MPD
 data MPDState =
@@ -144,33 +144,36 @@ mpdOpen = MPD $ do
 mpdClose :: MPD ()
 mpdClose =
     MPD $ do
-        get >>= F.mapM_ (liftIO . sendClose) . stHandle
-        modify (\st -> st { stHandle = Nothing })
+        mHandle <- gets stHandle
+        F.forM_ mHandle $ \h -> do
+          modify $ \st -> st{stHandle = Nothing}
+          r <- liftIO $ sendClose h
+          F.forM_ r throwError
     where
         sendClose handle =
-            (hPutStrLn handle "close" >> hReady handle >> hClose handle)
-            `catch` whenEOF (return ())
+            (hPutStrLn handle "close" >> hReady handle >> hClose handle >> return Nothing)
+            `catch` handler
 
-        whenEOF result err
-            | isEOFError err = result
-            | otherwise      = ioError err
+        handler err
+            | isEOFError err = return Nothing
+            | otherwise      = (return . Just . ConnectionError) err
 
 mpdSend :: String -> MPD [ByteString]
 mpdSend str = send' `catchError` handler
     where
-        handler TimedOut = mpdOpen >> send'
-        handler err      = throwError err
+        handler err
+          | ConnectionError e <- err, isEOFError e =  mpdOpen >> send'
+          | otherwise = throwError err
 
-        send' = MPD $ get >>= maybe (throwError NoMPD) go . stHandle
+        send' :: MPD [ByteString]
+        send' = MPD $ gets stHandle >>= maybe (throwError NoMPD) go
 
         go handle = do
             unless (null str) $
                 liftIO $ U.hPutStrLn handle str >> hFlush handle
             liftIO ((Right <$> getLines handle []) `catch` (return . Left))
-                >>= either (\err -> if isEOFError err then
-                                        modify (\st -> st { stHandle = Nothing })
-                                        >> throwError TimedOut
-                                      else liftIO (ioError err))
+                >>= either (\err -> modify (\st -> st { stHandle = Nothing })
+                                 >> throwError (ConnectionError err))
                            return
 
         getLines :: Handle -> [ByteString] -> IO [ByteString]
@@ -185,14 +188,9 @@ mpdSend str = send' `catchError` handler
 -- Other operations.
 --
 
-ignore :: (Monad m) => m a -> m ()
-ignore x = x >> return ()
-
 -- | Kill the server. Obviously, the connection is then invalid.
 kill :: (MonadMPD m) => m ()
-kill = ignore (send "kill") `catchError` cleanup
-    where
-        cleanup e = if e == TimedOut then close else throwError e
+kill = send "kill" >> return ()
 
 -- | Send a command to the MPD server and return the result.
 getResponse :: (MonadMPD m) => String -> m [ByteString]
