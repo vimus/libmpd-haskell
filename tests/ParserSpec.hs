@@ -6,8 +6,7 @@ module ParserSpec (main, spec) where
 import           Arbitrary ()
 import           Unparse
 
-import           Test.Hspec.Monadic
-import           Test.Hspec.HUnit ()
+import           Test.Hspec
 import           Test.Hspec.QuickCheck (prop)
 
 import           Network.MPD.Commands.Parse

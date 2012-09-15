@@ -6,7 +6,6 @@ module UtilSpec (main, spec) where
 import           Arbitrary
 import           TestUtil
 
-import           Test.Hspec.HUnit ()
 import           Test.Hspec.QuickCheck (prop)
 import           Test.QuickCheck
 
