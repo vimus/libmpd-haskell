@@ -8,7 +8,6 @@ module TestUtil (
 import           Network.MPD.Core
 import           Network.MPD.Applicative
 
-import           Test.Hspec.HUnit ()
 import           Test.Hspec
 import           StringConn
 
