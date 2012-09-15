@@ -25,8 +25,8 @@ module Network.MPD (
 #endif
     ) where
 
-import           Prelude hiding (catch)
-import           Control.Exception
+import           Prelude
+import qualified Control.Exception as E
 import           Network.MPD.Commands
 import           Network.MPD.Core
 
@@ -76,7 +76,7 @@ getConnectionSettings mHost mPort = do
 
 getEnvDefault :: String -> String -> IO String
 getEnvDefault x dflt =
-    catch (getEnv x) (\e -> if isDoesNotExistError e
+    E.catch (getEnv x) (\e -> if isDoesNotExistError e
                             then return dflt else ioError e)
 
 -- Break a string by character, removing the separator.

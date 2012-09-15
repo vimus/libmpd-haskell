@@ -10,7 +10,7 @@
 
 module Network.MPD.Core.Error where
 
-import           Control.Exception
+import qualified Control.Exception as E
 import           Control.Monad.Error (Error(..))
 import           Data.Typeable
 
@@ -26,7 +26,7 @@ data MPDError = NoMPD              -- ^ MPD not responding
                                    --   server
                 deriving (Eq, Typeable)
 
-instance Exception MPDError
+instance E.Exception MPDError
 
 instance Show MPDError where
     show NoMPD          = "Could not connect to MPD"

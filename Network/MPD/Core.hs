@@ -27,7 +27,7 @@ import           Network.MPD.Core.Error
 
 import           Data.Char (isDigit)
 import           Control.Applicative (Applicative(..), (<$>), (<*))
-import           Control.Exception hiding (handle)
+import qualified Control.Exception as E
 import           Control.Monad (ap, unless)
 import           Control.Monad.Error (ErrorT(..), MonadError(..))
 import           Control.Monad.Reader (ReaderT(..), ask)
@@ -40,7 +40,7 @@ import qualified System.IO.UTF8 as U
 import           Text.Printf (printf)
 
 import qualified Prelude
-import           Prelude hiding (break, catch, drop, dropWhile, read)
+import           Prelude hiding (break, drop, dropWhile, read)
 import           Data.ByteString.Char8 (ByteString, isPrefixOf, break, drop, dropWhile)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8 as UTF8
@@ -113,10 +113,10 @@ mpdOpen = MPD $ do
     where
         safeConnectTo host@('/':_) _ =
             (Just <$> connectTo "" (UnixSocket host))
-            `catch` (\(_ :: SomeException) -> return Nothing)
+            `E.catch` (\(_ :: E.SomeException) -> return Nothing)
         safeConnectTo host port =
             (Just <$> connectTo host (PortNumber $ fromInteger port))
-            `catch` (\(_ :: SomeException) -> return Nothing)
+            `E.catch` (\(_ :: E.SomeException) -> return Nothing)
         checkConn = do
             [msg] <- send ""
             if "OK MPD" `isPrefixOf` msg
@@ -149,7 +149,7 @@ mpdClose =
     where
         sendClose handle =
             (hPutStrLn handle "close" >> hReady handle >> hClose handle)
-            `catch` whenEOF (return ())
+            `E.catch` whenEOF (return ())
 
         whenEOF result err
             | isEOFError err = result
@@ -166,7 +166,7 @@ mpdSend str = send' `catchError` handler
         go handle = do
             unless (null str) $
                 liftIO $ U.hPutStrLn handle str >> hFlush handle
-            liftIO ((Right <$> getLines handle []) `catch` (return . Left))
+            liftIO ((Right <$> getLines handle []) `E.catch` (return . Left))
                 >>= either (\err -> if isEOFError err then
                                         modify (\st -> st { stHandle = Nothing })
                                         >> throwError TimedOut
