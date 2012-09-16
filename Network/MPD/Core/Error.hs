@@ -10,14 +10,14 @@
 
 module Network.MPD.Core.Error where
 
-import           Control.Exception
+import qualified Control.Exception as E
 import           Control.Monad.Error (Error(..))
 import           Data.Typeable
 
 -- | The MPDError type is used to signal errors, both from the MPD and
 -- otherwise.
 data MPDError = NoMPD              -- ^ MPD not responding
-              | ConnectionError IOException -- ^ An error occurred while talking to MPD.
+              | ConnectionError E.IOException -- ^ An error occurred while talking to MPD.
               | Unexpected String  -- ^ MPD returned an unexpected response.
                                    --   This is a bug, either in the library or
                                    --   in MPD itself.
@@ -26,7 +26,7 @@ data MPDError = NoMPD              -- ^ MPD not responding
                                    --   server
                 deriving (Eq, Typeable)
 
-instance Exception MPDError
+instance E.Exception MPDError
 
 instance Show MPDError where
     show NoMPD          = "Could not connect to MPD"
