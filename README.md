@@ -79,9 +79,8 @@ See our [bug tracker]. Test cases are highly appreciated.
 * [libmpd-haskell mailing list]
 * [Protocol reference]
 * [Using GitHub]
-* \#libmpd-haskell @ irc.freenode.net (defunct)
+* \#vimus @ irc.freenode.net
 
-[libmpd-haskell mailing list]: http://groups.google.com/group/libmpd-haskell
 [bug tracker]: http://github.com/joachifm/libmpd-haskell/issues
 [GitHub]: http://www.github.com
 [repository]: http://www.github.com/joachifm/libmpd-haskell
@@ -111,4 +110,4 @@ Simon Hengel \<sol@typeful.net\>
 
 Daniel Wagner \<daniel@wagner-home.com\>
 
-nandykins
+nandykins \<nand@lavabit.com\>
