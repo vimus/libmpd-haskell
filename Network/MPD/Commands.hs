@@ -1,7 +1,7 @@
 {- |
 Module      : Network.MPD.Commands
-Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2012
-License     : LGPL-2 (see LICENSE)
+Copyright   : (c) Joachim Fasting 2012
+License     : MIT
 
 Maintainer  : joachim.fasting@gmail.com
 Stability   : stable

@@ -1,17 +1,22 @@
 {-# LANGUAGE CPP #-}
--- | Module    : Network.MPD
--- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
--- License     : LGPL (see LICENSE)
--- Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
--- Stability   : alpha
---
--- An MPD client library. MPD is a daemon for playing music that is
--- controlled over a network socket.
---
--- To use the library, do:
--- 
--- > {-# LANGUAGE OverloadedStrings #-}
--- > import qualified Network.MPD as MPD
+
+{- |
+Module      : Network.MPD
+Copyright   : (c) Joachim Fasting, Simon Hengel 2012
+License     : MIT
+
+Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
+Stability   : unstable
+Portability : unportable
+
+An MPD client library. MPD is a daemon for playing music that is
+controlled over a network socket.
+
+To use the library, do:
+
+> {-# LANGUAGE OverloadedStrings #-}
+> import qualified Network.MPD as MPD
+-}
 
 module Network.MPD (
     -- * Basic data types
