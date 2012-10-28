@@ -76,7 +76,6 @@ See our [bug tracker]. Test cases are highly appreciated.
 
 ### Resources
 * [API documentation]
-* [libmpd-haskell mailing list]
 * [Protocol reference]
 * [Using GitHub]
 * \#vimus @ irc.freenode.net
