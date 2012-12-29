@@ -81,7 +81,6 @@ instance MonadMPD MPD where
     open  = mpdOpen
     close = mpdClose
     send  = mpdSend
-    getHandle      = MPD $ gets stHandle
     getPassword    = MPD $ gets stPassword
     setPassword pw = MPD $ modify (\st -> st { stPassword = pw })
     getVersion     = MPD $ gets stVersion
@@ -107,9 +106,9 @@ mpdOpen :: MPD ()
 mpdOpen = MPD $ do
     (host, port) <- ask
     runMPD close
-    handle <- liftIO (safeConnectTo host port)
-    modify (\st -> st { stHandle = handle })
-    F.forM_ handle (const $ runMPD checkConn >>= flip unless (runMPD close))
+    mHandle <- liftIO (safeConnectTo host port)
+    modify (\st -> st { stHandle = mHandle })
+    F.forM_ mHandle $ \_ -> runMPD checkConn >>= (`unless` runMPD close)
     where
         safeConnectTo host@('/':_) _ =
             (Just <$> connectTo "" (UnixSocket host))
