@@ -23,11 +23,14 @@ Extra-Source-Files:
     README.md
     NEWS
     tests/Arbitrary.hs
-    tests/Commands.hs
+    tests/CommandSpec.hs
+    tests/EnvSpec.hs
     tests/Defaults.hs
-    tests/Properties.hs
+    tests/ParserSpec.hs
     tests/StringConn.hs
+    tests/TestUtil.hs
     tests/Unparse.hs
+    tests/UtilSpec.hs
     tests/Main.hs
 
 Source-Repository head
