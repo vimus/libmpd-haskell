@@ -1,1 +1,1 @@
-:set -itests -DTEST
+:set -isrc -itests -DTEST
