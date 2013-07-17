@@ -24,7 +24,7 @@ spec = do
 
     describe "listPlaylistInfo" $ do
         it "returns metadata for songs in a playlist" $ do
-            let obj = def { sgFilePath = "foo.ogg" }
+            let obj = defaultSong "foo.ogg"
             listPlaylistInfo "foo"
                 `with` [("listplaylistinfo \"foo\""
                        , Right (unparse obj ++ "OK")
@@ -83,4 +83,3 @@ spec = do
             save "foo"
                 `with` [("save \"foo\"", Right "OK")]
                 `shouldBe` Right ()
-

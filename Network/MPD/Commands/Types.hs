@@ -33,6 +33,7 @@ module Network.MPD.Commands.Types
     , Stats(..)
     , Status(..)
     , def
+    , defaultSong
     ) where
 
 import           Network.MPD.Commands.Arg (MPDArg(prep), Args(Args))
@@ -249,10 +250,6 @@ defaultSong :: Path -> Song
 defaultSong path =
     Song { sgFilePath = path, sgTags = M.empty, sgLastModified = Nothing
          , sgLength = 0, sgId = Nothing, sgIndex = Nothing }
-
--- XXX: warning; sgFilePath must be set before using this
-instance Default Song where
-    def = defaultSong undefined
 
 -- | Container for database statistics.
 data Stats =

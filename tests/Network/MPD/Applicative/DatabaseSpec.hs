@@ -22,7 +22,7 @@ spec = do
 
     describe "find" $ do
         it "returns songs exactly matching a query" $ do
-            let obj  = def { sgFilePath = "Bar.ogg" }
+            let obj  = defaultSong "Bar.ogg"
                 resp = unparse obj ++ "OK"
             find (Title =? "Foo")
                 `with` [("find Title \"Foo\"", Right resp)]
@@ -67,7 +67,7 @@ spec = do
 
     describe "lsInfo" $ do
         it "returns a non-recursive listing of a database directory" $ do
-            let song = def { sgFilePath = "Bar.ogg" }
+            let song = defaultSong "Bar.ogg"
                 resp = "directory: Foo\n" ++ unparse song
                        ++ "\nplaylist: Quux\nOK"
             lsInfo ""
@@ -87,7 +87,7 @@ spec = do
 
     describe "search" $ do
         it "returns songs matching a case-insensitive query" $ do
-            let obj  = def { sgFilePath = "Bar.ogg" }
+            let obj  = defaultSong "Bar.ogg"
                 resp = unparse obj ++ "OK"
             search (Title =? "Foo")
                 `with` [("search Title \"Foo\"", Right resp)]

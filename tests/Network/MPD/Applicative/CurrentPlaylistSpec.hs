@@ -76,7 +76,7 @@ spec = do
   -- XXX: generalize to arbitrary SongS and Query
   describe "playlistFind" $ do
     it "searches for songs in the current playlist" $ do
-      let obj = def { sgFilePath = "Foo.ogg" }
+      let obj = defaultSong "Foo.ogg"
           resp = unparse obj
       playlistFind (Artist =? "Foo")
         `with` [("playlistfind Artist \"Foo\"", Right $ resp ++ "\nOK")]
@@ -85,14 +85,14 @@ spec = do
   -- XXX: generalize to arbitrary SongS
   describe "playlistInfo" $ do
     it "retrieves metadata for all songs in the current playlist" $ do
-      let obj = def { sgFilePath = "Foo.ogg" }
+      let obj = defaultSong "Foo.ogg"
           resp = unparse obj
       playlistInfo Nothing
         `with` [("playlistinfo", Right $ resp ++ "\nOK")]
         `shouldBe` Right [obj]
 
     it "can optionally return only metadata for a position" $ do
-      let obj = def { sgFilePath = "Foo.ogg" }
+      let obj = defaultSong "Foo.ogg"
           resp = unparse obj ++ "OK"
       playlistInfo (Just 1)
         `with` [("playlistinfo 1", Right resp)]
@@ -100,7 +100,7 @@ spec = do
 
   describe "playlistInfoRange" $ do
     it "is like playlistInfo but can restrict to a range of songs" $ do
-      let obj = def { sgFilePath = "Foo.ogg" }
+      let obj = defaultSong "Foo.ogg"
           resp = unparse obj ++ "OK"
       playlistInfoRange (Just (0, 1))
         `with` [("playlistinfo 0:1", Right resp)]
@@ -109,14 +109,14 @@ spec = do
   -- XXX: generlize to arbitrary SongS
   describe "playlistId" $ do
     it "retrieves metadata for all songs in the current playlist" $ do
-      let obj = def { sgFilePath = "Foo.ogg" }
+      let obj = defaultSong "Foo.ogg"
           resp = unparse obj
       playlistId Nothing
         `with` [("playlistid", Right $ resp ++ "\nOK")]
         `shouldBe` Right [obj]
 
     it "can optionally return info only for a position" $ do
-      let obj = def { sgFilePath = "Foo.ogg" }
+      let obj = defaultSong "Foo.ogg"
           resp = unparse obj
       playlistId (Just $ Id 0)
         `with` [("playlistid 0", Right $ resp ++ "\nOK")]
@@ -124,7 +124,7 @@ spec = do
 
   describe "playlistSearch" $ do
     it "returns songs matching an inexact query" $ do
-      let obj = def { sgFilePath = "Foo.ogg" }
+      let obj = defaultSong "Foo.ogg"
           resp = unparse obj
       playlistSearch (Title =? "Foo")
         `with` [("playlistsearch Title \"Foo\"", Right $ resp ++ "\nOK")]
@@ -132,7 +132,7 @@ spec = do
 
   describe "plChanges" $ do
     it "returns songs that have changed since the given playlist version" $ do
-      let obj = def { sgFilePath = "foo.ogg" }
+      let obj = defaultSong "foo.ogg"
       plChanges 1
         `with` [("plchanges 1"
                , Right (unparse obj ++ "OK"))

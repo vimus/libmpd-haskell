@@ -18,6 +18,7 @@ import           Unparse
 
 import           Network.MPD.Core
 import           Network.MPD.Commands
+import           Network.MPD.Commands.Types
 import           Network.MPD.Commands.Extensions
 
 import           Prelude hiding (repeat)
@@ -217,7 +218,7 @@ testListAll =
 
 -- XXX: generalize to arbitrary input
 testLsInfo = do
-    let song = def { sgFilePath = "Bar.ogg" }
+    let song = defaultSong "Bar.ogg"
     cmd [("lsinfo \"\"", Right $ "directory: Foo\n" ++ unparse song ++ "playlist: Quux\nOK")]
         (Right [LsDirectory "Foo", LsSong song, LsPlaylist "Quux"])
         (lsInfo "")
@@ -250,7 +251,7 @@ testPlChangesPosId =
         (Right [])
         (plChangesPosId 10)
 
-{- XXX: 
+{- XXX:
 testPlChangesPosIdWeird =
     cmd [("plchangesposid 10", Right "cpos: foo\nId: bar\nOK")]
         (Left $ Unexpected "[(\"cpos\",\"foo\"),(\"Id\",\"bar\")]")

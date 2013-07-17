@@ -70,7 +70,7 @@ parseMaybeSong xs | null xs   = Right Nothing
 -- | Builds a 'Song' instance from an assoc. list.
 parseSong :: [(ByteString, ByteString)] -> Either String Song
 parseSong xs = case xs of
-    ("file", path):ys -> foldM f (def { sgFilePath = Path path}) ys
+    ("file", path):ys -> foldM f (defaultSong (Path path)) ys
     _ -> Left "Got a song without a file path! This indicates a bug in either libmpd-haskell or MPD itself!"
 
     where
