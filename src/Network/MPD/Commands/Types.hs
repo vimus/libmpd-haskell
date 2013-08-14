@@ -156,6 +156,7 @@ data Subsystem
     | MixerS             -- ^ The volume mixer
     | OutputS            -- ^ Audio outputs
     | OptionsS           -- ^ Playback options
+    | StickerS           -- ^ Sticker database
       deriving (Eq, Show)
 
 instance MPDArg Subsystem where
@@ -167,6 +168,7 @@ instance MPDArg Subsystem where
     prep MixerS = Args ["mixer"]
     prep OutputS = Args ["output"]
     prep OptionsS = Args ["options"]
+    prep StickerS = Args ["sticker"]
 
 data ReplayGainMode
     = Off       -- ^ Disable replay gain
