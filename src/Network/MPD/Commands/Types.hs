@@ -157,6 +157,8 @@ data Subsystem
     | OutputS            -- ^ Audio outputs
     | OptionsS           -- ^ Playback options
     | StickerS           -- ^ Sticker database
+    | SubscriptionS      -- ^ Subscription
+    | MessageS           -- ^ Message on subscribed channel
       deriving (Eq, Show)
 
 instance MPDArg Subsystem where
@@ -169,6 +171,8 @@ instance MPDArg Subsystem where
     prep OutputS = Args ["output"]
     prep OptionsS = Args ["options"]
     prep StickerS = Args ["sticker"]
+    prep SubscriptionS = Args ["subscription"]
+    prep MessageS = Args ["message"]
 
 data ReplayGainMode
     = Off       -- ^ Disable replay gain
