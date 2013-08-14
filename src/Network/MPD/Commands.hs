@@ -49,6 +49,7 @@ module Network.MPD.Commands (
     , module Network.MPD.Commands.Connection
     , module Network.MPD.Commands.Output
     , module Network.MPD.Commands.Reflection
+    , module Network.MPD.Commands.ClientToClient
     ) where
 
 import           Network.MPD.Commands.Query
@@ -64,3 +65,4 @@ import           Network.MPD.Commands.Stickers
 import           Network.MPD.Commands.Connection
 import           Network.MPD.Commands.Output
 import           Network.MPD.Commands.Reflection
+import           Network.MPD.Commands.ClientToClient
