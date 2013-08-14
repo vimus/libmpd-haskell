@@ -18,6 +18,7 @@ module Network.MPD.Applicative.Reflection
     , tagTypes
     , urlHandlers
     , decoders
+    , config
     ) where
 
 import           Network.MPD.Util
@@ -65,3 +66,12 @@ decoders = Command p ["decoders"]
         takeDecoders ((_, m):xs) =
             let (info, rest) = break ((==) "plugin" . fst) xs
             in (UTF8.toString m, map decodePair info) : takeDecoders rest
+
+-- | Get configuration values of interest to a client.
+--
+-- Note: only permitted for clients connected via a unix domain
+-- socket (aka \"local clients\").
+config :: Command [(String, String)]
+config = Command p ["config"]
+  where
+    p = map (\(k, v) -> (UTF8.toString k, UTF8.toString v)) . toAssocList <$> getResponse

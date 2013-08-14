@@ -18,6 +18,7 @@ module Network.MPD.Commands.Reflection
     , tagTypes
     , urlHandlers
     , decoders
+    , config
     ) where
 
 import qualified Network.MPD.Applicative.Internal as A
@@ -43,3 +44,7 @@ urlHandlers = A.runCommand A.urlHandlers
 -- | Retreive a list of decoder plugins with associated suffix and mime types.
 decoders :: MonadMPD m => m [(String, [(String, String)])]
 decoders = A.runCommand A.decoders
+
+-- | Retrieve configuration keys and values.
+config :: MonadMPD m => m [(String, String)]
+config = A.runCommand A.config
