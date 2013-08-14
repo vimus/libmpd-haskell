@@ -35,7 +35,7 @@ import           Control.Monad.State (StateT, MonadIO(..), modify, gets, evalSta
 import qualified Data.Foldable as F
 import           Network (PortID(..), withSocketsDo, connectTo)
 import           System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
-import           System.IO.Error (isEOFError)
+import           System.IO.Error (isEOFError, tryIOError)
 import qualified System.IO.UTF8 as U
 import           Text.Printf (printf)
 
@@ -167,13 +167,11 @@ mpdSend str = send' `catchError` handler
         send' :: MPD [ByteString]
         send' = MPD $ gets stHandle >>= maybe (throwError NoMPD) go
 
-        go handle = do
-            unless (null str) $
-                liftIO $ U.hPutStrLn handle str >> hFlush handle
-            liftIO ((Right <$> getLines handle []) `E.catch` (return . Left))
+        go handle = (liftIO . tryIOError $ do
+            unless (null str) $ U.hPutStrLn handle str >> hFlush handle
+            getLines handle [])
                 >>= either (\err -> modify (\st -> st { stHandle = Nothing })
-                                 >> throwError (ConnectionError err))
-                           return
+                                 >> throwError (ConnectionError err)) return
 
         getLines :: Handle -> [ByteString] -> IO [ByteString]
         getLines handle acc = do
