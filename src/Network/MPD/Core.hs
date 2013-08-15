@@ -161,7 +161,7 @@ mpdSend :: String -> MPD [ByteString]
 mpdSend str = send' `catchError` handler
     where
         handler err
-          | ConnectionError e <- err, isEOFError e =  mpdOpen >> send'
+          | ConnectionError e <- err, isRetryable e = mpdOpen >> send'
           | otherwise = throwError err
 
         send' :: MPD [ByteString]
@@ -180,6 +180,9 @@ mpdSend str = send' `catchError` handler
                 then (return . reverse) (l:acc)
                 else getLines handle (l:acc)
 
+-- | Re-connect and retry for these Exceptions.
+isRetryable :: E.IOException -> Bool
+isRetryable e = or [ isEOFError e ]
 
 --
 -- Other operations.
