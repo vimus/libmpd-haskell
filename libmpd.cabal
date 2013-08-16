@@ -12,7 +12,7 @@ Author:             Ben Sinclair
 
 Maintainer:         Joachim Fasting <joachim.fasting@gmail.com>
 Stability:          beta
-Homepage:           http://github.com/joachifm/libmpd-haskell
+Homepage:           http://github.com/joachifm/libmpd-haskell#readme
 Bug-reports:        http://github.com/joachifm/libmpd-haskell/issues
 
 Tested-With:        GHC == 7.0.2
