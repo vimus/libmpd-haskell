@@ -107,4 +107,4 @@ Simon Hengel \<sol@typeful.net\>
 
 Daniel Wagner \<daniel@wagner-home.com\>
 
-nandykins \<nand@lavabit.com\>
+Niklas Haas \<haskell@nand.wakku.to\>
