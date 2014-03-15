@@ -51,7 +51,7 @@ Library
       , containers >= 0.3 && < 0.6
       , data-default >= 0.4.0 && < 0.6
       , bytestring >= 0.9 && < 1
-      , text >= 0.11 && < 0.12
+      , text >= 0.11
       , attoparsec >= 0.10.1 && < 0.12
 
     Exposed-Modules:
