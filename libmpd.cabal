@@ -11,8 +11,8 @@ Author:             Ben Sinclair
 
 Maintainer:         Joachim Fasting <joachim.fasting@gmail.com>
 Stability:          beta
-Homepage:           http://github.com/joachifm/libmpd-haskell#readme
-Bug-reports:        http://github.com/joachifm/libmpd-haskell/issues
+Homepage:           http://github.com/vimus/libmpd-haskell#readme
+Bug-reports:        http://github.com/vimus/libmpd-haskell/issues
 
 Tested-With:        GHC == 7.0.2
 Build-Type:         Simple
@@ -33,7 +33,7 @@ Extra-Source-Files:
 
 Source-Repository head
     type:       git
-    location:   https://github.com/joachifm/libmpd-haskell
+    location:   https://github.com/vimus/libmpd-haskell
 
 Library
     Default-Language:   Haskell2010

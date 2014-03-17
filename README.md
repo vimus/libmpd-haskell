@@ -10,7 +10,7 @@ interface to MPD's external API.
 
 ## Getting
 * [Latest release]
-* `git clone git://github.com/joachifm/libmpd-haskell.git`
+* `git clone git://github.com/vimus/libmpd-haskell.git`
 
 [Latest release]: http://hackage.haskell.org/package/libmpd "libmpd-haskell on Hackage"
 
@@ -54,7 +54,7 @@ With GHCi:
 ### Getting started
 Create the clone thus:
 
-`git clone git://github.com/joachifm/libmpd-haskell.git master`
+`git clone git://github.com/vimus/libmpd-haskell.git master`
 
 To pull in new changes from upstream, use:
 
@@ -80,9 +80,9 @@ See our [bug tracker]. Test cases are highly appreciated.
 * [Using GitHub]
 * \#vimus @ irc.freenode.net
 
-[bug tracker]: http://github.com/joachifm/libmpd-haskell/issues
+[bug tracker]: http://github.com/vimus/libmpd-haskell/issues
 [GitHub]: http://www.github.com
-[repository]: http://www.github.com/joachifm/libmpd-haskell
+[repository]: http://www.github.com/vimus/libmpd-haskell
 [API documentation]: http://hackage.haskell.org/packages/archive/libmpd/latest/doc/html/Network-MPD.html
 [Protocol reference]: http://www.musicpd.org/doc/protocol/
 [Using GitHub]: http://help.github.com

@@ -40,7 +40,7 @@ instance Show MPDError where
                           , ""
                           , "This is most likely a bug in libmpd! Please report it here:"
                           , ""
-                          , "https://github.com/joachifm/libmpd-haskell/issues/new"
+                          , "https://github.com/vimus/libmpd-haskell/issues/new"
                           ]
     show (Custom s)     = s
     show (ACK _ s)      = s
