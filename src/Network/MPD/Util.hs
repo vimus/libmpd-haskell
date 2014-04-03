@@ -69,6 +69,7 @@ parseFrac = parseMaybe p
 -- Inverts 'parseBool'.
 showBool :: IsString a => Bool -> a
 -- FIXME: can we change the type to (Bool -> ByteString)?
+--        not without also changing Arg to use bytestrings rather than plain String.
 showBool x = if x then "1" else "0"
 
 -- Parse a boolean response value.
