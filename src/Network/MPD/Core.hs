@@ -35,9 +35,10 @@ import           Control.Monad.State (StateT, MonadIO(..), modify, gets, evalSta
 import qualified Data.Foldable as F
 import           Network (PortID(..), withSocketsDo, connectTo)
 import           System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
-import           System.IO.Error (isEOFError, tryIOError)
+import           System.IO.Error (isEOFError, tryIOError, ioeGetErrorType)
 import qualified System.IO.UTF8 as U
 import           Text.Printf (printf)
+import qualified GHC.IO.Exception as GE
 
 import qualified Prelude
 import           Prelude hiding (break, drop, dropWhile, read)
@@ -182,7 +183,12 @@ mpdSend str = send' `catchError` handler
 
 -- | Re-connect and retry for these Exceptions.
 isRetryable :: E.IOException -> Bool
-isRetryable e = or [ isEOFError e ]
+isRetryable e = or [ isEOFError e, isResourceVanished e ]
+
+-- | Predicate to identify ResourceVanished exceptions.
+-- Note: these are GHC only!
+isResourceVanished :: GE.IOException -> Bool
+isResourceVanished e = ioeGetErrorType e == GE.ResourceVanished
 
 --
 -- Other operations.
