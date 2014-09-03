@@ -1,4 +1,4 @@
-{ haskellPackages ? (import <nixpkgs>{}).haskellPackages_ghc782.profiling }:
+{ haskellPackages ? (import <nixpkgs>{}).haskellPackages_ghc783_profiling }:
 with haskellPackages; cabal.mkDerivation (self: rec {
   pname = "libmpd";
   version = "0.9.0";
