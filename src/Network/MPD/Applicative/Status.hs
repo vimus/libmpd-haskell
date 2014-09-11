@@ -82,7 +82,7 @@ status = Command (liftParser parseStatus) ["status"]
     parseStatus = foldM go def . toAssocList
         where
             go a p@(k, v) = case k of
-                "volume"         -> num   $ \x -> a { stVolume          = x }
+                "volume"         -> vol   $ \x -> a { stVolume          = x }
                 "repeat"         -> bool  $ \x -> a { stRepeat          = x }
                 "random"         -> bool  $ \x -> a { stRandom          = x }
                 "single"         -> bool  $ \x -> a { stSingle          = x }
@@ -123,3 +123,8 @@ status = Command (liftParser parseStatus) ["status"]
                         "pause" -> (Right . f) Paused
                         "stop"  -> (Right . f) Stopped
                         _       -> unexpectedPair
+
+                    -- A volume of -1 indicates an audio backend w/o a mixer
+                    vol f = Right . f . join . fmap g $ parseNum v
+                      where g n | n < 0     = Nothing
+                                | otherwise = Just n

@@ -100,5 +100,9 @@ getPlaylist = playlistInfo Nothing
 -- 'volume (-10)' will decrease it by the same amount.
 volume :: MonadMPD m => Int -> m ()
 volume n = do
-    current <- (fromIntegral . stVolume) `liftM` status
-    setVolume . round $ (fromIntegral n / (100 :: Double)) * current + current
+    cur <- stVolume `liftM` status
+    case cur of
+        Nothing -> return ()
+        Just v  -> setVolume (adjust v)
+    where
+        adjust x = round $ (fromIntegral n / (100 :: Double)) * x + x

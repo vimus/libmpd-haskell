@@ -281,8 +281,10 @@ instance Default Stats where
 -- | Container for MPD status.
 data Status =
     Status { stState :: State
-             -- | A percentage (0-100)
-           , stVolume          :: Int
+             -- | A percentage (0-100).
+             --
+             -- 'Nothing' indicates that the output lacks mixer support.
+           , stVolume          :: Maybe Int
            , stRepeat          :: Bool
            , stRandom          :: Bool
              -- | A value that is incremented by the server every time the
@@ -323,7 +325,7 @@ data Status =
 
 defaultStatus :: Status
 defaultStatus =
-    Status { stState = Stopped, stVolume = 0, stRepeat = False
+    Status { stState = Stopped, stVolume = Just 0, stRepeat = False
            , stRandom = False, stPlaylistVersion = 0, stPlaylistLength = 0
            , stSongPos = Nothing, stSongID = Nothing, stTime = (0,0)
            , stNextSongPos = Nothing, stNextSongID = Nothing

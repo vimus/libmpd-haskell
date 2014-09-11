@@ -403,4 +403,4 @@ testAddMany1 = cmd_ [("playlistadd \"foo\" \"bar\"", Right "OK")]
                (addMany "foo" ["bar"])
 
 testVolume = cmd_ [("status", Right st), ("setvol 90", Right "OK")] (volume (-10))
-    where st = unparse def { stVolume = 100 }
+    where st = unparse def { stVolume = Just 100 }
