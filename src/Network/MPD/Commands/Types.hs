@@ -300,10 +300,10 @@ data Status =
            , stNextSongPos     :: Maybe Position
              -- | Next song's playlist ID.
            , stNextSongID      :: Maybe Id
-             -- | Time elapsed\/total time.
-           , stTime            :: (Double, Seconds)
+             -- | Time elapsed\/total time of playing song (if any).
+           , stTime            :: Maybe (Double, Seconds)
              -- | Bitrate (in kilobytes per second) of playing song (if any).
-           , stBitrate         :: Int
+           , stBitrate         :: Maybe Int
              -- | Crossfade time.
            , stXFadeWidth      :: Seconds
              -- | MixRamp threshold in dB
@@ -327,9 +327,9 @@ defaultStatus :: Status
 defaultStatus =
     Status { stState = Stopped, stVolume = Just 0, stRepeat = False
            , stRandom = False, stPlaylistVersion = 0, stPlaylistLength = 0
-           , stSongPos = Nothing, stSongID = Nothing, stTime = (0,0)
+           , stSongPos = Nothing, stSongID = Nothing, stTime = Nothing
            , stNextSongPos = Nothing, stNextSongID = Nothing
-           , stBitrate = 0, stXFadeWidth = 0, stMixRampdB = 0
+           , stBitrate = Nothing, stXFadeWidth = 0, stMixRampdB = 0
            , stMixRampDelay = 0, stAudio = (0,0,0), stUpdatingDb = Nothing
            , stSingle = False, stConsume = False, stError = Nothing }
 

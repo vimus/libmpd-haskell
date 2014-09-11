@@ -60,10 +60,7 @@ instance Unparse Status where
         , "playlist: " ++ show (stPlaylistVersion s)
         , "playlistlength: " ++ show (stPlaylistLength s)
         , "xfade: " ++ show (stXFadeWidth s)
-        , "time: " ++ (let (x, y) = stTime s in show x ++ ":" ++ show y)
-        , "bitrate: " ++ show (stBitrate s)
         , "xfade: " ++ show (stXFadeWidth s)
-
         , "audio: " ++ (let (x, y, z) = stAudio s in show x ++ ":" ++ show y ++
                                        ":" ++ show z)
         , "single: " ++ showBool (stSingle s)
@@ -73,3 +70,5 @@ instance Unparse Status where
         ++ maybe [] (\n -> ["song: " ++ show n]) (stSongPos s)
         ++ maybe [] (\n -> ["songid: " ++ show n]) (stSongID s)
         ++ maybe [] (\n -> ["error: " ++ show n]) (stError s)
+        ++ maybe [] (\(x, y) -> ["time: " ++ show x ++ ":" ++ show y]) (stTime  s)
+        ++ maybe [] (\n -> ["bitrate: " ++ show n]) (stBitrate s)
