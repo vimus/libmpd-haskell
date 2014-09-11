@@ -9,6 +9,10 @@ import           Network.MPD.Util
 class Unparse parsed where
     unparse :: parsed -> String
 
+instance Unparse a => Unparse (Maybe a) where
+    unparse Nothing  = ""
+    unparse (Just x) = unparse x
+
 instance Unparse Count where
     unparse x = unlines
                 [ "songs: "    ++ show (cSongs x)
