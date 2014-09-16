@@ -127,4 +127,4 @@ status = Command (liftParser parseStatus) ["status"]
                     -- A volume of -1 indicates an audio backend w/o a mixer
                     vol f = Right . f . join . fmap g $ parseNum v
                       where g n | n < 0     = Nothing
-                                | otherwise = Just n
+                                | otherwise = Just (n::Int)

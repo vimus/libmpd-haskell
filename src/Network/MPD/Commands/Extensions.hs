@@ -105,4 +105,5 @@ volume n = do
         Nothing -> return ()
         Just v  -> setVolume (adjust v)
     where
-        adjust x = round $ (fromIntegral n / (100 :: Double)) * x + x
+        adjust x = round $ (fromIntegral n / (100 :: Double)) * x' + x'
+          where x' = fromIntegral x
