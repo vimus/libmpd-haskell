@@ -58,7 +58,7 @@ instance Unparse Status where
         [ "state: " ++ (case stState s of Playing -> "play"
                                           Paused  -> "pause"
                                           _       -> "stop")
-        , "volume: " ++ show (stVolume s)
+        , "volume: " ++ maybe "-1" show (stVolume s)
         , "repeat: " ++ showBool (stRepeat s)
         , "random: " ++ showBool (stRandom s)
         , "playlist: " ++ show (stPlaylistVersion s)
