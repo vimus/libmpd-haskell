@@ -21,15 +21,7 @@ Cabal-Version:      >= 1.10
 Extra-Source-Files:
     README.md
     changelog.md
-    tests/Arbitrary.hs
-    tests/CommandSpec.hs
-    tests/EnvSpec.hs
-    tests/ParserSpec.hs
-    tests/StringConn.hs
-    tests/TestUtil.hs
-    tests/Unparse.hs
-    tests/UtilSpec.hs
-    tests/Main.hs
+    tests/*.hs
 
 Source-Repository head
     type:       git
