@@ -5,7 +5,7 @@ Module      : Network.MPD.Commands.PlaybackOptions
 Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2012
 License     : MIT (see LICENSE)
 
-Maintainer  : joachim.fasting@gmail.com
+Maintainer  : joachifm@fastmail.fm
 Stability   : stable
 Portability : unportable
 

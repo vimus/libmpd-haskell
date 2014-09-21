@@ -7,7 +7,7 @@ Module      : Network.MPD.Applicative.Internal
 Copyright   : (c) Simon Hengel 2012
 License     : MIT
 
-Maintainer  : joachim.fasting@gmail.com
+Maintainer  : joachifm@fastmail.fm
 Stability   : stable
 Portability : unportable
 

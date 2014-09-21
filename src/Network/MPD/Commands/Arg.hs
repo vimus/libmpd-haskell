@@ -5,7 +5,7 @@ Module      : Network.MPD.Commands.Arg
 Copyright   : (c) Joachim Fasting, Simon Hengel 2012
 License     : MIT
 
-Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
+Maintainer  : Joachim Fasting <joachifm@fastmail.fm>
 Stability   : alpha
 Portability : unportable
 

@@ -3,7 +3,7 @@ Module      : Network.MPD.Commands.Query
 Copyright   : (c) Joachim Fasting 2012
 License     : MIT
 
-Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
+Maintainer  : Joachim Fasting <joachifm@fastmail.fm>
 Stability   : unstable
 Portability : unportable
 

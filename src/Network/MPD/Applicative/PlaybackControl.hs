@@ -5,7 +5,7 @@ Module      : Network.MPD.Applicative.PlaybackControl
 Copyright   : (c) Joachim Fasting 2012
 License     : MIT
 
-Maintainer  : joachim.fasting@gmail.com
+Maintainer  : joachifm@fastmail.fm
 Stability   : stable
 Portability : unportable
 

@@ -3,7 +3,7 @@
 -- | Module    : Network.MPD.Core.Class
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
 -- License     : MIT (see LICENSE)
--- Maintainer  : Joachim Fasting <joachim.fasting@gmail.com>
+-- Maintainer  : Joachim Fasting <joachifm@fastmail.fm>
 -- Stability   : alpha
 --
 -- The MPD typeclass.
