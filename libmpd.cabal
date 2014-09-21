@@ -1,5 +1,5 @@
 Name:               libmpd
-Version:            0.9.0
+Version:            0.9.0.1
 Synopsis:           An MPD client library.
 Description:        A client library for MPD, the Music Player Daemon.
 Category:           Network, Sound
