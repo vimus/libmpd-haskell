@@ -1,5 +1,8 @@
 # libmpd-haskell: a client library for MPD
 
+[![Hackage](https://budueba.com/hackage/libmpd)](http://hackage.haskell.org/package/libmpd)
+[![Build Status](https://secure.travis-ci.org/vimus/libmpd.png?branch=master)](http://travis-ci.org/vimus/libmpd)
+
 ## About
 libmpd-haskell is a pure [Haskell] client library for [MPD], the
 music playing daemon.
