@@ -20,7 +20,7 @@ Cabal-Version:      >= 1.10
 
 Extra-Source-Files:
     README.md
-    NEWS
+    changelog.md
     tests/Arbitrary.hs
     tests/CommandSpec.hs
     tests/EnvSpec.hs
