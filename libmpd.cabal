@@ -60,6 +60,7 @@ Library
     Exposed-Modules:
         Network.MPD
       , Network.MPD.Applicative
+      , Network.MPD.Applicative.ClientToClient
       , Network.MPD.Applicative.Connection
       , Network.MPD.Applicative.CurrentPlaylist
       , Network.MPD.Applicative.Database
@@ -81,6 +82,7 @@ Library
       , Network.MPD.Commands.Parse
       , Network.MPD.Commands.Query
       , Network.MPD.Commands.Types
+      , Network.MPD.Commands.ClientToClient
       , Network.MPD.Commands.Status
       , Network.MPD.Commands.PlaybackOptions
       , Network.MPD.Commands.PlaybackControl
