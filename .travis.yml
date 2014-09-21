@@ -1,1 +1,13 @@
 language: haskell
+
+ghc:
+    - 7.8
+
+before_install:
+    - cabal install --only-dependencies --enable-tests
+
+install:
+    - cabal install --enable-tests
+
+script:
+    - cabal sdist && cabal install --enable-tests dist/libmpd-*.tar.gz
