@@ -68,6 +68,6 @@ libmpd-haskell is distributed under the [MIT license].
 [MIT license]: http://www.opensource.org/licenses/MIT
 
 ## Contributors
-See `CONTRIBUTORS` in the source distribution.
+See [CONTRIBUTORS](../master/CONTRIBUTORS) in the source distribution.
 Feel free to add yourself to this list if you deem it appropriate
 to do so.
