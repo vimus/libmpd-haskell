@@ -11,6 +11,7 @@
 
 module StringConn where
 
+import           Control.Applicative
 import           Prelude hiding (exp)
 import           Control.Monad.Error
 import           Control.Monad.Identity
@@ -39,7 +40,7 @@ newtype StringMPD a =
     SMPD { runSMPD :: ErrorT MPDError
                       (StateT [(Expect, Response String)]
                        (ReaderT Password Identity)) a
-         } deriving (Functor, Monad, MonadError MPDError)
+         } deriving (Functor, Applicative, Monad, MonadError MPDError)
 
 instance MonadMPD StringMPD where
     getVersion  = error "StringConn.getVersion: undefined"
