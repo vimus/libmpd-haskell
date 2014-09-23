@@ -5,7 +5,7 @@ module Network.MPD.Applicative.StatusSpec (main, spec) where
 import           TestUtil
 import           Unparse
 
-import           Data.Default
+import           Data.Default.Class
 
 import           Network.MPD.Applicative.Status
 import           Network.MPD.Commands.Types
