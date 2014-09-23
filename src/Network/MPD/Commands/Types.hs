@@ -38,7 +38,7 @@ module Network.MPD.Commands.Types
 
 import           Network.MPD.Commands.Arg (MPDArg(prep), Args(Args))
 
-import           Data.Default
+import           Data.Default.Class
 
 import qualified Data.Map as M
 import           Data.Time.Clock (UTCTime)
