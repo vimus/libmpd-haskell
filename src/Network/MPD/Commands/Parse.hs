@@ -108,6 +108,7 @@ parseSong xs = case xs of
         readMeta "MUSICBRAINZ_ALBUMID" = Just MUSICBRAINZ_ALBUMID
         readMeta "MUSICBRAINZ_ALBUMARTISTID" = Just MUSICBRAINZ_ALBUMARTISTID
         readMeta "MUSICBRAINZ_TRACKID" = Just MUSICBRAINZ_TRACKID
+        readMeta "MUSICBRAINZ_RELEASETRACKID" = Just MUSICBRAINZ_RELEASETRACKID
         readMeta _ = Nothing
 
 -- | A helper that runs a parser on a string and, depending on the
