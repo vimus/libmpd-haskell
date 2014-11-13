@@ -19,7 +19,7 @@ module Network.MPD.Commands.Types
     , ObjectType(..)
     , Seconds
     , Decibels
-    , State(..)
+    , PlaybackState(..)
     , Subsystem(..)
     , ReplayGainMode(..)
     , Count(..)
@@ -143,9 +143,10 @@ type Seconds = Integer
 type Decibels = Integer
 
 -- | Represents the different playback states.
-data State = Playing
-           | Stopped
-           | Paused
+data PlaybackState
+  = Playing
+  | Stopped
+  | Paused
     deriving (Show, Eq)
 
 -- | Represents the various MPD subsystems.
@@ -288,7 +289,7 @@ instance Default Stats where
 
 -- | Container for MPD status.
 data Status =
-    Status { stState :: State
+    Status { stState :: PlaybackState
              -- | A percentage (0-100).
              --
              -- 'Nothing' indicates that the output lacks mixer support.

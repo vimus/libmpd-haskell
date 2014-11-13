@@ -24,7 +24,7 @@ module Network.MPD.Commands (
     , ObjectType(..)
     , Seconds
     , Decibels
-    , State(..)
+    , PlaybackState(..)
     , Subsystem(..)
     , ReplayGainMode(..)
     , Count(..)
