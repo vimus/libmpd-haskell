@@ -14,14 +14,14 @@ music playing daemon.
 * [Latest release on Hackage]
 * `git clone git://github.com/vimus/libmpd-haskell.git`
 
-[Latest release on Hackage]: http://hackage.haskell.org/package/libmpd "libmpd-haskell on Hackage"
+[Latest release on Hackage]: https://hackage.haskell.org/package/libmpd "libmpd-haskell on Hackage"
 
 ## Installation
 With [cabal-install], do
 
 `cd libmpd-haskell && cabal install`
 
-[cabal-install]: http://hackage.haskell.org/package/cabal-install
+[cabal-install]: https://hackage.haskell.org/package/cabal-install
 
 ## Usage
 With GHCi:
@@ -55,19 +55,20 @@ Well-formatted patches are appreciated. New features should have a test case.
 * [Using GitHub]
 * \#vimus @ irc.freenode.net
 
-[bug tracker]: http://github.com/vimus/libmpd-haskell/issues
-[GitHub]: http://www.github.com
-[GitHub repository]: http://www.github.com/vimus/libmpd-haskell
-[API documentation]: http://hackage.haskell.org/packages/archive/libmpd/latest/doc/html/Network-MPD.html
+[bug tracker]: https://github.com/vimus/libmpd-haskell/issues
+[GitHub]: https://github.com
+[GitHub repository]: https://github.com/vimus/libmpd-haskell
+[API documentation]: https://hackage.haskell.org/packages/archive/libmpd/latest/doc/html/Network-MPD.html
 [MPD protocol reference]: http://www.musicpd.org/doc/protocol/
-[Using GitHub]: http://help.github.com
+[Using GitHub]: https://help.github.com
 
 ## License
 libmpd-haskell is distributed under the [MIT license].
 
-[MIT license]: http://www.opensource.org/licenses/MIT
+[MIT license]: http://opensource.org/licenses/MIT
 
 ## Contributors
-See [CONTRIBUTORS](../master/CONTRIBUTORS) in the source distribution.
-Feel free to add yourself to this list if you deem it appropriate
-to do so.
+See [CONTRIBUTORS](https://github.com/vimus/libmpd-haskell/blob/master/CONTRIBUTORS) in the
+source distribution.
+Feel free to add yourself to this list if you deem it appropriate to do
+so.
