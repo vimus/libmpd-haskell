@@ -32,6 +32,7 @@ module Network.MPD.Commands (
     , Device(..)
     , Song(..)
     , Position
+    , Volume
     , Id(..)
     , sgGetTag
     , sgAddTag

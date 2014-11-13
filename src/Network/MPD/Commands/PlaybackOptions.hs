@@ -46,8 +46,8 @@ random = A.runCommand . A.random
 repeat :: MonadMPD m => Bool -> m ()
 repeat = A.runCommand . A.repeat
 
--- | Set the volume (0-100 percent).
-setVolume :: MonadMPD m => Int -> m ()
+-- | Set the volume.
+setVolume :: MonadMPD m => Volume -> m ()
 setVolume = A.runCommand . A.setVolume
 
 -- | Set single mode

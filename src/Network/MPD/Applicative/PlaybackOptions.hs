@@ -50,8 +50,8 @@ random f = Command emptyResponse ["random" <@> f]
 repeat :: Bool -> Command ()
 repeat f = Command emptyResponse ["repeat" <@> f]
 
--- | Set volume in percent.
-setVolume :: Int -> Command ()
+-- | Set volume.
+setVolume :: Volume -> Command ()
 setVolume vol = Command emptyResponse ["setvol" <@> vol]
 
 -- | Toggle single mode.

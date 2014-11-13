@@ -31,6 +31,7 @@ module Network.MPD.Commands.Types
     , Priority(..)
     , sgGetTag
     , sgAddTag
+    , Volume(..)
     , Stats(..)
     , Status(..)
     , def
@@ -287,13 +288,56 @@ defaultStats =
 instance Default Stats where
     def = defaultStats
 
+-- | Volume values.
+--
+-- Values of this type are always in the range 0-100.
+--
+-- Arithmetic on volumes has the property that:
+--
+-- @current + new = 100 if current + new > 100@
+--
+-- @current - new = 0   if current - new < 0@
+--
+-- but @current / 0@ still yields a division by zero exception.
+newtype Volume = Volume Int deriving (Eq, Ord, Show)
+
+instance Enum Volume where
+    toEnum = Volume . min 100 . max 0
+    fromEnum (Volume x) = x
+
+instance Bounded Volume where
+    minBound = 0
+    maxBound = 100
+
+instance Num Volume where
+    Volume x + Volume y = toEnum (x + y)
+    Volume x - Volume y = toEnum (x - y)
+    Volume x * Volume y = toEnum (x * y)
+
+    negate = id
+    abs    = id
+    signum = const 0
+
+    fromInteger = toEnum . fromIntegral
+
+instance Integral Volume where
+    quotRem (Volume x) (Volume y) =
+        let (x', y') = x `quotRem` y in (Volume x', Volume y')
+    toInteger (Volume x) = fromIntegral x
+
+instance Real Volume where
+    toRational (Volume x) = toRational x
+
+instance MPDArg Volume where
+    prep (Volume x) = prep x
+
 -- | Container for MPD status.
 data Status =
     Status { stState :: PlaybackState
              -- | A percentage (0-100).
              --
              -- 'Nothing' indicates that the output lacks mixer support.
-           , stVolume          :: Maybe Int
+           , stVolume          :: Maybe Volume
            , stRepeat          :: Bool
            , stRandom          :: Bool
              -- | A value that is incremented by the server every time the

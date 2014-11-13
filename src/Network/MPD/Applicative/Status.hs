@@ -126,8 +126,8 @@ status = Command (liftParser parseStatus) ["status"]
                         _       -> unexpectedPair
 
                     -- A volume of -1 indicates an audio backend w/o a mixer
-                    vol f = case parseNum v of
+                    vol f = case (parseNum v :: Maybe Int) of
                       Nothing -> unexpectedPair -- does it really make sense to fail here? when does this occur?
                       Just v' -> (Right . f) (g v')
                       where g n | n < 0     = Nothing
-                                | otherwise = Just (n::Int)
+                                | otherwise = Just $ fromIntegral n
