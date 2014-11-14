@@ -15,6 +15,7 @@ Audio output devices.
 module Network.MPD.Commands.Output
     ( disableOutput
     , enableOutput
+    , toggleOutput
     , outputs
     ) where
 
@@ -30,6 +31,10 @@ disableOutput = A.runCommand . A.disableOutput
 -- | Turn on an output device.
 enableOutput :: MonadMPD m => Int -> m ()
 enableOutput = A.runCommand . A.enableOutput
+
+-- | Toggle output device.
+toggleOutput :: MonadMPD m => Int -> m ()
+toggleOutput = A.runCommand . A.toggleOutput
 
 -- | Retrieve information for all output devices.
 outputs :: MonadMPD m => m [Device]

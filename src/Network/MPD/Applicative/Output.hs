@@ -15,6 +15,7 @@ Audio output devices.
 module Network.MPD.Applicative.Output
     ( disableOutput
     , enableOutput
+    , toggleOutput
     , outputs
     ) where
 
@@ -30,6 +31,10 @@ disableOutput n = Command emptyResponse ["disableoutput" <@> n]
 -- | Turn on output.
 enableOutput :: Int -> Command ()
 enableOutput n = Command emptyResponse ["enableoutput" <@> n]
+
+-- | Toggle output.
+toggleOutput :: Int -> Command ()
+toggleOutput n = Command emptyResponse ["toggleoutput" <@> n]
 
 -- | Get information about all available output devices.
 outputs :: Command [Device]
