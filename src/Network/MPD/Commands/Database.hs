@@ -20,6 +20,7 @@ module Network.MPD.Commands.Database
     , listAll
     , listAllInfo
     , lsInfo
+    , readComments
     , search
     , update
     , rescan
@@ -60,6 +61,10 @@ listAllInfo = A.runCommand . A.listAllInfo
 -- | Non-recursively list the contents of a database directory.
 lsInfo :: MonadMPD m => Path -> m [LsResult]
 lsInfo = A.runCommand . A.lsInfo
+
+-- | Read comments from file at path.
+readComments :: MonadMPD m => Path -> m [(String, String)]
+readComments = A.runCommand . A.readComments
 
 -- | Search the database using case insensitive matching.
 search :: MonadMPD m => Query -> m [Song]

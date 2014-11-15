@@ -77,6 +77,11 @@ listAllInfo = lsInfo' "listallinfo"
 lsInfo :: Path -> Command [LsResult]
 lsInfo = lsInfo' "lsinfo"
 
+-- | Read comments from the file at the specified path.
+readComments :: Path -> Command [(String, String)]
+readComments uri = Command p ["readcomments" <@> uri]
+  where p = map decodePair . toAssocList <$> getResponse
+
 -- | Like 'find' but with inexact matching.
 search :: Query -> Command [Song]
 search q = Command p ["search" <@> q]
