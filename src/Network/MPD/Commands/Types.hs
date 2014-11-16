@@ -28,6 +28,7 @@ module Network.MPD.Commands.Types
     , Song(..)
     , Position
     , Id(..)
+    , Priority(..)
     , sgGetTag
     , sgAddTag
     , Stats(..)
@@ -244,6 +245,12 @@ newtype Id = Id Int
 
 instance (MPDArg Id) where
     prep (Id x) = prep x
+
+newtype Priority = Priority Int
+  deriving (Eq, Show)
+
+instance (MPDArg Priority) where
+  prep (Priority x) = prep x
 
 -- | Get list of specific tag type
 sgGetTag :: Metadata -> Song -> Maybe [Value]

@@ -28,6 +28,8 @@ module Network.MPD.Commands.CurrentPlaylist
     , playlistSearch
     , plChanges
     , plChangesPosId
+    , prio
+    , prioId
     , shuffle
     , swap
     , swapId
@@ -113,6 +115,14 @@ plChanges = A.runCommand . A.plChanges
 -- | Like 'plChanges' but only returns positions and ids.
 plChangesPosId :: MonadMPD m => Integer -> m [(Position, Id)]
 plChangesPosId = A.runCommand . A.plChangesPosId
+
+-- | Set the priority of the specified songs.
+prio :: MonadMPD m => Priority -> (Position, Position) -> m ()
+prio p = A.runCommand . A.prio p
+
+-- | Set priority by song id.
+prioId :: MonadMPD m => Priority -> Id -> m ()
+prioId p = A.runCommand . A.prioId p
 
 -- | Shuffle the playlist.
 shuffle :: MonadMPD m => Maybe (Position, Position) -- ^ Optional range (start, end)

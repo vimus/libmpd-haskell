@@ -29,6 +29,8 @@ module Network.MPD.Applicative.CurrentPlaylist
     , playlistSearch
     , plChanges
     , plChangesPosId
+    , prio
+    , prioId
     , shuffle
     , swap
     , swapId
@@ -134,6 +136,14 @@ plChangesPosId ver = Command p ["plchangesposid" <@> ver]
              , Just (x', y') <- pair parseNum (x, y)
              = Right (x', Id y')
              | otherwise = Left ""
+
+-- | Set the priority of the specified songs.
+prio :: Priority -> (Position, Position) -> Command ()
+prio p range = Command emptyResponse ["prio" <@> p <++> range]
+
+-- | Set priority by song id.
+prioId :: Priority -> Id -> Command ()
+prioId p ids = Command emptyResponse ["prioid" <@> p <++> ids]
 
 -- | Shuffle the current playlist.
 -- Optionally restrict to a range of songs.
