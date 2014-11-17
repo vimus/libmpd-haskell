@@ -34,6 +34,8 @@ module Network.MPD.Applicative.CurrentPlaylist
     , shuffle
     , swap
     , swapId
+    , addTagId
+    , clearTagId
     ) where
 
 import           Network.MPD.Commands.Arg hiding (Command)
@@ -157,3 +159,11 @@ swap pos1 pos2 = Command emptyResponse ["swap" <@> pos1 <++> pos2]
 -- | Swap songs by id.
 swapId :: Id -> Id -> Command ()
 swapId id1 id2 = Command emptyResponse ["swapid" <@> id1 <++> id2]
+
+-- | Add tag to specified (remote) song.
+addTagId :: Id -> Metadata -> Value -> Command ()
+addTagId id' tag val = Command emptyResponse ["addtagid" <@> id' <++> tag <++> val]
+
+-- | Remove tag from specified (remote) song.
+clearTagId :: Id -> [Metadata] -> Command ()
+clearTagId id' tags = Command emptyResponse ["cleartagid" <@> id' <++> tags]

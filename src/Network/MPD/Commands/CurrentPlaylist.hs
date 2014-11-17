@@ -33,6 +33,8 @@ module Network.MPD.Commands.CurrentPlaylist
     , shuffle
     , swap
     , swapId
+    , addTagId
+    , clearTagId
     ) where
 
 import qualified Network.MPD.Applicative.Internal as A
@@ -136,3 +138,11 @@ swap pos1 = A.runCommand . A.swap pos1
 -- | Swap the positions of two songs (Id version)
 swapId :: MonadMPD m => Id -> Id -> m ()
 swapId id1 = A.runCommand . A.swapId id1
+
+-- | Add tag to (remote) song.
+addTagId :: (MonadMPD m) => Id -> Metadata -> Value -> m ()
+addTagId id' tag = A.runCommand . A.addTagId id' tag
+
+-- | Remove tags from (remote) song.
+clearTagId :: (MonadMPD m) => Id -> [Metadata] -> m ()
+clearTagId id' = A.runCommand . A.clearTagId id'
