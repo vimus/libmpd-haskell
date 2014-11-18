@@ -143,6 +143,6 @@ swapId id1 = A.runCommand . A.swapId id1
 addTagId :: (MonadMPD m) => Id -> Metadata -> Value -> m ()
 addTagId id' tag = A.runCommand . A.addTagId id' tag
 
--- | Remove tags from (remote) song.
-clearTagId :: (MonadMPD m) => Id -> [Metadata] -> m ()
+-- | Remove tag from (remote) song.
+clearTagId :: (MonadMPD m) => Id -> Metadata -> m ()
 clearTagId id' = A.runCommand . A.clearTagId id'

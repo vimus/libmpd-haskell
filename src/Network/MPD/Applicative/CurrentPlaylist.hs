@@ -165,5 +165,5 @@ addTagId :: Id -> Metadata -> Value -> Command ()
 addTagId id' tag val = Command emptyResponse ["addtagid" <@> id' <++> tag <++> val]
 
 -- | Remove tag from specified (remote) song.
-clearTagId :: Id -> [Metadata] -> Command ()
+clearTagId :: Id -> Metadata -> Command ()
 clearTagId id' tags = Command emptyResponse ["cleartagid" <@> id' <++> tags]
