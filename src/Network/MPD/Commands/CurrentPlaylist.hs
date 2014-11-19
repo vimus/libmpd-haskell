@@ -35,6 +35,7 @@ module Network.MPD.Commands.CurrentPlaylist
     , swapId
     , addTagId
     , clearTagId
+    , rangeId
     ) where
 
 import qualified Network.MPD.Applicative.Internal as A
@@ -146,3 +147,8 @@ addTagId id' tag = A.runCommand . A.addTagId id' tag
 -- | Remove tag from (remote) song.
 clearTagId :: (MonadMPD m) => Id -> Metadata -> m ()
 clearTagId id' = A.runCommand . A.clearTagId id'
+
+-- | Specify portion of song that shall be played.
+-- Both ends of the range are optional; omitting both plays everything.
+rangeId :: (MonadMPD m) => Id -> (Maybe Double, Maybe Double) -> m ()
+rangeId id' = A.runCommand . A.rangeId id'

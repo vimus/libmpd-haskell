@@ -36,6 +36,7 @@ module Network.MPD.Applicative.CurrentPlaylist
     , swapId
     , addTagId
     , clearTagId
+    , rangeId
     ) where
 
 import           Network.MPD.Commands.Arg hiding (Command)
@@ -46,6 +47,8 @@ import           Network.MPD.Commands.Parse
 import           Network.MPD.Commands.Types
 import           Network.MPD.Applicative.Internal
 import           Network.MPD.Applicative.Util
+
+import           Data.Maybe (fromMaybe)
 
 -- | Add a song (or a whole directory) to the current playlist.
 add :: Path -> Command ()
@@ -167,3 +170,9 @@ addTagId id' tag val = Command emptyResponse ["addtagid" <@> id' <++> tag <++> v
 -- | Remove tag from specified (remote) song.
 clearTagId :: Id -> Metadata -> Command ()
 clearTagId id' tags = Command emptyResponse ["cleartagid" <@> id' <++> tags]
+
+-- | Specify portion of song that shall be played.
+-- Both ends of the range are optional; omitting both plays everything.
+rangeId :: Id -> (Maybe Double, Maybe Double) -> Command ()
+rangeId id' (mbStart, mbEnd) = Command emptyResponse ["rangeid " ++ show id' ++ " " ++ arg ]
+  where arg = maybe "" show mbStart ++ ":" ++ maybe "" show mbEnd
