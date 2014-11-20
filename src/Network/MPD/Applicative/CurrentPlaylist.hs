@@ -48,8 +48,6 @@ import           Network.MPD.Commands.Types
 import           Network.MPD.Applicative.Internal
 import           Network.MPD.Applicative.Util
 
-import           Data.Maybe (fromMaybe)
-
 -- | Add a song (or a whole directory) to the current playlist.
 add :: Path -> Command ()
 add path = Command emptyResponse ["add" <@> path]
