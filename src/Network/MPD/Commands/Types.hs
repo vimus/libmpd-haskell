@@ -18,6 +18,7 @@ module Network.MPD.Commands.Types
     , Value(..)
     , ObjectType(..)
     , Seconds
+    , FractionalSeconds
     , Decibels
     , PlaybackState(..)
     , Subsystem(..)
@@ -138,6 +139,8 @@ data ObjectType = SongObj
 
 instance MPDArg ObjectType where
     prep SongObj = Args ["song"]
+
+type FractionalSeconds = Double
 
 type Seconds = Integer
 

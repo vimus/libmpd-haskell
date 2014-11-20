@@ -33,12 +33,12 @@ spec = do
 
     describe "seek" $ do
         it "sends a seek request" $ do
-            seek 1 10 `with` [("seek 1 10", Right "OK")] `shouldBe` Right ()
+            seek 1 10 `with` [("seek 1 10.0", Right "OK")] `shouldBe` Right ()
 
     describe "seekId" $ do
         it "is like 'seek' but takes an id" $ do
             seekId (Id 1) 10
-                `with` [("seekid 1 10", Right "OK")]
+                `with` [("seekid 1 10.0", Right "OK")]
                 `shouldBe` Right ()
 
     describe "stop" $ do

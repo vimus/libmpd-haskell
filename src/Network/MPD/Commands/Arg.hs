@@ -75,3 +75,4 @@ instance (MPDArg a, MPDArg b) => MPDArg (a, b) where
 instance MPDArg Int
 instance MPDArg Integer
 instance MPDArg Bool where prep = Args . return . showBool
+instance MPDArg Double

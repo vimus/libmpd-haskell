@@ -50,11 +50,11 @@ previous :: Command ()
 previous = Command emptyResponse ["previous"]
 
 -- | Seek to time in the song at the given position.
-seek :: Position -> Seconds -> Command ()
+seek :: Position -> FractionalSeconds -> Command ()
 seek pos time = Command emptyResponse ["seek" <@> pos <++> time]
 
 -- | Seek to time in the song with the given id.
-seekId :: Id -> Seconds -> Command ()
+seekId :: Id -> FractionalSeconds -> Command ()
 seekId id' time = Command emptyResponse ["seekid" <@> id' <++> time]
 
 -- | Stop playback.

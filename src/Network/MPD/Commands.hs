@@ -23,6 +23,7 @@ module Network.MPD.Commands (
     , Value
     , ObjectType(..)
     , Seconds
+    , FractionalSeconds
     , Decibels
     , PlaybackState(..)
     , Subsystem(..)

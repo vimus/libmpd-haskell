@@ -49,11 +49,11 @@ previous :: MonadMPD m => m ()
 previous = A.runCommand A.previous
 
 -- | Seek to some point in a song.
-seek :: MonadMPD m => Position -> Seconds -> m ()
+seek :: MonadMPD m => Position -> FractionalSeconds -> m ()
 seek pos = A.runCommand . A.seek pos
 
 -- | Seek to some point in a song (id version)
-seekId :: MonadMPD m => Id -> Seconds -> m ()
+seekId :: MonadMPD m => Id -> FractionalSeconds -> m ()
 seekId id' = A.runCommand . A.seekId id'
 
 -- | Stop playing.
