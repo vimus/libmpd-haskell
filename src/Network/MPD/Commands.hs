@@ -31,6 +31,7 @@ module Network.MPD.Commands (
     , LsResult(..)
     , Device(..)
     , Song(..)
+    , Priority(..)
     , Position
     , Volume
     , Id(..)
