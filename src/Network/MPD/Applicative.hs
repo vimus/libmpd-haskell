@@ -31,6 +31,9 @@ module Network.MPD.Applicative (
 
 -- * Reflection
 , module Network.MPD.Applicative.Reflection
+
+-- * Mounting
+, module Network.MPD.Applicative.Mount
 ) where
 
 import Network.MPD.Applicative.Internal
@@ -38,6 +41,7 @@ import Network.MPD.Applicative.Internal
 import Network.MPD.Applicative.Connection
 import Network.MPD.Applicative.CurrentPlaylist
 import Network.MPD.Applicative.Database
+import Network.MPD.Applicative.Mount
 import Network.MPD.Applicative.Output
 import Network.MPD.Applicative.PlaybackControl
 import Network.MPD.Applicative.PlaybackOptions
