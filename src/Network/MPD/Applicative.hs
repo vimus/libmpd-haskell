@@ -34,10 +34,14 @@ module Network.MPD.Applicative (
 
 -- * Mounting
 , module Network.MPD.Applicative.Mount
+
+-- * Client-to-client
+, module Network.MPD.Applicative.ClientToClient
 ) where
 
 import Network.MPD.Applicative.Internal
 
+import Network.MPD.Applicative.ClientToClient
 import Network.MPD.Applicative.Connection
 import Network.MPD.Applicative.CurrentPlaylist
 import Network.MPD.Applicative.Database
