@@ -1,10 +1,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -Wwarn #-}
 
--- | Module    : StringConn
+-- |
+-- Module      : StringConn
 -- Copyright   : (c) Ben Sinclair 2005-2009
 -- License     : MIT (see LICENSE)
--- Maintainer  : bsinclai@turing.une.edu.au
 -- Stability   : alpha
 --
 -- A testing scaffold for MPD commands
