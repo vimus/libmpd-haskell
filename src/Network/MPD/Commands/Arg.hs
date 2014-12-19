@@ -60,7 +60,7 @@ instance MPDArg Args where prep = id
 instance MPDArg String where
     -- We do this to avoid mangling
     -- non-ascii characters with 'show'
-    prep x = Args ['"' : x ++ "\""]
+    prep x = Args ['"' : addSlashes x ++ "\""]
 
 instance MPDArg ByteString where
     prep = prep . UTF8.toString
@@ -76,3 +76,10 @@ instance MPDArg Int
 instance MPDArg Integer
 instance MPDArg Bool where prep = Args . return . showBool
 instance MPDArg Double
+
+addSlashes :: String -> String
+addSlashes = concatMap escapeSpecial
+    where specials = "\\\""
+          escapeSpecial x
+              | x `elem` specials = ['\\', x]
+              | otherwise = [x]
