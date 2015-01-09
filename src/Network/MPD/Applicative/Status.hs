@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, TupleSections #-}
 
 {- |
 Module      : Network.MPD.Applicative.Status
@@ -95,7 +95,8 @@ status = Command (liftParser parseStatus) ["status"]
                 "nextsong"       -> int   $ \x -> a { stNextSongPos     = Just x }
                 "nextsongid"     -> int   $ \x -> a { stNextSongID      = Just $ Id x }
                 "time"           -> time  $ \x -> a { stTime            = Just x }
-                "elapsed"        -> frac  $ \x -> a { stTime            = fmap ((,) x . snd) (stTime a) }
+                "elapsed"        -> frac  $ \x -> a { stTime            = fmap ((x,) . snd) (stTime a) }
+                "duration"       -> num   $ \x -> a { stTime            = fmap ((,x) . fst) (stTime a) }
                 "bitrate"        -> int   $ \x -> a { stBitrate         = Just x }
                 "xfade"          -> num   $ \x -> a { stXFadeWidth      = x }
                 "mixrampdb"      -> frac  $ \x -> a { stMixRampdB       = x }
