@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, CPP #-}
 -- | Module    : Network.MPD.Util
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
 -- License     : MIT (see LICENSE)
@@ -16,7 +16,12 @@ module Network.MPD.Util (
 import           Control.Arrow
 
 import           Data.Time.Format (ParseTime, parseTime, FormatTime, formatTime)
+
+#if MIN_VERSION_time(1,5,0)
+import           Data.Time.Format (defaultTimeLocale)
+#else
 import           System.Locale (defaultTimeLocale)
+#endif
 
 import qualified Prelude
 import           Prelude hiding        (break, take, drop, dropWhile, read)
