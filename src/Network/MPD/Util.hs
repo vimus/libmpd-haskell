@@ -15,8 +15,7 @@ module Network.MPD.Util (
 
 import           Control.Arrow
 
-import           Data.Time.Format (ParseTime, parseTime, FormatTime, formatTime)
-import           System.Locale (defaultTimeLocale)
+import           Data.Time.Format (ParseTime, parseTime, FormatTime, formatTime, defaultTimeLocale)
 
 import qualified Prelude
 import           Prelude hiding        (break, take, drop, dropWhile, read)
