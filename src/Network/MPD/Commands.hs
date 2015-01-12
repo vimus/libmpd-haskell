@@ -34,7 +34,7 @@ module Network.MPD.Commands (
     , Song(..)
     , Priority(..)
     , Position
-    , Volume
+    , Volume(..)
     , Id(..)
     , sgGetTag
     , sgAddTag
