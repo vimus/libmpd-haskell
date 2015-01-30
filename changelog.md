@@ -28,7 +28,7 @@
     - `LsResult` replaces `EntryType` (nandykins)
     - hspec based testing added to the test-suite
     - More extensive parser testing
-    - 'MPDError' now has an 'Exception' instance
+    - `MPDError` now has an `Exception` instance
     - Lower bound on Cabal bumped to 1.10
 
 * v0.7.2, 2012-02-13
@@ -50,69 +50,69 @@
       most notably the parser improvements have been removed for now.
     - Support for GHC 7
     - Removed support for building against the deprecated base 3 package
-    - Added an `Enum' instance for `Metadata'
-    - Removed the `old_base' flag
+    - Added an `Enum` instance for `Metadata`
+    - Removed the `old_base` flag
 
 * v0.5.0, 2010-09-08
-	- Moved extensions to Network.MPD.Commands.Extensions
-	These might be removed in a later version
-	- Non-blocking `idle'
-	- The API is closer to the MPD spec, by untangling functionality
-	- Better MPD API coverage
-	- Improved parser implementation, now runs in constant space
-	- Constructors of the `Subsystem' type have been renamed
-	- Passwords can be changed using `setPassword'
-	- The connection handle can be accessed via `getHandle'
-	- The version of the MPD server is available via `getVersion'
-	- Added support for connecting via unix sockets
+    - Moved extensions to Network.MPD.Commands.Extensions
+      These might be removed in a later version
+    - Non-blocking `idle`
+    - The API is closer to the MPD spec, by untangling functionality
+    - Better MPD API coverage
+    - Improved parser implementation, now runs in constant space
+    - Constructors of the `Subsystem` type have been renamed
+    - Passwords can be changed using `setPassword`
+    - The connection handle can be accessed via `getHandle`
+    - The version of the MPD server is available via `getVersion`
+    - Added support for connecting via unix sockets
 
 * v0.4.2, 2010-08-31
-	- Only depend on QuickCheck when building the test target
+    - Only depend on QuickCheck when building the test target
 
 * v0.4.1, 2010-03-26
-	- Fix building test and coverage targets
+    - Fix building test and coverage targets
 
 * v0.4.0, 2010-03-26
-	- New maintainer: Joachim Fasting <joachim.fasting@gmail.com>
-	- Support QuickCheck 2
-	- Better MPD api support
-	Should be mostly compatible with mpd 0.16
-	- Separated operations on current playlist from those on specific
-	playlists
-	- Fixed password sending
-	- Several minor fixes and cleanups
+    - New maintainer: Joachim Fasting \<joachim.fasting@gmail.com\>
+    - Support QuickCheck 2
+    - Better MPD api support
+      Should be mostly compatible with mpd 0.16
+    - Separated operations on current playlist from those on specific
+      playlists
+    - Fixed password sending
+    - Several minor fixes and cleanups
 
 * v0.3.1, 2008-09-14
-	- Now reconnects if MPD closes the connection.
+    - Now reconnects if MPD closes the connection.
 
 * v0.3.0, 2008-05-06
-	- UTF-8 support (now depends on utf8-string package).
-	- Fixed corruption by `show' of command parameters.
-	- Tidied up `Query' interface.
-	- Moved StringConn out of Network.MPD to the tests directory.
+    - UTF-8 support (now depends on utf8-string package).
+    - Fixed corruption by `show` of command parameters.
+    - Tidied up `Query` interface.
+    - Moved StringConn out of Network.MPD to the tests directory.
 
 * v0.2.1, 2008-04-14
-	- Cleaned up libmpd.cabal.
+    - Cleaned up libmpd.cabal.
 
 * v0.2.0, 2008-04-14
-	- A connection stub for testing purposes.
-	- QuickCheck tests for parsing.
-	- Partial unit test coverage.
-	- Many bug fixes.
-	- Precise error handling.
-	- Parsing improvements.
-	- Code coverage generation.
-	- Cabal 1.2 support.
-	- Uniform command names.
+    - A connection stub for testing purposes.
+    - QuickCheck tests for parsing.
+    - Partial unit test coverage.
+    - Many bug fixes.
+    - Precise error handling.
+    - Parsing improvements.
+    - Code coverage generation.
+    - Cabal 1.2 support.
+    - Uniform command names.
 
 * v0.1.3, 2007-10-02
-	- Bugfixes.
+    - Bugfixes.
 
 * v0.1.2, 2007-09-29
-	- Changed name to libmpd.
+    - Changed name to libmpd.
 
 * v0.1.1, 2007-09-28
-	- Missing files added to the source distribution.
+    - Missing files added to the source distribution.
 
 * v0.1, 2007-09-28
-	- Initial public release.
+    - Initial public release.
