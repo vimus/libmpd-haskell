@@ -100,7 +100,6 @@ Library
       , Network.MPD.Applicative.Internal
       , Network.MPD.Util
 
-    ghc-prof-options:   -auto-all -prof
     ghc-options:        -Wall
 
 Test-Suite specs
