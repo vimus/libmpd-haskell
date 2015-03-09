@@ -52,6 +52,8 @@ Well-formatted patches are appreciated. New features should have a test case.
 ## See also
 * [vimus], an MPD client with vim-like keybindings
 
+[vimus]: https://github.com/vimus/vimus
+
 ## Resources
 * [API documentation]
 * [MPD protocol reference]
