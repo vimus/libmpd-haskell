@@ -19,7 +19,7 @@ Stability:          beta
 Homepage:           http://github.com/vimus/libmpd-haskell#readme
 Bug-reports:        http://github.com/vimus/libmpd-haskell/issues
 
-Tested-With:        GHC ==7.6.3, GHC ==7.8.3
+Tested-With:        GHC ==7.6.3, GHC ==7.8.4, GHC ==7.10.1, GHC ==8.0.1
 Build-Type:         Simple
 Cabal-Version:      >= 1.10
 
@@ -55,7 +55,7 @@ Library
 
     if impl(ghc >= 7.10.0)
         Build-Depends:
-            time >= 1.5 && <1.6
+            time >= 1.5 && <1.7
     else
         Build-Depends:
             time >= 1.1 && <1.5
