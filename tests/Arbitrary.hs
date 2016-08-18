@@ -9,6 +9,7 @@ module Arbitrary
     , BoolString(..)
     , YearString(..)
     , DateString(..)
+    , MetadataMap(..)
     , positive, field
     ) where
 
@@ -50,16 +51,20 @@ field = (filter (/= '\n') . dropWhile isSpace) <$> arbitrary
 fieldBS :: Gen ByteString
 fieldBS = UTF8.fromString <$> field
 
--- Orphan instances for built-in types
-instance Arbitrary (M.Map Metadata [Value]) where
+instance Arbitrary Value where
+    arbitrary = Value <$> fieldBS
+
+newtype MetadataMap = MetadataMap { fromMetadataMap :: M.Map Metadata [Value] }
+  deriving (Show)
+
+instance Arbitrary MetadataMap where
     arbitrary = do
         size <- choose (1, 1000)
         vals <- replicateM size (listOf1 arbitrary)
         keys <- replicateM size arbitrary
-        return $ M.fromList (zip keys vals)
+        return . MetadataMap $ M.fromList (zip keys vals)
 
-instance Arbitrary Value where
-    arbitrary = Value <$> fieldBS
+-- Orphan instances for built-in types
 
 instance Arbitrary Day where
     arbitrary = ModifiedJulianDay <$> arbitrary
@@ -118,7 +123,7 @@ instance Arbitrary Id where
 
 instance Arbitrary Song where
     arbitrary = Song <$> arbitrary
-                     <*> arbitrary
+                     <*> (fromMetadataMap <$> arbitrary)
                      <*> possibly arbitrary
                      <*> positive
                      <*> possibly arbitrary
