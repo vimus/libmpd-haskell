@@ -55,7 +55,7 @@ Library
 
     if impl(ghc >= 7.10.0)
         Build-Depends:
-            time >= 1.5 && <1.7
+            time >= 1.5 && <1.9
     else
         Build-Depends:
             time >= 1.1 && <1.5
