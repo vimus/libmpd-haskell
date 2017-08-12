@@ -11,8 +11,8 @@ branches:
 sudo: false
 cache:
   directories:
-  - $HOME/.ghc
-  - $HOME/.cabal
+  - $HOME/.cabal/packages
+  - $HOME/.cabal/bin
   - $HOME/.stack
 
 matrix:
