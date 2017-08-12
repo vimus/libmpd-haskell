@@ -151,7 +151,7 @@ data PlaybackState
   = Playing
   | Stopped
   | Paused
-    deriving (Eq, Enum, Show)
+    deriving (Eq, Enum, Ord, Bounded, Show)
 
 -- | Represents the various MPD subsystems.
 data Subsystem
@@ -166,7 +166,7 @@ data Subsystem
     | StickerS           -- ^ Sticker database
     | SubscriptionS      -- ^ Subscription
     | MessageS           -- ^ Message on subscribed channel
-      deriving (Eq, Enum, Show)
+      deriving (Eq, Enum, Ord, Bounded, Show)
 
 instance MPDArg Subsystem where
     prep DatabaseS = Args ["database"]
@@ -185,7 +185,7 @@ data ReplayGainMode
     = Off       -- ^ Disable replay gain
     | TrackMode -- ^ Per track mode
     | AlbumMode -- ^ Per album mode
-      deriving (Eq, Enum, Show)
+      deriving (Eq, Enum, Ord, Bounded, Show)
 
 instance MPDArg ReplayGainMode where
     prep Off = Args ["off"]
