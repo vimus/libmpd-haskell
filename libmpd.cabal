@@ -44,8 +44,10 @@ Library
       , bytestring >= 0.9 && < 1
       , containers >= 0.3 && < 1
       , filepath >= 1 && < 2
-      , mtl >= 2.0 && < 3
+      , mtl >= 2 && < 3
       , old-locale >= 1 && < 2
+      , stm >= 2.2 && < 3
+      , transformers >= 0.2 && < 1
       , text >= 0.11 && < 2
 
         -- Additional dependencies
@@ -122,6 +124,8 @@ Test-Suite specs
       , filepath
       , mtl
       , old-locale
+      , stm
+      , transformers
       , text
       , time
 
