@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts, GeneralizedNewtypeDeriving, OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, MultiParamTypeClasses, TypeFamilies #-}
 
 -- | Module    : Network.MPD.Core
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
@@ -31,10 +31,12 @@ import           Control.Concurrent.STM.TVar (TVar, readTVar, readTVarIO, writeT
 import qualified Control.Exception as E
 import           Control.Exception.Safe (catch, catchAny)
 import           Control.Monad (ap, unless)
+import           Control.Monad.Base (MonadBase)
 import           Control.Monad.Error (ErrorT(..), MonadError(..))
 import           Control.Monad.IO.Class (MonadIO(liftIO))
 import           Control.Monad.Reader (ReaderT(..), ask, asks)
 import           Control.Monad.STM (atomically)
+import           Control.Monad.Trans.Control (MonadBaseControl(..))
 import qualified Data.Foldable as F
 import           Network (PortID(..), withSocketsDo, connectTo)
 import           System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
@@ -72,11 +74,16 @@ type Port = Integer
 newtype MPD a =
     MPD { runMPD :: ErrorT MPDError
                     (ReaderT MPDEnv IO) a
-        } deriving (Functor, Monad, MonadIO, MonadError MPDError)
+        } deriving (Functor, Monad, MonadIO, MonadError MPDError, MonadBase IO)
 
 instance Applicative MPD where
     (<*>) = ap
     pure  = return
+
+instance MonadBaseControl IO MPD where
+  type StM MPD a = Either MPDError a
+  liftBaseWith f = MPD $ liftBaseWith $ \q -> f (q . runMPD)
+  restoreM = MPD . restoreM
 
 instance MonadMPD MPD where
     open  = mpdOpen
