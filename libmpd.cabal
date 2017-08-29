@@ -51,6 +51,7 @@ Library
         -- Additional dependencies
       , data-default-class >= 0.0.1 && < 1
       , network >= 2.1 && < 3
+      , safe-exceptions >= 0.1 && < 0.2
       , utf8-string >= 0.3.1 && < 1.1
 
     if impl(ghc >= 7.10.0)
@@ -127,6 +128,7 @@ Test-Suite specs
         -- Additional dependencies
       , data-default-class
       , network
+      , safe-exceptions
       , utf8-string
 
         -- Test dependencies

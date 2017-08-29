@@ -28,6 +28,7 @@ import           Network.MPD.Core.Error
 import           Data.Char (isDigit)
 import           Control.Applicative (Applicative(..), (<$>), (<*))
 import qualified Control.Exception as E
+import           Control.Exception.Safe (catch, catchAny)
 import           Control.Monad (ap, unless)
 import           Control.Monad.Error (ErrorT(..), MonadError(..))
 import           Control.Monad.Reader (ReaderT(..), ask)
@@ -111,10 +112,10 @@ mpdOpen = MPD $ do
     where
         safeConnectTo host@('/':_) _ =
             (Just <$> connectTo "" (UnixSocket host))
-            `E.catch` (\(_ :: E.SomeException) -> return Nothing)
+            `catchAny` const (return Nothing)
         safeConnectTo host port =
             (Just <$> connectTo host (PortNumber $ fromInteger port))
-            `E.catch` (\(_ :: E.SomeException) -> return Nothing)
+            `catchAny` const (return Nothing)
         checkConn = do
             [msg] <- send ""
             if "OK MPD" `isPrefixOf` msg
@@ -150,7 +151,7 @@ mpdClose =
     where
         sendClose handle =
             (hPutStrLn handle "close" >> hReady handle >> hClose handle >> return Nothing)
-            `E.catch` handler
+            `catch` handler
 
         handler err
             | isEOFError err = return Nothing
