@@ -126,7 +126,7 @@ withMPDEx host port pw x = withSocketsDo $ do
     where
     initEnv = do
       tHandle <- newTVarIO Nothing
-      tPassword <- newTVarIO ""
+      tPassword <- newTVarIO pw
       tVersion <- newTVarIO (0, 0, 0)
       return $ MPDEnv host port tHandle tPassword tVersion
 
