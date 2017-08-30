@@ -52,6 +52,7 @@ Library
 
         -- Additional dependencies
       , data-default-class >= 0.0.1 && < 1
+      , lifted-async >= 0.8 && < 0.10
       , monad-control >= 1 && < 1.1
       , network >= 2.1 && < 3
       , safe-exceptions >= 0.1 && < 0.2
@@ -133,6 +134,7 @@ Test-Suite specs
 
         -- Additional dependencies
       , data-default-class
+      , lifted-async
       , monad-control
       , network
       , safe-exceptions
