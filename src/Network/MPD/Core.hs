@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts, GeneralizedNewtypeDeriving, OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, MultiParamTypeClasses, TypeFamilies #-}
 
 -- | Module    : Network.MPD.Core
 -- Copyright   : (c) Ben Sinclair 2005-2009, Joachim Fasting 2010
@@ -27,12 +27,16 @@ import           Network.MPD.Core.Error
 
 import           Data.Char (isDigit)
 import           Control.Applicative (Applicative(..), (<$>), (<*))
+import           Control.Concurrent.STM.TVar (TVar, readTVar, readTVarIO, writeTVar, newTVarIO)
 import qualified Control.Exception as E
 import           Control.Exception.Safe (catch, catchAny)
 import           Control.Monad (ap, unless)
+import           Control.Monad.Base (MonadBase)
 import           Control.Monad.Error (ErrorT(..), MonadError(..))
-import           Control.Monad.Reader (ReaderT(..), ask)
-import           Control.Monad.State (StateT, MonadIO(..), modify, gets, evalStateT)
+import           Control.Monad.IO.Class (MonadIO(liftIO))
+import           Control.Monad.Reader (ReaderT(..), ask, asks)
+import           Control.Monad.STM (atomically)
+import           Control.Monad.Trans.Control (MonadBaseControl(..))
 import qualified Data.Foldable as F
 import           Network (PortID(..), withSocketsDo, connectTo)
 import           System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
@@ -69,45 +73,72 @@ type Port = Integer
 
 newtype MPD a =
     MPD { runMPD :: ErrorT MPDError
-                    (StateT MPDState
-                     (ReaderT (Host, Port) IO)) a
-        } deriving (Functor, Monad, MonadIO, MonadError MPDError)
+                    (ReaderT MPDEnv IO) a
+        } deriving (Functor, Monad, MonadIO, MonadError MPDError, MonadBase IO)
 
 instance Applicative MPD where
     (<*>) = ap
     pure  = return
 
+instance MonadBaseControl IO MPD where
+  type StM MPD a = Either MPDError a
+  liftBaseWith f = MPD $ liftBaseWith $ \q -> f (q . runMPD)
+  restoreM = MPD . restoreM
+
 instance MonadMPD MPD where
     open  = mpdOpen
     close = mpdClose
     send  = mpdSend
-    getPassword    = MPD $ gets stPassword
-    setPassword pw = MPD $ modify (\st -> st { stPassword = pw })
-    getVersion     = MPD $ gets stVersion
+    getPassword = readEnvTVar envPassword
+    setPassword = writeEnvTVar envPassword
+    getVersion  = readEnvTVar envVersion
 
 -- | Inner state for MPD
-data MPDState =
-    MPDState { stHandle   :: Maybe Handle
-             , stPassword :: String
-             , stVersion  :: (Int, Int, Int)
+data MPDEnv =
+    MPDEnv {   envHost     :: Host
+             , envPort     :: Port
+             , envHandle   :: TVar (Maybe Handle)
+             , envPassword :: TVar String
+             , envVersion  :: TVar (Int, Int, Int)
              }
+
+readEnvTVar :: (MPDEnv -> TVar a) -> MPD a
+readEnvTVar accessor = MPD $ liftIO . readTVarIO =<< asks accessor
+
+writeEnvTVar :: (MPDEnv -> TVar a) -> a -> MPD ()
+writeEnvTVar accessor val = MPD $ do
+  tVar <- asks accessor
+  liftIO . atomically $ writeTVar tVar val
 
 -- | A response is either an 'MPDError' or some result.
 type Response = Either MPDError
 
+clearHandle :: MPD ()
+clearHandle = MPD $ do
+  tmHandle <- envHandle <$> ask
+  liftIO . atomically $ writeTVar tmHandle Nothing
+
 -- | The most configurable API for running an MPD action.
 withMPDEx :: Host -> Port -> Password -> MPD a -> IO (Response a)
-withMPDEx host port pw x = withSocketsDo $
-    runReaderT (evalStateT (runErrorT . runMPD $ open >> (x <* close)) initState)
-               (host, port)
-    where initState = MPDState Nothing pw (0, 0, 0)
+withMPDEx host port pw x = withSocketsDo $ do
+    env <- initEnv
+    runReaderT (runErrorT . runMPD $ open >> (x <* close)) env
+    where
+    initEnv = do
+      tHandle <- newTVarIO Nothing
+      tPassword <- newTVarIO pw
+      tVersion <- newTVarIO (0, 0, 0)
+      return $ MPDEnv host port tHandle tPassword tVersion
 
 mpdOpen :: MPD ()
 mpdOpen = MPD $ do
-    (host, port) <- ask
+    env <- ask
+    let host = envHost env
+        port = envPort env
+        tmHandle = envHandle env
     runMPD close
     mHandle <- liftIO (safeConnectTo host port)
-    modify (\st -> st { stHandle = mHandle })
+    liftIO . atomically $ writeTVar tmHandle mHandle
     F.forM_ mHandle $ \_ -> runMPD checkConn >>= (`unless` runMPD close)
     where
         safeConnectTo host@('/':_) _ =
@@ -129,7 +160,8 @@ mpdOpen = MPD $ do
                     "MPD %s is not supported, upgrade to MPD %s or above!"
                     (formatVersion version) (formatVersion requiredVersion)
             | otherwise = do
-                modify (\st -> st { stVersion = version })
+                tVersion <- asks envVersion
+                liftIO . atomically $ writeTVar tVersion version
                 return True
             where
                 requiredVersion = (0, 15, 0)
@@ -142,12 +174,11 @@ mpdOpen = MPD $ do
 
 mpdClose :: MPD ()
 mpdClose =
-    MPD $ do
-        mHandle <- gets stHandle
-        F.forM_ mHandle $ \h -> do
-          modify $ \st -> st{stHandle = Nothing}
-          r <- liftIO $ sendClose h
-          F.forM_ r throwError
+    readEnvTVar envHandle >>= F.mapM_ (\h -> do
+        writeEnvTVar envHandle Nothing
+        r <- liftIO $ sendClose h
+        MPD $ F.forM_ r throwError
+    )
     where
         sendClose handle =
             (hPutStrLn handle "close" >> hReady handle >> hClose handle >> return Nothing)
@@ -165,12 +196,12 @@ mpdSend str = send' `catchError` handler
           | otherwise = throwError err
 
         send' :: MPD [ByteString]
-        send' = MPD $ gets stHandle >>= maybe (throwError NoMPD) go
+        send' = maybe (throwError NoMPD) go =<< readEnvTVar envHandle
 
         go handle = (liftIO . tryIOError $ do
             unless (null str) $ B.hPutStrLn handle (UTF8.fromString str) >> hFlush handle
             getLines handle [])
-                >>= either (\err -> modify (\st -> st { stHandle = Nothing })
+                >>= either (\err -> clearHandle
                                  >> throwError (ConnectionError err)) return
 
         getLines :: Handle -> [ByteString] -> IO [ByteString]
