@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {- |
 Module      : Network.MPD.Commands.Query
 Copyright   : (c) Joachim Fasting 2012
@@ -16,6 +18,9 @@ import           Network.MPD.Commands.Arg
 import           Network.MPD.Commands.Types
 
 import           Data.Monoid
+#if MIN_VERSION_base(4,9,0)
+import           Data.Semigroup
+#endif
 
 -- | An interface for creating MPD queries.
 --
@@ -41,6 +46,11 @@ instance Show Match where
 instance Monoid Query where
     mempty  = Query []
     Query a `mappend` Query b = Query (a ++ b)
+
+#if MIN_VERSION_base(4,9,0)
+instance Semigroup Query where
+    (<>) = mappend
+#endif
 
 instance MPDArg Query where
     prep = foldl (<++>) (Args []) . f
