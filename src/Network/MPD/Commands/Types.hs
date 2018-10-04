@@ -44,6 +44,7 @@ import           Network.MPD.Commands.Arg (MPDArg(prep), Args(Args))
 import           Data.Default.Class
 
 import qualified Data.Map as M
+import           Data.Map.Strict (insertWith)
 import           Data.Time.Clock (UTCTime)
 import           Data.String
 
@@ -263,7 +264,7 @@ sgGetTag meta s = M.lookup meta $ sgTags s
 
 -- | Add metadata tag value.
 sgAddTag :: Metadata -> Value -> Song -> Song
-sgAddTag meta value s = s { sgTags = M.insertWith' (++) meta [value] (sgTags s) }
+sgAddTag meta value s = s { sgTags = insertWith (++) meta [value] (sgTags s) }
 
 defaultSong :: Path -> Song
 defaultSong path =
