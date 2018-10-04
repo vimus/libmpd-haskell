@@ -116,7 +116,8 @@ mpdOpen = MPD $ do
             (Just <$> connectTo host (PortNumber $ fromInteger port))
             `E.catch` (\(_ :: E.SomeException) -> return Nothing)
         checkConn = do
-            [msg] <- send ""
+            singleMsg <- send ""
+            let [msg] = singleMsg
             if "OK MPD" `isPrefixOf` msg
                 then MPD $ checkVersion $ parseVersion msg
                 else return False
