@@ -129,5 +129,5 @@ Test-Suite specs
 
         -- Test dependencies
       , unix
-      , QuickCheck >= 2.1
+      , QuickCheck >= 2.10
       , hspec >= 1.3
