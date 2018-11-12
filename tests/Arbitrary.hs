@@ -27,7 +27,7 @@ import           Data.ByteString (ByteString)
 import qualified Data.ByteString.UTF8 as UTF8
 
 instance Arbitrary ByteString where
-  arbitrary = UTF8.fromString <$> filter isValid <$> arbitrary
+  arbitrary = UTF8.fromString <$> listOf1 arbitraryPrintableChar
 
 -- No longer provided by QuickCheck 2
 -- two :: Monad m => m a -> m (a, a)
@@ -46,10 +46,7 @@ possibly m = arbitrary >>= bool (Just <$> m) (return Nothing)
 
 -- MPD fields can't contain newlines and the parser skips initial spaces.
 field :: Gen String
-field = (filter isValid . filter (/= '\n') . dropWhile isSpace) <$> arbitrary
-
-isValid :: Char -> Bool
-isValid x = (x /= '\65534' && x /= '\65535')
+field = (filter (/= '\n') . dropWhile isSpace) <$> listOf1 arbitraryPrintableChar
 
 fieldBS :: Gen ByteString
 fieldBS = UTF8.fromString <$> field
