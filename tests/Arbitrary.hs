@@ -20,11 +20,14 @@ import           Data.List (intersperse)
 import qualified Data.Map as M
 import           Data.Time
 import           Test.QuickCheck
+import           Test.QuickCheck.Arbitrary
+import           Test.QuickCheck.Gen
 
 import           Network.MPD.Commands.Types
 
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString.UTF8 as UTF8
+
 
 instance Arbitrary ByteString where
   arbitrary = UTF8.fromString <$> listOf1 arbitraryPrintableChar
