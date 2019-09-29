@@ -39,9 +39,7 @@ import           Data.ByteString.Char8 (ByteString)
 import           Network.MPD.Core hiding (getResponse)
 import qualified Network.MPD.Core as Core
 import           Control.Monad.Error
-#if MIN_VERSION_base(4,9,0)
 import qualified Control.Monad.Fail as Fail
-#endif
 
 -- | A line-oriented parser that returns a value along with any remaining input.
 newtype Parser a
@@ -49,14 +47,11 @@ newtype Parser a
       deriving Functor
 
 instance Monad Parser where
-    fail      = Parser . const . Left
     return a  = Parser $ \input -> Right (a, input)
     p1 >>= p2 = Parser $ \input -> runParser p1 input >>= uncurry (runParser . p2)
 
-#if MIN_VERSION_base(4,9,0)
 instance Fail.MonadFail Parser where
     fail = Prelude.fail
-#endif
 
 instance Applicative Parser where
     pure  = return
