@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, GeneralizedNewtypeDeriving, OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts, GeneralizedNewtypeDeriving, OverloadedStrings, CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 -- | Module    : Network.MPD.Core
@@ -34,7 +34,20 @@ import           Control.Monad.Error (ErrorT(..), MonadError(..))
 import           Control.Monad.Reader (ReaderT(..), ask)
 import           Control.Monad.State (StateT, MonadIO(..), modify, gets, evalStateT)
 import qualified Data.Foldable as F
-import           Network (PortID(..), withSocketsDo, connectTo)
+import           System.IO (IOMode(..))
+import Network.Socket
+  ( SockAddr(..)
+  , addrAddress
+  , addrFamily
+  , addrProtocol
+  , addrSocketType
+  , connect
+  , defaultHints
+  , getAddrInfo
+  , socket
+  , socketToHandle
+  , withSocketsDo
+  )
 import           System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
 import           System.IO.Error (isEOFError, tryIOError, ioeGetErrorType)
 import           Text.Printf (printf)
@@ -106,15 +119,14 @@ mpdOpen :: MPD ()
 mpdOpen = MPD $ do
     (host, port) <- ask
     runMPD close
-    mHandle <- liftIO (safeConnectTo host port)
+    addr:_ <- liftIO $ getAddrInfo (Just defaultHints) (Just host) (Just $ show port)
+    sock <- liftIO $ socket (addrFamily addr) (addrSocketType addr) (addrProtocol addr)
+    mHandle <- liftIO (safeConnectTo (sock,(addrAddress addr)))
     modify (\st -> st { stHandle = mHandle })
     F.forM_ mHandle $ \_ -> runMPD checkConn >>= (`unless` runMPD close)
     where
-        safeConnectTo host@('/':_) _ =
-            (Just <$> connectTo "" (UnixSocket host))
-            `catchAny` const (return Nothing)
-        safeConnectTo host port =
-            (Just <$> connectTo host (PortNumber $ fromInteger port))
+        safeConnectTo (sock,addr) =
+            (connect sock addr) >> (Just <$> socketToHandle sock ReadWriteMode)
             `catchAny` const (return Nothing)
         checkConn = do
             singleMsg <- send ""
