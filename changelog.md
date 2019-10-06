@@ -1,3 +1,6 @@
+* v0.9.10
+    - Port it for newer network library
+
 * v0.9.0, 2014-09-21
     - New commands: `deleteRange`, `moveRange`, `playlistInfoRange`,
       `searchAdd`, `searchAddpl`.
