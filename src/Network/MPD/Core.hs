@@ -36,7 +36,9 @@ import           Control.Monad.State (StateT, MonadIO(..), modify, gets, evalSta
 import qualified Data.Foldable as F
 import           System.IO (IOMode(..))
 import Network.Socket
-  ( SockAddr(..)
+  ( Family(..)
+  , SockAddr(..)
+  , SocketType(..)
   , addrAddress
   , addrFamily
   , addrProtocol
@@ -119,12 +121,21 @@ mpdOpen :: MPD ()
 mpdOpen = MPD $ do
     (host, port) <- ask
     runMPD close
-    addr:_ <- liftIO $ getAddrInfo (Just defaultHints) (Just host) (Just $ show port)
+    addr:_ <- liftIO $ getAddr host port
     sock <- liftIO $ socket (addrFamily addr) (addrSocketType addr) (addrProtocol addr)
     mHandle <- liftIO (safeConnectTo (sock,(addrAddress addr)))
     modify (\st -> st { stHandle = mHandle })
     F.forM_ mHandle $ \_ -> runMPD checkConn >>= (`unless` runMPD close)
     where
+        getAddr addr@('/':_) _ = return [
+                defaultHints { addrFamily = AF_UNIX
+                             , addrSocketType = Stream
+                             , addrAddress = SockAddrUnix addr
+                             }
+            ]
+
+        getAddr host port = getAddrInfo (Just defaultHints) (Just host) (Just $ show port)
+
         safeConnectTo (sock,addr) =
             (connect sock addr) >> (Just <$> socketToHandle sock ReadWriteMode)
             `catchAny` const (return Nothing)
