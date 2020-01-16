@@ -303,7 +303,10 @@ instance Default Stats where
 -- @current - new = 0   if current - new < 0@
 --
 -- but @current / 0@ still yields a division by zero exception.
-newtype Volume = Volume Int deriving (Eq, Ord, Show)
+newtype Volume = Volume Int deriving (Eq, Ord)
+
+instance Show Volume where
+    showsPrec p (Volume v) = showsPrec p v
 
 instance Enum Volume where
     toEnum = Volume . min 100 . max 0
