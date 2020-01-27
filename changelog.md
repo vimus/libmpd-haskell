@@ -1,4 +1,8 @@
-* v0.9.10
+* v0.9.1.0
+    - Support partition in Network.MPD.Status
+    - Ignore unknown key-value pairs in Network.MPD.status so that it breaks much less often.
+
+* v0.9.0.10
     - Port it for newer network library
 
 * v0.9.0, 2014-09-21

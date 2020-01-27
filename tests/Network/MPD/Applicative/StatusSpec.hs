@@ -32,12 +32,12 @@ spec = do
           resp = unparse obj ++ "OK"
       status `with` [("status", Right resp)] `shouldBe` Right obj
 
-    it "fails on unexpected key-value pairs" $ do
+    it "ignores unknown key-value pairs" $ do
       let resp = unparse (def :: Status) ++ unlines [
               "foo: bar"
             , "OK\n"
             ]
-      status `with` [("status", Right resp)] `shouldBe` Left (Unexpected $ "unexpected key-value pair: (\"foo\",\"bar\")")
+      status `with` [("status", Right resp)] `shouldBe` Right (def :: Status)
 
     it "fails on unexpected value" $ do
       let resp = unlines [

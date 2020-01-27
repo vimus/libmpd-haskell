@@ -380,7 +380,9 @@ data Status =
              -- | If True, a song will be removed after it has been played.
            , stConsume         :: Bool
              -- | Last error message (if any).
-           , stError           :: Maybe String }
+           , stError           :: Maybe String
+             -- | The name of MPD partition.
+           , stPartition       :: String }
     deriving (Eq, Show)
 
 defaultStatus :: Status
@@ -391,7 +393,8 @@ defaultStatus =
            , stNextSongPos = Nothing, stNextSongID = Nothing
            , stBitrate = Nothing, stXFadeWidth = 0, stMixRampdB = 0
            , stMixRampDelay = 0, stAudio = (0,0,0), stUpdatingDb = Nothing
-           , stSingle = False, stConsume = False, stError = Nothing }
+           , stSingle = False, stConsume = False, stError = Nothing
+           , stPartition = "" }
 
 instance Default Status where
     def = defaultStatus

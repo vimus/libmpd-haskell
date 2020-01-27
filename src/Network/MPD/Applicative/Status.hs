@@ -104,7 +104,8 @@ status = Command (liftParser parseStatus) ["status"]
                 "audio"          -> audio $ \x -> a { stAudio           = x }
                 "updating_db"    -> num   $ \x -> a { stUpdatingDb      = Just x }
                 "error"          -> Right         a { stError           = Just (UTF8.toString v) }
-                _                -> unexpectedPair
+                "partition"      -> Right a { stPartition = UTF8.toString v }
+                _                -> Right a
                 where
                     unexpectedPair = Left ("unexpected key-value pair: " ++ show p)
                     int   f = maybe unexpectedPair (Right . f) (parseNum v :: Maybe Int)
