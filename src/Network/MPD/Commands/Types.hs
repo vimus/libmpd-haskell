@@ -330,6 +330,7 @@ instance Num Volume where
 instance Integral Volume where
     quotRem (Volume x) (Volume y) =
         let (x', y') = x `quotRem` y in (Volume x', Volume y')
+    divMod = quotRem
     toInteger (Volume x) = fromIntegral x
 
 instance Real Volume where
