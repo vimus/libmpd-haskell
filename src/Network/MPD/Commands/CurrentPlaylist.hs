@@ -17,8 +17,10 @@ module Network.MPD.Commands.CurrentPlaylist
     , add
     , clear
     , delete
+    , deleteRange
     , deleteId
     , move
+    , moveRange
     , moveId
     , playlist
     , playlistFind
@@ -63,6 +65,12 @@ clear = A.runCommand A.clear
 delete :: MonadMPD m => Position -> m ()
 delete = A.runCommand . A.delete
 
+-- | Remove a range of songs from the current playlist.
+--
+-- @since 0.9.2.0
+deleteRange :: MonadMPD m => (Position, Position) -> m ()
+deleteRange = A.runCommand . A.deleteRange
+
 -- | Remove a song from the current playlist.
 deleteId :: MonadMPD m => Id -> m ()
 deleteId = A.runCommand . A.deleteId
@@ -70,6 +78,12 @@ deleteId = A.runCommand . A.deleteId
 -- | Move a song to a given position in the current playlist.
 move :: MonadMPD m => Position -> Position -> m ()
 move pos = A.runCommand . A.move pos
+
+-- | Move a range of songs to a given position in the current playlist.
+--
+-- @since 0.9.2.0
+moveRange :: MonadMPD m => (Position, Position) -> Position -> m ()
+moveRange range = A.runCommand . A.moveRange range
 
 -- | Move a song from (songid) to (playlist index) in the playlist. If to is
 -- negative, it is relative to the current song in the playlist (if there is one).
