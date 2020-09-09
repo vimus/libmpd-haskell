@@ -20,6 +20,7 @@ module Network.MPD.Applicative.PlaybackControl
     , previous
     , seek
     , seekId
+    , seekCur
     , stop
     ) where
 
@@ -56,6 +57,15 @@ seek pos time = Command emptyResponse ["seek" <@> pos <++> time]
 -- | Seek to time in the song with the given id.
 seekId :: Id -> FractionalSeconds -> Command ()
 seekId id' time = Command emptyResponse ["seekid" <@> id' <++> time]
+
+-- | Seek to time in the current song. Absolute time for True in
+-- the frist argument, relative time for False.
+--
+-- @since 0.9.2.0
+seekCur :: Bool -> FractionalSeconds -> Command ()
+seekCur bool time
+  | bool      = Command emptyResponse ["seekcur" <@> time]
+  | otherwise = Command emptyResponse ["seekcur" <@> (Sign time)]
 
 -- | Stop playback.
 stop :: Command ()

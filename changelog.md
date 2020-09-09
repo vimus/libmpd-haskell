@@ -1,3 +1,7 @@
+* v0.9.2.0
+    - New command: `seekCur`
+    - Add `newtype Sign` to pass positive numbers to `MPDArg` with leading `+/-`.
+
 * v0.9.1.0
     - Support partition in Network.MPD.Status
     - Ignore unknown key-value pairs in Network.MPD.status so that it breaks much less often.

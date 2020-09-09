@@ -40,6 +40,19 @@ spec = do
             seekId (Id 1) 10
                 `with` [("seekid 1 10.0", Right "OK")]
                 `shouldBe` Right ()
+    describe "seekCur" $ do
+        it "sends a seek request on the current song, absolute time" $ do
+            seekCur True 10
+                `with` [("seekcur 10.0", Right "OK")]
+                `shouldBe` Right ()
+        it "sends a seek request on the current song, positive relative time" $ do
+            seekCur False 10
+                `with` [("seekcur +10.0", Right "OK")]
+                `shouldBe` Right ()
+        it "sends a seek request on the current song, positive negative time" $ do
+            seekCur False (-10)
+                `with` [("seekcur -10.0", Right "OK")]
+                `shouldBe` Right ()
 
     describe "stop" $ do
         it "sends a stop request" $ do

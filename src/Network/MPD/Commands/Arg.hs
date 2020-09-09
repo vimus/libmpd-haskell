@@ -12,7 +12,7 @@ Portability : unportable
 Prepare command arguments.
 -}
 
-module Network.MPD.Commands.Arg (Command, Args(..), MPDArg(..), (<++>), (<@>)) where
+module Network.MPD.Commands.Arg (Command, Args(..), MPDArg(..), (<++>), (<@>),Sign(..)) where
 
 import           Network.MPD.Util (showBool)
 
@@ -76,6 +76,17 @@ instance MPDArg Int
 instance MPDArg Integer
 instance MPDArg Bool where prep = Args . return . showBool
 instance MPDArg Double
+
+-- | Wrapper for creating signed instances of MPDArg.
+--
+-- @since 0.9.2.0
+newtype Sign a = Sign {unSign :: a}
+  deriving (Show)
+
+instance (Num a,Ord a,Show a) => MPDArg (Sign a) where
+  prep sx | x >= 0 = Args ["+" ++ show x]
+          | otherwise  = Args [show x]
+    where x = unSign sx
 
 addSlashes :: String -> String
 addSlashes = concatMap escapeSpecial
