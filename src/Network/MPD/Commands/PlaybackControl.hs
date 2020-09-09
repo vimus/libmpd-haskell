@@ -59,6 +59,8 @@ seekId id' = A.runCommand . A.seekId id'
 
 -- | Seek to some point in the current song. Absolute time for True in
 -- the frist argument, relative time for False.
+--
+-- @since 0.9.2.0
 seekCur :: MonadMPD m => Bool -> FractionalSeconds -> m ()
 seekCur bool = A.runCommand . A.seekCur bool
 

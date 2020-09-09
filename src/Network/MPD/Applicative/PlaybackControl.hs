@@ -60,6 +60,8 @@ seekId id' time = Command emptyResponse ["seekid" <@> id' <++> time]
 
 -- | Seek to time in the current song. Absolute time for True in
 -- the frist argument, relative time for False.
+--
+-- @since 0.9.2.0
 seekCur :: Bool -> FractionalSeconds -> Command ()
 seekCur bool time
   | bool      = Command emptyResponse ["seekcur" <@> time]

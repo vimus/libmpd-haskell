@@ -77,7 +77,9 @@ instance MPDArg Integer
 instance MPDArg Bool where prep = Args . return . showBool
 instance MPDArg Double
 
--- | wrapper for creating signed instances of MPDArg
+-- | Wrapper for creating signed instances of MPDArg.
+--
+-- @since 0.9.2.0
 newtype Sign a = Sign {unSign :: a}
   deriving (Show)
 
