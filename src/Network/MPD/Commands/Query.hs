@@ -10,10 +10,18 @@ Portability : unportable
 Query interface.
 -}
 
-module Network.MPD.Commands.Query (Query, (=?), (<&>), anything) where
+module Network.MPD.Commands.Query
+  ( Query
+  , (=?)
+  , (<&>)
+  , (/=?)
+  , anything
+  )
+where
 
 import           Network.MPD.Commands.Arg
 import           Network.MPD.Commands.Types
+
 
 -- | An interface for creating MPD queries.
 --
@@ -27,26 +35,41 @@ import           Network.MPD.Commands.Types
 -- is \"Bar\", we use:
 --
 -- > Artist =? "Foo" <> Album =? "Bar"
-newtype Query = Query [Match] deriving Show
+data Query = Query [Match] | Filter (NonEmpty Expr)
+  deriving Show
 
 -- A single query clause, comprising a metadata key and a desired value.
 data Match = Match Metadata Value
 
 instance Show Match where
-    show (Match meta query) = show meta ++ " \"" ++ toString query ++ "\""
-    showList xs _ = unwords $ map show xs
+  show (Match meta query) = show meta ++ " \"" ++ toString query ++ "\""
+  showList xs _ = unwords $ fmap show xs
+
+data Expr = Exact Match | ExactNot Match | ExprNot Expr
+instance Show Expr where
+  show (Exact (Match meta query)) =
+    "( " ++ show meta ++ " == " ++ "\\\"" ++ toString query ++ "\\\"" ++ " )"
+  show (ExactNot (Match meta query)) =
+    "( " ++ show meta ++ " != " ++ "\\\"" ++ toString query ++ "\\\"" ++ " )"
+  show (ExprNot expr) = "!" ++ show expr
 
 instance Monoid Query where
-    mempty  = Query []
-    Query a `mappend` Query b = Query (a ++ b)
+  mempty = Query []
+  Query  a  `mappend` Query  b  = Query (a ++ b)
+  Query  [] `mappend` Filter b  = Filter b
+  Filter a  `mappend` Query  [] = Filter a
+  Query  a  `mappend` Filter b  = Filter (fromList (Exact <$> a) <> b)
+  Filter a  `mappend` Query  b  = Filter (a <> fromList (Exact <$> b))
+  Filter a  `mappend` Filter b  = Filter (a <> b)
 
 instance Semigroup Query where
-    (<>) = mappend
+  (<>) = mappend
 
 instance MPDArg Query where
-    prep = foldl (<++>) (Args []) . f
-        where f (Query ms) = map (\(Match m q) -> Args [show m] <++> q) ms
-
+  prep (Query ms) =
+    foldl (<++>) (Args []) (fmap (\(Match m q) -> Args [show m] <++> q) ms)
+  prep (Filter (e :| es)) = Args ["\"( " ++ expression ++ " )\""]
+    where expression = foldr (\a b -> show a ++ " AND " ++ b) (show e) es
 -- | An empty query. Matches anything.
 anything :: Query
 anything = mempty
@@ -54,6 +77,10 @@ anything = mempty
 -- | Create a query.
 (=?) :: Metadata -> Value -> Query
 m =? s = Query [Match m s]
+
+-- | Create a negative search
+(/=?) :: Metadata -> Value -> Query
+m /=? s = Filter (ExactNot (Match m s) :| [])
 
 -- | Combine queries.
 infixr 6 <&>
