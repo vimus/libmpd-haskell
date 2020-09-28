@@ -71,7 +71,6 @@ clear = Command emptyResponse ["clear"]
 delete :: Position -> Command ()
 delete pos = Command emptyResponse ["delete" <@> pos]
 
--- XXX: this does not exist in the monadic version
 -- | Delete a range of songs from the playlist.
 deleteRange :: (Position, Position) -> Command ()
 deleteRange range = Command emptyResponse ["delete" <@> range]

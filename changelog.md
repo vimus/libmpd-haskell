@@ -1,6 +1,8 @@
-* v0.9.2.0
+* v0.9.2.0 (unreleased)
     - New command: `seekCur`
     - Add `newtype Sign` to pass positive numbers to `MPDArg` with leading `+/-`.
+    - Add monadic versions of `deleteRange` and `moveRange` commands (previously
+      only had applicative versions)
 
 * v0.9.1.0
     - Support partition in Network.MPD.Status
