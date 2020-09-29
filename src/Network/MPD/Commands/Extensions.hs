@@ -23,6 +23,7 @@ import qualified Network.MPD.Applicative.StoredPlaylists as A
 import           Control.Monad (liftM)
 import           Data.Traversable (for)
 import           Data.Foldable (for_)
+import           Data.Semigroup ((<>))
 
 -- | This is exactly the same as `update`.
 updateId :: MonadMPD m => Maybe Path -> m Integer
@@ -88,7 +89,7 @@ listAlbums = list Album
 
 -- | List the songs in an album of some artist.
 listAlbum :: MonadMPD m => Artist -> Album -> m [Song]
-listAlbum artist album = find (Artist =? artist <&> Album =? album)
+listAlbum artist album = find (Artist =? artist <> Album =? album)
 
 -- | Retrieve the current playlist.
 -- Equivalent to @playlistinfo Nothing@.
