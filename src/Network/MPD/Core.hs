@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, GeneralizedNewtypeDeriving, OverloadedStrings, CPP #-}
+{-# LANGUAGE FlexibleContexts, GeneralizedNewtypeDeriving, OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 -- | Module    : Network.MPD.Core
