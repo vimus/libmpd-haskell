@@ -47,7 +47,7 @@ import           Network.MPD.Commands.Types
 import           Network.MPD.Core
 import           Network.MPD.Util
 
-import           Control.Monad.Error (throwError)
+import           Control.Monad.Except (throwError)
 
 -- | Like 'add', but returns a playlist id.
 addId :: MonadMPD m => Path -> Maybe Position -> m Id

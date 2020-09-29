@@ -30,7 +30,7 @@ import           Control.Applicative (Applicative(..), (<$>), (<*))
 import qualified Control.Exception as E
 import           Control.Exception.Safe (catch, catchAny)
 import           Control.Monad (ap, unless)
-import           Control.Monad.Error (ErrorT(..), MonadError(..))
+import           Control.Monad.Except (ExceptT(..),runExceptT, MonadError(..))
 import           Control.Monad.Reader (ReaderT(..), ask)
 import           Control.Monad.State (StateT, MonadIO(..), modify, gets, evalStateT)
 import qualified Data.Foldable as F
@@ -76,14 +76,14 @@ type Port = Integer
 --
 -- To use the error throwing\/catching capabilities:
 --
--- > import Control.Monad.Error (throwError, catchError)
+-- > import Control.Monad.Except (throwError, catchError)
 --
 -- To run IO actions within the MPD monad:
 --
 -- > import Control.Monad.Trans (liftIO)
 
 newtype MPD a =
-    MPD { runMPD :: ErrorT MPDError
+    MPD { runMPD :: ExceptT MPDError
                     (StateT MPDState
                      (ReaderT (Host, Port) IO)) a
         } deriving (Functor, Monad, MonadIO, MonadError MPDError)
@@ -113,7 +113,7 @@ type Response = Either MPDError
 -- | The most configurable API for running an MPD action.
 withMPDEx :: Host -> Port -> Password -> MPD a -> IO (Response a)
 withMPDEx host port pw x = withSocketsDo $
-    runReaderT (evalStateT (runErrorT . runMPD $ open >> (x <* close)) initState)
+    runReaderT (evalStateT (runExceptT . runMPD $ open >> (x <* close)) initState)
                (host, port)
     where initState = MPDState Nothing pw (0, 0, 0)
 

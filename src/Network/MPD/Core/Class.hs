@@ -14,7 +14,7 @@ import           Data.ByteString (ByteString)
 
 import           Network.MPD.Core.Error (MPDError)
 
-import           Control.Monad.Error (MonadError)
+import           Control.Monad.Except (MonadError)
 
 type Password = String
 

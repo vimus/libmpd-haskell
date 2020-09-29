@@ -15,7 +15,6 @@ MPD errors.
 module Network.MPD.Core.Error where
 
 import qualified Control.Exception as E
-import           Control.Monad.Error (Error(..))
 import           Data.Typeable
 
 -- | The MPDError type is used to signal errors, both from the MPD and
@@ -44,10 +43,6 @@ instance Show MPDError where
                           ]
     show (Custom s)     = s
     show (ACK _ s)      = s
-
-instance Error MPDError where
-    noMsg  = Custom "An error occurred"
-    strMsg = Custom
 
 -- | Represents various MPD errors (aka. ACKs).
 data ACKType = InvalidArgument  -- ^ Invalid argument passed (ACK 2)

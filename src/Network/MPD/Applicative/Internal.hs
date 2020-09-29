@@ -38,7 +38,7 @@ import           Data.ByteString.Char8 (ByteString)
 
 import           Network.MPD.Core hiding (getResponse)
 import qualified Network.MPD.Core as Core
-import           Control.Monad.Error
+import           Control.Monad.Except
 import qualified Control.Monad.Fail as Fail
 
 -- | A line-oriented parser that returns a value along with any remaining input.
