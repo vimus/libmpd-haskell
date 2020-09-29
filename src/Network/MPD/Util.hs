@@ -15,7 +15,7 @@ module Network.MPD.Util (
 
 import           Control.Arrow
 
-import           Data.Time.Format (ParseTime, parseTime, FormatTime, formatTime)
+import           Data.Time.Format (ParseTime, parseTimeM, FormatTime, formatTime)
 
 #if MIN_VERSION_time(1,5,0)
 import           Data.Time.Format (defaultTimeLocale)
@@ -50,7 +50,7 @@ parseDate = parseMaybe p
 
 -- Parse date in iso 8601 format
 parseIso8601 :: (ParseTime t) => ByteString -> Maybe t
-parseIso8601 = parseTime defaultTimeLocale iso8601Format . UTF8.toString
+parseIso8601 = parseTimeM True defaultTimeLocale iso8601Format . UTF8.toString
 
 formatIso8601 :: FormatTime t => t -> String
 formatIso8601 = formatTime defaultTimeLocale iso8601Format
