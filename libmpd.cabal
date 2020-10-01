@@ -1,3 +1,4 @@
+Cabal-Version:      2.4
 Name:               libmpd
 Version:            0.9.2.0
 Synopsis:           An MPD client library.
@@ -19,9 +20,8 @@ Stability:          beta
 Homepage:           http://github.com/vimus/libmpd-haskell#readme
 Bug-reports:        http://github.com/vimus/libmpd-haskell/issues
 
-Tested-With:        GHC ==8.0.1, GHC==8.2.2, GHC==8.4.3, GHC==8.6.1
+Tested-With:        GHC ==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.2
 Build-Type:         Simple
-Cabal-Version:      >= 1.10
 
 Extra-Source-Files:
     README.md
@@ -39,7 +39,7 @@ Library
 
     Build-Depends:
         -- Platform dependencies
-        base >= 4.9 && < 5
+        base >= 4.11 && < 5
       , attoparsec >= 0.10.1 && < 1
       , bytestring >= 0.9 && < 1
       , containers >= 0.3 && < 1
