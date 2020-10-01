@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
-{-# LANGUAGE CPP #-}
 
 {- |
 Module      : Network.MPD.Applicative.Internal
@@ -32,7 +31,6 @@ module Network.MPD.Applicative.Internal
     , runCommand
     ) where
 
-import           Control.Applicative
 import           Control.Monad
 import           Data.ByteString.Char8 (ByteString)
 

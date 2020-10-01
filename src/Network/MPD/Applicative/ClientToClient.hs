@@ -25,8 +25,6 @@ module Network.MPD.Applicative.ClientToClient
     , sendMessage
     ) where
 
-import           Control.Applicative
-
 import           Network.MPD.Commands.Arg hiding (Command)
 import           Network.MPD.Applicative.Internal
 import           Network.MPD.Applicative.Util

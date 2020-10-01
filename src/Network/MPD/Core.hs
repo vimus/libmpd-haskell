@@ -26,7 +26,6 @@ import           Network.MPD.Core.Class
 import           Network.MPD.Core.Error
 
 import           Data.Char (isDigit)
-import           Control.Applicative (Applicative(..), (<$>), (<*))
 import qualified Control.Exception as E
 import           Control.Exception.Safe (catch, catchAny)
 import           Control.Monad (ap, unless)

@@ -26,8 +26,6 @@ import           Network.MPD.Commands.Arg hiding (Command)
 import           Network.MPD.Commands.Types
 import           Network.MPD.Util
 
-import           Control.Applicative
-
 import qualified Data.ByteString.UTF8 as UTF8
 
 -- | Read sticker value for the object specified.
