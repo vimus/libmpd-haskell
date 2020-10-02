@@ -29,7 +29,7 @@ import           Data.Semigroup
 -- match any song where the value of artist is \"Foo\" and the value of album
 -- is \"Bar\", we use:
 --
--- > Artist =? "Foo" <&> Album =? "Bar"
+-- > Artist =? "Foo" <> Album =? "Bar"
 newtype Query = Query [Match] deriving Show
 
 -- A single query clause, comprising a metadata key and a desired value.
@@ -62,3 +62,4 @@ m =? s = Query [Match m s]
 infixr 6 <&>
 (<&>) :: Query -> Query -> Query
 (<&>) = mappend
+{-# DEPRECATED (<&>) "will be removed in the next major version of libmpd, use `(<>)` instead" #-}
