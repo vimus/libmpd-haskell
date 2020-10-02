@@ -1,4 +1,4 @@
-* v0.9.2.0 (unreleased)
+* v0.9.2.0
     - New command: `seekCur`
     - Add `newtype Sign` to pass positive numbers to `MPDArg` with leading `+/-`.
     - Add monadic versions of `deleteRange` and `moveRange` commands (previously
