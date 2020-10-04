@@ -13,7 +13,7 @@ module StringConn where
 
 import           Control.Applicative
 import           Prelude hiding (exp)
-import           Control.Monad.Error
+import           Control.Monad.Except
 import           Control.Monad.Identity
 import           Control.Monad.Reader
 import           Control.Monad.State
@@ -37,7 +37,7 @@ data Result a
       deriving (Show, Eq)
 
 newtype StringMPD a =
-    SMPD { runSMPD :: ErrorT MPDError
+    SMPD { runSMPD :: ExceptT MPDError
                       (StateT [(Expect, Response String)]
                        (ReaderT Password Identity)) a
          } deriving (Functor, Applicative, Monad, MonadError MPDError)
@@ -73,4 +73,4 @@ testMPDWithPassword :: (Eq a)
         -> Password                    -- ^ A password to be supplied.
         -> StringMPD a                 -- ^ The MPD action to run.
         -> Response a
-testMPDWithPassword pairs passwd m = runIdentity $ runReaderT (evalStateT (runErrorT $ runSMPD m) pairs) passwd
+testMPDWithPassword pairs passwd m = runIdentity $ runReaderT (evalStateT (runExceptT $ runSMPD m) pairs) passwd

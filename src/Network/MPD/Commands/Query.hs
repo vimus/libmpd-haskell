@@ -15,9 +15,6 @@ module Network.MPD.Commands.Query (Query, (=?), (<&>), anything) where
 import           Network.MPD.Commands.Arg
 import           Network.MPD.Commands.Types
 
-import           Data.Monoid
-import           Data.Semigroup
-
 -- | An interface for creating MPD queries.
 --
 -- For example, to match any song where the value of artist is \"Foo\", we

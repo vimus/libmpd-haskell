@@ -32,8 +32,6 @@ import           Network.MPD.Commands.Arg hiding (Command)
 import           Network.MPD.Commands.Types
 import           Network.MPD.Util
 
-import           Control.Applicative
-
 -- | List song items in the playlist.
 listPlaylist :: PlaylistName -> Command [Path]
 listPlaylist plName = Command p ["listplaylist" <@> plName]

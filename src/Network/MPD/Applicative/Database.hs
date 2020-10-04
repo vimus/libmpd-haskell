@@ -14,8 +14,6 @@ The music database.
 
 module Network.MPD.Applicative.Database where
 
-import           Control.Applicative
-
 import qualified Network.MPD.Commands.Arg as Arg
 import           Network.MPD.Commands.Arg hiding (Command)
 import           Network.MPD.Commands.Parse

@@ -23,7 +23,6 @@ import qualified Network.MPD.Applicative.StoredPlaylists as A
 import           Control.Monad (liftM)
 import           Data.Traversable (for)
 import           Data.Foldable (for_)
-import           Data.Semigroup ((<>))
 
 -- | This is exactly the same as `update`.
 updateId :: MonadMPD m => Maybe Path -> m Integer

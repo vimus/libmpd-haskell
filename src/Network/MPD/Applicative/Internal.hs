@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
-{-# LANGUAGE CPP #-}
 
 {- |
 Module      : Network.MPD.Applicative.Internal
@@ -32,13 +31,12 @@ module Network.MPD.Applicative.Internal
     , runCommand
     ) where
 
-import           Control.Applicative
 import           Control.Monad
 import           Data.ByteString.Char8 (ByteString)
 
 import           Network.MPD.Core hiding (getResponse)
 import qualified Network.MPD.Core as Core
-import           Control.Monad.Error
+import           Control.Monad.Except
 import qualified Control.Monad.Fail as Fail
 
 -- | A line-oriented parser that returns a value along with any remaining input.
