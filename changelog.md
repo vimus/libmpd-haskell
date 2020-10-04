@@ -1,15 +1,19 @@
-* v0.9.2.0
+* unreleased
+    - Drop support for GHC < 8.4, require base > 4.11.
+    - Bump `cabal-version` to 2.4.
+    
+* v0.9.2.0 2020-10-02
     - New command: `seekCur`
     - Add `newtype Sign` to pass positive numbers to `MPDArg` with leading `+/-`.
     - Add monadic versions of `deleteRange` and `moveRange` commands (previously
       only had applicative versions)
     - Deprecate `<&>`, use `<>` instead. `<&>` will be removed in the next major version.
 
-* v0.9.1.0
+* v0.9.1.0 2020-01-27
     - Support partition in Network.MPD.Status
     - Ignore unknown key-value pairs in Network.MPD.status so that it breaks much less often.
 
-* v0.9.0.10
+* v0.9.0.10 2019-10-06
     - Port it for newer network library
 
 * v0.9.0, 2014-09-21
