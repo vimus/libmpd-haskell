@@ -10,11 +10,11 @@ Portability : unportable
 Query interface.
 -}
 
-module Network.MPD.Commands.Query (Query, (=?) ,(/=?), (%?), (~?), (/~?), qNot, (<&>), anything) where
+module Network.MPD.Commands.Query (Query, (=?) ,(/=?), (%?), (~?), (/~?), qNot, qModSince, (<&>), anything) where
 
 import           Network.MPD.Commands.Arg
 import           Network.MPD.Commands.Types
-
+import           Data.Time (UTCTime,formatTime,defaultTimeLocale)
 
 -- | An interface for creating MPD queries.
 --
@@ -43,6 +43,7 @@ data Expr = Exact Match
           | Contains Match
           | Regex Match
           | RegexNot Match
+          | ModifiedSince UTCTime
           | ExprNot Expr
           | ExprAnd Expr Expr
           | ExprEmpty
@@ -57,6 +58,9 @@ instance Show Expr where
                                    "\\\"" ++ toString query ++ "\\\"" ++ ")"
  show (RegexNot (Match meta query)) = "(" ++ show meta ++ " !~ " ++
                                    "\\\"" ++ toString query ++ "\\\"" ++ ")"
+ show (ModifiedSince time) = "(modified-since " ++  "\\\"" ++
+                           formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S" time ++
+                           "\\\"" ++ ")"
  show (ExprNot expr) = "(!" ++ show expr ++ ")"
  show (ExprAnd e1 e2) = "(" ++ show e1 ++ " AND " ++ show e2 ++ ")"
  show ExprEmpty = ""
@@ -119,6 +123,11 @@ qNot :: Query -> Query
 qNot (Query ms) = Filter (ExprNot (toExpr ms))
 qNot (Filter (ExprNot ex)) = Filter ex
 qNot (Filter ex) = Filter (ExprNot ex)
+
+-- | Create a query for songs modified since a date.
+-- requires MPD 0.21 or newer.
+qModSince :: UTCTime -> Query
+qModSince time = Filter (ModifiedSince time)
 
 -- | Combine queries.
 infixr 6 <&>
