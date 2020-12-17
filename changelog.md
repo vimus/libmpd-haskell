@@ -2,6 +2,9 @@
     - Drop support for GHC < 8.4, require base > 4.11.
     - Bump `cabal-version` to 2.4.
     - Add `Ord` instance for `PlaylistName`, `Path`, and `Value`
+    - Add support for MPD 0.21 style filters to the `Query` type,
+      see Filters in the MPD protocol documentation. Implemented through the
+      added combinators `/=?`, `%?`, `~?`, `/~?`, `qNot`, `qModSince`, `qFile`, `qBase`.
     
 * v0.9.2.0 2020-10-02
     - New command: `seekCur`
