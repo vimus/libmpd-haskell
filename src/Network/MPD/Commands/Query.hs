@@ -10,7 +10,7 @@ Portability : unportable
 Query interface.
 -}
 
-module Network.MPD.Commands.Query (Query, (=?) ,(/=?), (%?), (~?), (/~?), qNot, qModSince, (<&>), anything) where
+module Network.MPD.Commands.Query (Query, (=?) ,(/=?), (%?), (~?), (/~?), qNot, qModSince, qFile, qBase, (<&>), anything) where
 
 import           Network.MPD.Commands.Arg
 import           Network.MPD.Commands.Types
@@ -43,6 +43,8 @@ data Expr = Exact Match
           | Contains Match
           | Regex Match
           | RegexNot Match
+          | File FilePath
+          | Base FilePath
           | ModifiedSince UTCTime
           | ExprNot Expr
           | ExprAnd Expr Expr
@@ -58,6 +60,8 @@ instance Show Expr where
                                    "\\\"" ++ toString query ++ "\\\"" ++ ")"
  show (RegexNot (Match meta query)) = "(" ++ show meta ++ " !~ " ++
                                    "\\\"" ++ toString query ++ "\\\"" ++ ")"
+ show (File file) = "(file == " ++ "\\\"" ++ show file ++ "\\\"" ++ ")"
+ show (Base dir) = "(base " ++ "\\\"" ++ show dir ++ "\\\"" ++ ")"
  show (ModifiedSince time) = "(modified-since " ++  "\\\"" ++
                            formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S" time ++
                            "\\\"" ++ ")"
@@ -128,6 +132,16 @@ qNot (Filter ex) = Filter (ExprNot ex)
 -- requires MPD 0.21 or newer.
 qModSince :: UTCTime -> Query
 qModSince time = Filter (ModifiedSince time)
+
+-- | Create a query for the full song URI relative to the music directory.
+-- requires MPD 0.21 or newer.
+qFile :: FilePath -> Query
+qFile file = Filter (File file)
+
+-- | Limit the query to the given directory, relative to the music directory.
+-- requires MPD 0.21 or newer.
+qBase :: FilePath -> Query
+qBase dir = Filter (Base dir)
 
 -- | Combine queries.
 infixr 6 <&>
