@@ -79,12 +79,14 @@ complete path = do
 
 -- | List the artists in the database.
 listArtists :: MonadMPD m => m [Artist]
-listArtists = list Artist Nothing
+listArtists = list Artist mempty
 
 -- | List the albums in the database, optionally matching a given
 -- artist.
 listAlbums :: MonadMPD m => Maybe Artist -> m [Album]
-listAlbums = list Album
+listAlbums ma = list Album (case ma of
+                              Nothing -> mempty
+                              Just a -> Artist =? a)
 
 -- | List the songs in an album of some artist.
 listAlbum :: MonadMPD m => Artist -> Album -> m [Song]
