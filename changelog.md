@@ -1,4 +1,4 @@
-* unreleased
+* v0.9.3.0 2021-01-02
     - Drop support for GHC < 8.4, require base > 4.11.
     - Bump `cabal-version` to 2.4.
     - Add `Ord` instance for `PlaylistName`, `Path`, and `Value`
