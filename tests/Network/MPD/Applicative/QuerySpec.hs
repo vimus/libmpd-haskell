@@ -76,7 +76,7 @@ spec = do
             let obj  = defaultSong "Foo.ogg"
                 resp = unparse obj ++ "OK"
             find (qModSince (UTCTime {utctDay = fromOrdinalDate 2005 348, utctDayTime = 40743}))
-                `with` [("find \"(modified-since \\\"2005-12-14T11:19:03\\\")\"", Right resp)]
+                `with` [("find \"(modified-since \\\"2005-12-14T11:19:03Z\\\")\"", Right resp)]
                 `shouldBe` Right [obj]
     describe "qNot" $ do
         it "returns songs exactly matching a query" $ do

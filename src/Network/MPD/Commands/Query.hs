@@ -63,7 +63,7 @@ instance Show Expr where
  show (File file) = "(file == " ++ "\\\"" ++ toString file ++ "\\\"" ++ ")"
  show (Base dir) = "(base " ++ "\\\"" ++ toString dir ++ "\\\"" ++ ")"
  show (ModifiedSince time) = "(modified-since " ++  "\\\"" ++
-                           formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S" time ++
+                           formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%SZ" time ++
                            "\\\"" ++ ")"
  show (ExprNot expr) = "(!" ++ show expr ++ ")"
  show (ExprAnd e1 e2) = "(" ++ show e1 ++ " AND " ++ show e2 ++ ")"
