@@ -102,44 +102,60 @@ anything = mempty
 m =? s = Query [Match m s]
 
 -- | Create a query matching a tag with anything but a value.
--- requires MPD 0.21 or newer.
+-- Requires MPD 0.21 or newer.
+--
+-- @since 0.9.3.0
 (/=?) :: Metadata -> Value -> Query
 m /=? s = Filter (ExactNot (Match m s))
 
 -- | Create a query for a tag containing a value.
--- requires MPD 0.21 or newer.
+-- Requires MPD 0.21 or newer.
+--
+-- @since 0.9.3.0
 (%?) :: Metadata -> Value -> Query
 m %? s = Filter (Contains (Match m s))
 
 -- | Create a query matching a tag with regexp.
--- requires MPD 0.21 or newer.
+-- Requires MPD 0.21 or newer.
+--
+-- @since 0.9.3.0
 (~?) :: Metadata -> Value -> Query
 m ~? s = Filter (Regex (Match m s))
 
 -- | Create a query matching a tag with anything but a regexp.
--- requires MPD 0.21 or newer.
+-- Requires MPD 0.21 or newer.
+--
+-- @since 0.9.3.0
 (/~?) :: Metadata -> Value -> Query
 m /~? s = Filter (RegexNot (Match m s))
 
 -- | Negate a Query.
--- requires MPD 0.21 or newer.
+-- Requires MPD 0.21 or newer.
+--
+-- @since 0.9.3.0
 qNot :: Query -> Query
 qNot (Query ms) = Filter (ExprNot (toExpr ms))
 qNot (Filter (ExprNot ex)) = Filter ex
 qNot (Filter ex) = Filter (ExprNot ex)
 
 -- | Create a query for songs modified since a date.
--- requires MPD 0.21 or newer.
+-- Requires MPD 0.21 or newer.
+--
+-- @since 0.9.3.0
 qModSince :: UTCTime -> Query
 qModSince time = Filter (ModifiedSince time)
 
 -- | Create a query for the full song URI relative to the music directory.
--- requires MPD 0.21 or newer.
+-- Requires MPD 0.21 or newer.
+--
+-- @since 0.9.3.0
 qFile :: Path -> Query
 qFile file = Filter (File file)
 
 -- | Limit the query to the given directory, relative to the music directory.
--- requires MPD 0.21 or newer.
+-- Requires MPD 0.21 or newer.
+--
+-- @since 0.9.3.0
 qBase :: Path -> Query
 qBase dir = Filter (Base dir)
 
