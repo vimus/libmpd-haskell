@@ -51,8 +51,6 @@ prop_parseOutputs :: [Device] -> Expectation
 prop_parseOutputs ds =
     Right ds `shouldBe` (parseOutputs . map UTF8.fromString . lines . concatMap unparse) ds
 
-deriving instance Ord Value
-
 prop_parseSong :: Song -> Expectation
 prop_parseSong s = Right (sortTags s) `shouldBe` sortTags `fmap` (parseSong . toAssocList . map UTF8.fromString . lines . unparse) s
   where

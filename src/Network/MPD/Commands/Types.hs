@@ -74,7 +74,7 @@ type Title  = Value
 -- | Used for commands which require a playlist name.
 -- If empty, the current playlist is used.
 newtype PlaylistName = PlaylistName ByteString
-  deriving (Eq, Show, MPDArg)
+  deriving (Eq, Show, Ord, MPDArg)
 
 instance ToString PlaylistName where
   toString (PlaylistName x) = UTF8.toString x
@@ -87,7 +87,7 @@ instance IsString PlaylistName where
 -- | Used for commands which require a path within the database.
 -- If empty, the root path is used.
 newtype Path = Path ByteString
-  deriving (Eq, Show, MPDArg)
+  deriving (Eq, Show, Ord, MPDArg)
 
 instance ToString Path where
   toString (Path x) = UTF8.toString x
@@ -124,7 +124,7 @@ instance MPDArg Metadata
 
 -- | A metadata value.
 newtype Value = Value ByteString
-  deriving (Eq, Show, MPDArg)
+  deriving (Eq, Show, Ord, MPDArg)
 
 instance ToString Value where
   toString (Value x) = UTF8.toString x
