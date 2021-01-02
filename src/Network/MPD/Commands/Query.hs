@@ -43,8 +43,8 @@ data Expr = Exact Match
           | Contains Match
           | Regex Match
           | RegexNot Match
-          | File FilePath
-          | Base FilePath
+          | File Path
+          | Base Path
           | ModifiedSince UTCTime
           | ExprNot Expr
           | ExprAnd Expr Expr
@@ -60,8 +60,8 @@ instance Show Expr where
                                    "\\\"" ++ toString query ++ "\\\"" ++ ")"
  show (RegexNot (Match meta query)) = "(" ++ show meta ++ " !~ " ++
                                    "\\\"" ++ toString query ++ "\\\"" ++ ")"
- show (File file) = "(file == " ++ "\\\"" ++ show file ++ "\\\"" ++ ")"
- show (Base dir) = "(base " ++ "\\\"" ++ show dir ++ "\\\"" ++ ")"
+ show (File file) = "(file == " ++ "\\\"" ++ toString file ++ "\\\"" ++ ")"
+ show (Base dir) = "(base " ++ "\\\"" ++ toString dir ++ "\\\"" ++ ")"
  show (ModifiedSince time) = "(modified-since " ++  "\\\"" ++
                            formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S" time ++
                            "\\\"" ++ ")"
@@ -135,12 +135,12 @@ qModSince time = Filter (ModifiedSince time)
 
 -- | Create a query for the full song URI relative to the music directory.
 -- requires MPD 0.21 or newer.
-qFile :: FilePath -> Query
+qFile :: Path -> Query
 qFile file = Filter (File file)
 
 -- | Limit the query to the given directory, relative to the music directory.
 -- requires MPD 0.21 or newer.
-qBase :: FilePath -> Query
+qBase :: Path -> Query
 qBase dir = Filter (Base dir)
 
 -- | Combine queries.
