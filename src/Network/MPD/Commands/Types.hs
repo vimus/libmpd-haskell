@@ -103,6 +103,7 @@ instance IsString Path where
 data Metadata = Artist
               | ArtistSort
               | Album
+              | AlbumSort -- ^ @since 0.10.0.0
               | AlbumArtist
               | AlbumArtistSort
               | Title
@@ -110,15 +111,21 @@ data Metadata = Artist
               | Name
               | Genre
               | Date
+              | OriginalDate -- ^ @since 0.10.0.0
               | Composer
               | Performer
+              | Conductor -- ^ @since 0.10.0.0
+              | Work -- ^ @since 0.10.0.0
+              | Grouping -- ^ @since 0.10.0.0
               | Comment
               | Disc
+              | Label -- ^ @since 0.10.0.0
               | MUSICBRAINZ_ARTISTID
               | MUSICBRAINZ_ALBUMID
               | MUSICBRAINZ_ALBUMARTISTID
               | MUSICBRAINZ_TRACKID
               | MUSICBRAINZ_RELEASETRACKID
+              | MUSICBRAINZ_WORKID -- ^ @since 0.10.0.0
               deriving (Eq, Enum, Ord, Bounded, Show)
 
 instance MPDArg Metadata

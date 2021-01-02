@@ -4,6 +4,7 @@
       Migrate by changing `list $Tag Nothing` to `list $Tag mempty` and `list Album (Just "someone")` to `list Album (Artist =? "someone")`.
     - Breaking: song ranges now expressed with the `Range` datatype rather than `(Position,Position)`, allowing for partial ranges (see documentation).
       Migrate by changing `(x,y)` to `Range x y`.
+    - Breaking: add missing `Metadata` constructors: `AlbumSort`, `OriginalDate`, `Conductor`, `Work`, `Grouping`, `Label`, `MUSICBRAINZ_WORKID`.
 
 * v0.9.4.0 unreleased
     - Add monadic versions of `searchAdd` and `searchAddPl` commands (previously
