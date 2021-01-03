@@ -170,6 +170,8 @@ clearTagId id' tags = Command emptyResponse ["cleartagid" <@> id' <++> tags]
 
 -- | Specify portion of song that shall be played.
 -- Both ends of the range are optional; omitting both plays everything.
+--
+-- Since MPD 0.19.
 rangeId :: Id -> (Maybe Double, Maybe Double) -> Command ()
 rangeId id' (mbStart, mbEnd) = Command emptyResponse ["rangeid " ++ show id' ++ " " ++ arg ]
   where arg = maybe "" show mbStart ++ ":" ++ maybe "" show mbEnd
