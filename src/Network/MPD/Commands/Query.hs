@@ -38,6 +38,7 @@ instance Show Match where
   show (Match meta query) = show meta ++ " \"" ++ toString query ++ "\""
   showList xs _ = unwords $ fmap show xs
 
+-- A general MPD 0.21 style filter.
 data Expr = Exact Match
           | ExactNot Match
           | Contains Match
