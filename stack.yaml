@@ -1,6 +1,6 @@
 # For more information, see: http://docs.haskellstack.org/en/stable/yaml_configuration/
 
-resolver: lts-16.16
+resolver: lts-16.29
 
 packages:
 - '.'

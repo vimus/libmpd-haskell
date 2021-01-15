@@ -36,9 +36,9 @@ matrix:
     compiler: ": #GHC 8.8.4"
     addons: {apt: {packages: [cabal-install-2.4,ghc-8.8.4], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal GHCVER=8.10.2 CABALVER=2.4
-    compiler: ": #GHC 8.10.2"
-    addons: {apt: {packages: [cabal-install-2.4,ghc-8.10.2], sources: [hvr-ghc]}}
+  - env: BUILD=cabal GHCVER=8.10.3 CABALVER=2.4
+    compiler: ": #GHC 8.10.3"
+    addons: {apt: {packages: [cabal-install-2.4,ghc-8.10.3], sources: [hvr-ghc]}}
 
   - env: BUILD=cabal GHCVER=head  CABALVER=head
     compiler: ": #GHC HEAD"
@@ -48,9 +48,9 @@ matrix:
     compiler: ": #stack default"
     addons: {apt: {packages: [ghc-8.8.4], sources: [hvr-ghc]}}
 
-  - env: BUILD=stack ARGS="--resolver lts-14"
+  - env: BUILD=stack ARGS="--resolver lts-16"
     compiler: ": #stack 8.6.5"
-    addons: {apt: {packages: [ghc-8.6.5], sources: [hvr-ghc]}}
+    addons: {apt: {packages: [ghc-8.8.4], sources: [hvr-ghc]}}
 
   - env: BUILD=stack ARGS="--resolver nightly"
     compiler: ": #stack nightly"

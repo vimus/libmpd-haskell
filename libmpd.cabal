@@ -20,7 +20,7 @@ Stability:          beta
 Homepage:           http://github.com/vimus/libmpd-haskell#readme
 Bug-reports:        http://github.com/vimus/libmpd-haskell/issues
 
-Tested-With:        GHC ==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.2
+Tested-With:        GHC ==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.3
 Build-Type:         Simple
 
 Extra-Source-Files:
