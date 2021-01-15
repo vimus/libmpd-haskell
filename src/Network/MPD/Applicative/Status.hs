@@ -54,6 +54,12 @@ takeSubsystems = mapM f . toAssocList
                 "mixer"           -> Right MixerS
                 "output"          -> Right OutputS
                 "options"         -> Right OptionsS
+                "partition"       -> Right PartitionS
+                "sticker"         -> Right StickerS
+                "subscription"    -> Right SubscriptionS
+                "message"         -> Right MessageS
+                "neighbor"        -> Right NeighborS
+                "mount"           -> Right MountS
                 k                 -> Left ("Unknown subsystem: " ++ UTF8.toString k)
         f x                       =  Left ("idle: Unexpected " ++ show x)
 

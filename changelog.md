@@ -8,6 +8,7 @@
     - Breaking: add missing `Subsystem` constructors: `PartitionS`, `NeighborS`, `MountS`.
     - Breaking: add missing `ReplayGainMode` constructor: `AutoMode`.
     - Breaking: move `toggle` from `N.M.C.Extensions` to `N.M.(C|A).PlaybackControl`.
+    - Fix: `idle` now properly detects the following subsystems: `PartitionS`, `StickerS`, `SubscriptionS`, `MessageS`, `NeighborS`, `MountS`.
 
 * v0.9.4.0 unreleased
     - Add monadic versions of `searchAdd` and `searchAddPl` commands (previously
