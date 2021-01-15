@@ -12,7 +12,21 @@ Portability : unportable
 The music database.
 -}
 
-module Network.MPD.Applicative.Database where
+module Network.MPD.Applicative.Database
+    ( count
+    , find
+    , findAdd
+    , list
+    , listAll
+    , listAllInfo
+    , lsInfo
+    , readComments
+    , search
+    , searchAdd
+    , searchAddPl
+    , update
+    , rescan
+    ) where
 
 import qualified Network.MPD.Commands.Arg as Arg
 import           Network.MPD.Commands.Arg hiding (Command)
@@ -80,7 +94,7 @@ readComments :: Path -> Command [(String, String)]
 readComments uri = Command p ["readcomments" <@> uri]
   where p = map decodePair . toAssocList <$> getResponse
 
--- | Like 'find' but with inexact matching.
+-- | Like 'find' but with case insensitive matching.
 search :: Query -> Command [Song]
 search q = Command p ["search" <@> q]
     where

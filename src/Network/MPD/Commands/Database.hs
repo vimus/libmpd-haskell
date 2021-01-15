@@ -22,6 +22,8 @@ module Network.MPD.Commands.Database
     , lsInfo
     , readComments
     , search
+    , searchAdd
+    , searchAddPl
     , update
     , rescan
     ) where
@@ -69,6 +71,22 @@ readComments = A.runCommand . A.readComments
 -- | Search the database using case insensitive matching.
 search :: MonadMPD m => Query -> m [Song]
 search = A.runCommand . A.search
+
+-- | Like 'search' but adds the results to the current playlist.
+--
+-- Since MPD 0.17.
+--
+-- @since 0.9.4.0
+searchAdd :: MonadMPD m => Query -> m ()
+searchAdd = A.runCommand . A.searchAdd
+
+-- | Like 'searchAdd' but adds results to the named playlist.
+--
+-- Since MPD 0.17.
+--
+-- @since 0.9.4.0
+searchAddPl :: MonadMPD m => PlaylistName -> Query -> m ()
+searchAddPl pl = A.runCommand . A.searchAddPl pl
 
 -- | Update the server's database.
 --

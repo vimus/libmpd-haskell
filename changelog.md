@@ -1,3 +1,7 @@
+* v0.9.4.0 unreleased
+    - Add monadic versions of `searchAdd` and `searchAddPl` commands (previously
+      only had applicative versions)
+
 * v0.9.3.0 2021-01-02
     - Drop support for GHC < 8.4, require base > 4.11.
     - Bump `cabal-version` to 2.4.
