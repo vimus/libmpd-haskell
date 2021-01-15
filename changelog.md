@@ -5,6 +5,7 @@
     - Breaking: song ranges now expressed with the `Range` datatype rather than `(Position,Position)`, allowing for partial ranges (see documentation).
       Migrate by changing `(x,y)` to `Range x y`.
     - Breaking: add missing `Metadata` constructors: `AlbumSort`, `OriginalDate`, `Conductor`, `Work`, `Grouping`, `Label`, `MUSICBRAINZ_WORKID`.
+    - Breaking: add missing `Subsystem` constructors: `PartitionS`, `NeighborS`, `MountS`.
 
 * v0.9.4.0 unreleased
     - Add monadic versions of `searchAdd` and `searchAddPl` commands (previously

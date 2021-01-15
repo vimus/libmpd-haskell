@@ -172,9 +172,18 @@ data Subsystem
     | MixerS             -- ^ The volume mixer
     | OutputS            -- ^ Audio outputs
     | OptionsS           -- ^ Playback options
+    | PartitionS         -- ^ Partition changes
+                         --
+                         --  @since 0.10.0.0
     | StickerS           -- ^ Sticker database
     | SubscriptionS      -- ^ Subscription
     | MessageS           -- ^ Message on subscribed channel
+    | NeighborS          -- ^ finding or losing a neighbor
+                         --
+                         --  @since 0.10.0.0
+    | MountS             -- ^ Mount list changes
+                         --
+                         --  @since 0.10.0.0
       deriving (Eq, Enum, Ord, Bounded, Show)
 
 instance MPDArg Subsystem where
@@ -186,9 +195,12 @@ instance MPDArg Subsystem where
     prep MixerS = Args ["mixer"]
     prep OutputS = Args ["output"]
     prep OptionsS = Args ["options"]
+    prep PartitionS = Args ["partition"]
     prep StickerS = Args ["sticker"]
     prep SubscriptionS = Args ["subscription"]
     prep MessageS = Args ["message"]
+    prep NeighborS = Args ["neighbor"]
+    prep MountS = Args ["mount"]
 
 data ReplayGainMode
     = Off       -- ^ Disable replay gain
