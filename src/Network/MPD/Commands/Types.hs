@@ -206,12 +206,16 @@ data ReplayGainMode
     = Off       -- ^ Disable replay gain
     | TrackMode -- ^ Per track mode
     | AlbumMode -- ^ Per album mode
+    | AutoMode  -- ^ Auto mode
+                --
+                -- @since 0.10.0.0
       deriving (Eq, Enum, Ord, Bounded, Show)
 
 instance MPDArg ReplayGainMode where
     prep Off = Args ["off"]
     prep TrackMode = Args ["track"]
     prep AlbumMode = Args ["album"]
+    prep AutoMode = Args ["auto"]
 
 -- | Represents the result of running 'count'.
 data Count =

@@ -6,6 +6,7 @@
       Migrate by changing `(x,y)` to `Range x y`.
     - Breaking: add missing `Metadata` constructors: `AlbumSort`, `OriginalDate`, `Conductor`, `Work`, `Grouping`, `Label`, `MUSICBRAINZ_WORKID`.
     - Breaking: add missing `Subsystem` constructors: `PartitionS`, `NeighborS`, `MountS`.
+    - Breaking: add missing `ReplayGainMode` constructor: `AutoMode`.
 
 * v0.9.4.0 unreleased
     - Add monadic versions of `searchAdd` and `searchAddPl` commands (previously
