@@ -5,7 +5,7 @@
 
 ## About
 libmpd-haskell is a pure [Haskell] client library for [MPD], the
-music playing daemon.
+music playing daemon. Requires MPD version 0.19 or later.
 
 [MPD]: http://www.musicpd.org
 [Haskell]: http://www.haskell.org

@@ -1,3 +1,6 @@
+* v0.10.0.0 unreleased
+    - Require MPD version 0.19 or later.
+
 * v0.9.4.0 unreleased
     - Add monadic versions of `searchAdd` and `searchAddPl` commands (previously
       only had applicative versions)
