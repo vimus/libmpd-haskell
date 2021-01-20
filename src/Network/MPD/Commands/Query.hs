@@ -10,7 +10,7 @@ Portability : unportable
 Query interface.
 -}
 
-module Network.MPD.Commands.Query (Query, (=?) ,(/=?), (%?), (~?), (/~?), qNot, qModSince, qFile, qBase, (<&>), anything) where
+module Network.MPD.Commands.Query (Query, (=?) ,(/=?), (%?), (~?), (/~?), qNot, qModSince, qFile, qBase, anything) where
 
 import           Network.MPD.Commands.Arg
 import           Network.MPD.Commands.Types
@@ -167,9 +167,3 @@ qFile file = Filter (File file)
 -- @since 0.9.3.0
 qBase :: Path -> Query
 qBase dir = Filter (Base dir)
-
--- | Combine queries.
-infixr 6 <&>
-(<&>) :: Query -> Query -> Query
-(<&>) = mappend
-{-# DEPRECATED (<&>) "will be removed in the next major version of libmpd, use `(<>)` instead" #-}

@@ -24,11 +24,6 @@ import           Control.Monad (liftM)
 import           Data.Traversable (for)
 import           Data.Foldable (for_)
 
--- | This is exactly the same as `update`.
-updateId :: MonadMPD m => Maybe Path -> m Integer
-updateId = update
-{-# DEPRECATED updateId "use `update` instead" #-}
-
 -- | Add a list of songs\/folders to a playlist.
 -- Should be more efficient than running 'add' many times.
 addMany :: MonadMPD m => PlaylistName -> [Path] -> m ()
@@ -47,16 +42,6 @@ addIdMany x (Just p) = do
 addIdMany x Nothing = do
     fs <- listAll x
     A.runCommand $ for fs (`A.addId` Nothing)
-
--- | Like 'add' but returns a list of the files added.
-addList :: MonadMPD m => Path -> m [Path]
-addList x = add x >> listAll x
-{-# DEPRECATED addList "will be removed in a future version" #-}
-
--- | Like 'playlistAdd' but returns a list of the files added.
-playlistAddList :: MonadMPD m => PlaylistName -> Path -> m [Path]
-playlistAddList plname path = playlistAdd plname path >> listAll path
-{-# DEPRECATED playlistAddList "will be removed in a future version" #-}
 
 {-
 -- | Returns all songs and directories that match the given partial
