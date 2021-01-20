@@ -28,6 +28,7 @@ module Network.MPD.Commands.Types
     , Device(..)
     , Song(..)
     , Position
+    , Range(..)
     , Id(..)
     , Priority(..)
     , sgGetTag
@@ -245,6 +246,16 @@ data Song = Song
 
 -- | The position of a song in a playlist.
 type Position = Int
+
+-- | A range of songs.
+data Range
+  = Range Position Position -- ^ Start and end of the range, not including the end position.
+  | Start Position -- ^ From the given position until the end of the playlist.
+  deriving (Eq, Show)
+
+instance MPDArg Range where
+    prep (Range start end) = Args [show start ++ ":" ++ show end]
+    prep (Start start) = Args [show start ++ ":"]
 
 newtype Id = Id Int
     deriving (Eq, Show)

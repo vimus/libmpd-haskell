@@ -2,6 +2,8 @@
     - Require MPD version 0.19 or later.
     - Breaking: `list` now takes a `Query` instead of a `Maybe Artist`, and lists the requested tag of songs matching the query.
       Migrate by changing `list $Tag Nothing` to `list $Tag mempty` and `list Album (Just "someone")` to `list Album (Artist =? "someone")`.
+    - Breaking: song ranges now expressed with the `Range` datatype rather than `(Position,Position)`, allowing for partial ranges (see documentation).
+      Migrate by changing `(x,y)` to `Range x y`.
 
 * v0.9.4.0 unreleased
     - Add monadic versions of `searchAdd` and `searchAddPl` commands (previously
