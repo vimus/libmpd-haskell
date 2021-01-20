@@ -119,9 +119,11 @@ spec = do
     describe "crossfade" $ do
         it "sets crossfade between songs" $ testCrossfade
     describe "play" $ do
-        it "toggles playback" $ testPlay
+        it "resumes playback" $ testPlay
     describe "pause" $ do
         it "pauses playback" $ testPause
+    describe "toggle" $ do
+        it "toggles playback" $ testToggle
     describe "stop" $ do
         it "stops playback" $ testStop
     describe "next" $ do
@@ -160,9 +162,6 @@ spec = do
         it "gets database stats" $ testStats
 
     -- * Extensions
-    describe "toggle" $ do
-        it "starts playback if paused" $ testTogglePlay
-        it "stops playback if playing" $ testToggleStop
     describe "addMany" $ do
         it "adds multiple paths in one go" $ testAddMany0
         it "can also add to stored playlists" $ testAddMany1
@@ -299,6 +298,8 @@ testPlay = cmd_ [("play", Right "OK")] (play Nothing)
 
 testPause = cmd_ [("pause 0", Right "OK")] (pause False)
 
+testToggle = cmd_ [("pause", Right "OK")] (toggle)
+
 testStop = cmd_ [("stop", Right "OK")] stop
 
 testNext = cmd_ [("next", Right "OK")] next
@@ -375,26 +376,6 @@ testStats = cmd [("stats", Right resp)] (Right obj) stats
 --
 -- Extensions\/shortcuts
 --
-
-testTogglePlay = cmd_
-               [("status", Right resp)
-               ,("pause 1", Right "OK")]
-               toggle
-    where resp = unparse def { stState = Playing }
-
-testToggleStop = cmd_
-                [("status", Right resp)
-                ,("play", Right "OK")]
-                toggle
-    where resp = unparse def { stState = Stopped }
-
-{- this overlaps with testToggleStop, no?
-testTogglePause = cmd_
-                [("status", Right resp)
-                ,("play", Right "OK")]
-                toggle
-    where resp = unparse def { stState = Paused }
--}
 
 testAddMany0 = cmd_ [("add \"bar\"", Right "OK")]
                (addMany "" ["bar"])

@@ -29,11 +29,6 @@ updateId :: MonadMPD m => Maybe Path -> m Integer
 updateId = update
 {-# DEPRECATED updateId "use `update` instead" #-}
 
--- | Toggles play\/pause. Plays if stopped.
-toggle :: MonadMPD m => m ()
-toggle = status >>= \st -> case stState st of Playing -> pause True
-                                              _       -> play Nothing
-
 -- | Add a list of songs\/folders to a playlist.
 -- Should be more efficient than running 'add' many times.
 addMany :: MonadMPD m => PlaylistName -> [Path] -> m ()
