@@ -127,3 +127,5 @@ Test-Suite specs
       , unix
       , QuickCheck >= 2.10
       , hspec >= 1.3
+    build-tool-depends:
+      hspec-discover:hspec-discover
