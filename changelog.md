@@ -1,4 +1,4 @@
-* v0.10.0.0 unreleased
+* v0.10.0.0 2021-01-25
     - Require MPD version 0.19 or later.
     - Breaking: `list` now takes a `Query` instead of a `Maybe Artist`, and lists the requested tag of songs matching the query.
       Migrate by changing `list $Tag Nothing` to `list $Tag mempty` and `list Album (Just "someone")` to `list Album (Artist =? "someone")`.

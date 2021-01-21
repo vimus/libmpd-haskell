@@ -1,6 +1,6 @@
 Cabal-Version:      2.4
 Name:               libmpd
-Version:            0.9.3.0
+Version:            0.10.0.0
 Synopsis:           An MPD client library.
 Description:        A client library for MPD, the Music Player Daemon.
 Category:           Network, Sound
