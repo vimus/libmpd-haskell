@@ -10,10 +10,7 @@
     - Breaking: move `toggle` from `N.M.C.Extensions` to `N.M.(C|A).PlaybackControl`.
     - Fix: `idle` now properly detects the following subsystems: `PartitionS`, `StickerS`, `SubscriptionS`, `MessageS`, `NeighborS`, `MountS`.
     - Remove deprecated functions: `(<&>)` (use `<>` instead), `updateId`, `addList`, `playlistAddList`.
-
-* v0.9.4.0 unreleased
-    - Add monadic versions of `searchAdd` and `searchAddPl` commands (previously
-      only had applicative versions)
+    - Add monadic versions of `searchAdd` and `searchAddPl` commands (previously only had applicative versions)
 
 * v0.9.3.0 2021-01-02
     - Drop support for GHC < 8.4, require base > 4.11.
