@@ -9,7 +9,7 @@
 
 module Network.MPD.Util (
     parseDate, parseIso8601, formatIso8601, parseNum, parseFrac,
-    parseBool, showBool, breakChar, parseTriple,
+    parseBool, parseSingle, showBool, breakChar, parseTriple,
     toAssoc, toAssocList, splitGroups, read
     ) where
 
@@ -78,6 +78,14 @@ parseBool :: ByteString -> Maybe Bool
 parseBool = parseMaybe p
     where
         p = A.char '1' *> pure True <|> A.char '0' *> pure False
+
+-- Parse a boolean response value.
+parseSingle :: ByteString -> Maybe Bool
+parseSingle = parseMaybe p
+    where
+        p = A.char '1' *> pure True
+            <|> A.char '0' *> pure False
+            <|> A.string "oneshot" *> pure True
 
 -- Break a string into triple.
 parseTriple :: Char -> (ByteString -> Maybe a) -> ByteString -> Maybe (a, a, a)

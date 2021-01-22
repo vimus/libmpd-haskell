@@ -11,6 +11,7 @@
     - Fix: `idle` now properly detects the following subsystems: `PartitionS`, `StickerS`, `SubscriptionS`, `MessageS`, `NeighborS`, `MountS`.
     - Remove deprecated functions: `(<&>)` (use `<>` instead), `updateId`, `addList`, `playlistAddList`.
     - Add monadic versions of `searchAdd` and `searchAddPl` commands (previously only had applicative versions)
+    - Fix: The server setting "single: oneshot" now sets `stSingle` to `True` rather than erroring out.
 
 * v0.9.3.0 2021-01-02
     - Drop support for GHC < 8.4, require base > 4.11.

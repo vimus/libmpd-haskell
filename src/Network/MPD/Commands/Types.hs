@@ -411,6 +411,7 @@ data Status =
              -- | Job ID of currently running update (if any).
            , stUpdatingDb      :: Maybe Integer
              -- | If True, MPD will play only one song and stop after finishing it.
+             -- If single is set to "oneshot" by another client, it's interperted as True.
            , stSingle          :: Bool
              -- | If True, a song will be removed after it has been played.
            , stConsume         :: Bool
