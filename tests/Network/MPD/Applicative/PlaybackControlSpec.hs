@@ -16,6 +16,14 @@ spec = do
         it "sends a next request" $ do
             next `with` [("next", Right "OK")] `shouldBe` Right ()
 
+    describe "pause" $ do
+        it "sends a play request" $ do
+            pause False `with` [("pause 0", Right "OK")] `shouldBe` Right ()
+
+    describe "toggle" $ do
+        it "toggles playback" $ do
+            toggle `with` [("pause", Right "OK")] `shouldBe` Right ()
+
     describe "play" $ do
         it "sends a play request" $ do
             play Nothing `with` [("play", Right "OK")] `shouldBe` Right ()

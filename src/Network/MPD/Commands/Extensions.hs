@@ -24,16 +24,6 @@ import           Control.Monad (liftM)
 import           Data.Traversable (for)
 import           Data.Foldable (for_)
 
--- | This is exactly the same as `update`.
-updateId :: MonadMPD m => Maybe Path -> m Integer
-updateId = update
-{-# DEPRECATED updateId "use `update` instead" #-}
-
--- | Toggles play\/pause. Plays if stopped.
-toggle :: MonadMPD m => m ()
-toggle = status >>= \st -> case stState st of Playing -> pause True
-                                              _       -> play Nothing
-
 -- | Add a list of songs\/folders to a playlist.
 -- Should be more efficient than running 'add' many times.
 addMany :: MonadMPD m => PlaylistName -> [Path] -> m ()
@@ -53,16 +43,6 @@ addIdMany x Nothing = do
     fs <- listAll x
     A.runCommand $ for fs (`A.addId` Nothing)
 
--- | Like 'add' but returns a list of the files added.
-addList :: MonadMPD m => Path -> m [Path]
-addList x = add x >> listAll x
-{-# DEPRECATED addList "will be removed in a future version" #-}
-
--- | Like 'playlistAdd' but returns a list of the files added.
-playlistAddList :: MonadMPD m => PlaylistName -> Path -> m [Path]
-playlistAddList plname path = playlistAdd plname path >> listAll path
-{-# DEPRECATED playlistAddList "will be removed in a future version" #-}
-
 {-
 -- | Returns all songs and directories that match the given partial
 -- path name.
@@ -79,12 +59,14 @@ complete path = do
 
 -- | List the artists in the database.
 listArtists :: MonadMPD m => m [Artist]
-listArtists = list Artist Nothing
+listArtists = list Artist mempty
 
 -- | List the albums in the database, optionally matching a given
 -- artist.
 listAlbums :: MonadMPD m => Maybe Artist -> m [Album]
-listAlbums = list Album
+listAlbums ma = list Album (case ma of
+                              Nothing -> mempty
+                              Just a -> Artist =? a)
 
 -- | List the songs in an album of some artist.
 listAlbum :: MonadMPD m => Artist -> Album -> m [Song]

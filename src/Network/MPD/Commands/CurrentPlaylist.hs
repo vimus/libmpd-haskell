@@ -67,8 +67,8 @@ delete = A.runCommand . A.delete
 
 -- | Remove a range of songs from the current playlist.
 --
--- @since 0.9.2.0
-deleteRange :: MonadMPD m => (Position, Position) -> m ()
+-- @since 0.10.0.0
+deleteRange :: MonadMPD m => Range -> m ()
 deleteRange = A.runCommand . A.deleteRange
 
 -- | Remove a song from the current playlist.
@@ -81,8 +81,8 @@ move pos = A.runCommand . A.move pos
 
 -- | Move a range of songs to a given position in the current playlist.
 --
--- @since 0.9.2.0
-moveRange :: MonadMPD m => (Position, Position) -> Position -> m ()
+-- @since 0.10.0.0
+moveRange :: MonadMPD m => Range -> Position -> m ()
 moveRange range = A.runCommand . A.moveRange range
 
 -- | Move a song from (songid) to (playlist index) in the playlist. If to is
@@ -111,7 +111,9 @@ playlistInfo :: MonadMPD m => Maybe Position -> m [Song]
 playlistInfo = A.runCommand . A.playlistInfo
 
 -- | Like 'playlistInfo' but can restrict to a range of songs.
-playlistInfoRange :: MonadMPD m => Maybe (Position, Position) -> m [Song]
+--
+-- @since 0.10.0.0
+playlistInfoRange :: MonadMPD m => Maybe Range -> m [Song]
 playlistInfoRange = A.runCommand . A.playlistInfoRange
 
 -- | Displays a list of songs in the playlist.
@@ -134,16 +136,20 @@ plChangesPosId :: MonadMPD m => Integer -> m [(Position, Id)]
 plChangesPosId = A.runCommand . A.plChangesPosId
 
 -- | Set the priority of the specified songs.
-prio :: MonadMPD m => Priority -> (Position, Position) -> m ()
+--
+-- @since 0.10.0.0
+prio :: MonadMPD m => Priority -> Range -> m ()
 prio p = A.runCommand . A.prio p
 
 -- | Set priority by song id.
 prioId :: MonadMPD m => Priority -> Id -> m ()
 prioId p = A.runCommand . A.prioId p
 
--- | Shuffle the playlist.
-shuffle :: MonadMPD m => Maybe (Position, Position) -- ^ Optional range (start, end)
-        -> m ()
+-- | Shuffle the current playlist.
+-- Optionally restrict to a range of songs.
+--
+-- @since 0.10.0.0
+shuffle :: MonadMPD m => Maybe Range -> m ()
 shuffle = A.runCommand . A.shuffle
 
 -- | Swap the positions of two songs.

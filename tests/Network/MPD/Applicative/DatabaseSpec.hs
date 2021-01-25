@@ -36,21 +36,21 @@ spec = do
 
     describe "list" $ do
         it "lists all tags of the specified type" $ do
-            list Title Nothing
+            list Title mempty
                 `with` [("list Title"
                        , Right "Title: Foo\nTitle: Bar\nOK"
                        )]
                 `shouldBe` Right ["Foo", "Bar"]
 
         it "can list albums by an artist" $ do
-            list Album (Just "Muzz")
-                `with` [("list Album \"Muzz\""
+            list Album (Artist =? "Muzz")
+                `with` [("list Album Artist \"Muzz\""
                        , Right "Album: Foo\nOK")]
                 `shouldBe` Right ["Foo"]
 
-        it "only uses the artist value for the album metadata type" $ do
-            list Title (Just "Foo")
-                 `with` [("list Title"
+        it "can filter tags by arbitrary queries" $ do
+            list Title (qNot $ Artist =? "Foo" <> Album =? "Bar")
+                 `with` [("list Title \"(!((Artist == \\\"Foo\\\") AND (Album == \\\"Bar\\\")))\""
                          , Right "Title: Foo\nOK")]
                  `shouldBe` Right ["Foo"]
 

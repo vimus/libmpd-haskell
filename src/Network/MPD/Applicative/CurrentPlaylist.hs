@@ -72,7 +72,9 @@ delete :: Position -> Command ()
 delete pos = Command emptyResponse ["delete" <@> pos]
 
 -- | Delete a range of songs from the playlist.
-deleteRange :: (Position, Position) -> Command ()
+--
+-- @since 0.10.0.0
+deleteRange :: Range -> Command ()
 deleteRange range = Command emptyResponse ["delete" <@> range]
 
 -- | Delete song by id.
@@ -84,7 +86,9 @@ move :: Position -> Position -> Command ()
 move pos to = Command emptyResponse ["move" <@> pos <++> to]
 
 -- | Move a range of songs.
-moveRange :: (Position, Position) -> Position -> Command ()
+--
+-- @since 0.10.0.0
+moveRange :: Range -> Position -> Command ()
 moveRange range to = Command emptyResponse ["move" <@> range <++> to]
 
 -- | Move song id to position.
@@ -109,7 +113,9 @@ playlistInfo = playlist' "playlistinfo"
 
 -- | Like 'playlistInfo' but can restrict listing to a range
 -- of songs.
-playlistInfoRange :: Maybe (Position, Position) -> Command [Song]
+--
+-- @since 0.10.0.0
+playlistInfoRange :: Maybe Range -> Command [Song]
 playlistInfoRange = playlist' "playlistinfo"
 
 -- | Get song metadata for all items in the current playlist.
@@ -140,7 +146,9 @@ plChangesPosId ver = Command p ["plchangesposid" <@> ver]
              | otherwise = Left ""
 
 -- | Set the priority of the specified songs.
-prio :: Priority -> (Position, Position) -> Command ()
+--
+-- @since 0.10.0.0
+prio :: Priority -> Range -> Command ()
 prio p range = Command emptyResponse ["prio" <@> p <++> range]
 
 -- | Set priority by song id.
@@ -149,7 +157,9 @@ prioId p ids = Command emptyResponse ["prioid" <@> p <++> ids]
 
 -- | Shuffle the current playlist.
 -- Optionally restrict to a range of songs.
-shuffle :: Maybe (Position, Position) -> Command ()
+--
+-- @since 0.10.0.0
+shuffle :: Maybe Range -> Command ()
 shuffle mbRange = Command emptyResponse ["shuffle" <@> mbRange]
 
 -- | Swap songs by position.

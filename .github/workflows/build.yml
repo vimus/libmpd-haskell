@@ -1,0 +1,96 @@
+name: build
+
+on:
+  push:
+    branches:
+      - master
+      - do-ci
+  pull_request:
+    branches: '*'
+
+jobs:
+  cabal:
+    name: ${{ matrix.os }} / GHC ${{ matrix.ghc }} / Cabal ${{ matrix.cabal }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+        ghc:
+          - '8.4'
+          - '8.6'
+          - '8.8'
+          - '8.10'
+        cabal:
+          - 'latest'
+          - '2.4'
+        include:
+          - os: macos-latest
+            ghc: latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: haskell/actions/setup@v1
+        with:
+          ghc-version: ${{ matrix.ghc }}
+          cabal-version: ${{ matrix.cabal }}
+
+      - uses: actions/cache@v2
+        with:
+          key: ${{ runner.os }}-${{ matrix.ghc }}-${{ github.sha }}
+          path: ~/.cabal/store
+          restore-keys: ${{ runner.os }}-${{ matrix.ghc }}-
+
+      - run: cabal v2-update
+        shell: bash
+
+      - run: cabal v2-configure --enable-tests --enable-benchmarks # NOTE: --enable-tests is necessary due to https://github.com/haskell/cabal/issues/5079
+        shell: bash
+
+      - run: cabal v2-build all
+        shell: bash
+
+      - run: cabal v2-test all
+        shell: bash
+        env:
+          HSPEC_OPTIONS: --color
+
+  stack:
+    strategy:
+      matrix:
+        resolver:
+          - 'lts-16'
+          - 'nightly'
+    name: ubuntu-latest / Stack ${{ matrix.resolver }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: haskell/actions/setup@v1
+        with:
+          enable-stack: true
+          stack-version: latest
+          stack-no-global: true
+
+      - uses: actions/cache@v2
+        with:
+          key: ${{ runner.os }}-${{ matrix.resolver }}-${{ github.sha }}
+          path: ~/.stack
+          restore-keys: ${{ runner.os }}-${{ matrix.resolver }}-
+
+      - run: stack --resolver ${{ matrix.resolver }} test --bench --no-run-benchmarks --haddock --no-haddock-deps
+        shell: bash
+        env:
+          HSPEC_OPTIONS: --color
+
+  success:
+    needs:
+      - cabal
+      - stack
+    runs-on: ubuntu-latest
+    if: always() # this is required as GitHub considers "skipped" jobs as "passed" when checking branch protection rules
+
+    steps:
+      - run: false
+        if: needs.cabal.result != 'success' && needs.stack.result != 'success'

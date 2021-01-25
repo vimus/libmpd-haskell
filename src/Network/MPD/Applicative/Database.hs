@@ -53,18 +53,14 @@ find q = Command p ["find" <@> q]
 findAdd :: Query -> Command ()
 findAdd q = Command emptyResponse ["findadd" <@> q]
 
--- | Lists all tags of the specified type.
+-- | List all tags of the specified type of songs that that satisfy the query.
 --
--- Note that the optional artist value is only ever used if the
--- metadata type is 'Album', and is then taken to mean that the albums
--- by that artist be listed.
-list :: Metadata -> Maybe Artist -> Command [Value]
+-- @since 0.10.0.0
+list :: Metadata -> Query -> Command [Value]
 list m q = Command p c
     where
         p = map Value . takeValues <$> getResponse
-        c = case m of
-                Album -> ["list Album" <@> q]
-                _     -> ["list" <@> m]
+        c = ["list" <@> m <++> q]
 
 -- | List all songs and directories in a database path.
 listAll :: Path -> Command [Path]
@@ -102,14 +98,10 @@ search q = Command p ["search" <@> q]
         p = liftParser takeSongs
 
 -- | Like 'search' but adds the results to the current playlist.
---
--- Since MPD 0.17.
 searchAdd :: Query -> Command ()
 searchAdd q = Command emptyResponse ["searchadd" <@> q]
 
 -- | Like 'searchAdd' but adds results to the named playlist.
---
--- Since MPD 0.17.
 searchAddPl :: PlaylistName -> Query -> Command ()
 searchAddPl pl q = Command emptyResponse ["searchaddpl" <@> pl <++> q]
 

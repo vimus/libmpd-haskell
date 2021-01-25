@@ -1,6 +1,6 @@
 Cabal-Version:      2.4
 Name:               libmpd
-Version:            0.9.3.0
+Version:            0.10.0.0
 Synopsis:           An MPD client library.
 Description:        A client library for MPD, the Music Player Daemon.
 Category:           Network, Sound
@@ -20,7 +20,7 @@ Stability:          beta
 Homepage:           http://github.com/vimus/libmpd-haskell#readme
 Bug-reports:        http://github.com/vimus/libmpd-haskell/issues
 
-Tested-With:        GHC ==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.2
+Tested-With:        GHC ==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.3
 Build-Type:         Simple
 
 Extra-Source-Files:
@@ -126,4 +126,6 @@ Test-Suite specs
         -- Test dependencies
       , unix
       , QuickCheck >= 2.10
-      , hspec >= 1.3
+      , hspec >= 2
+    build-tool-depends:
+      hspec-discover:hspec-discover

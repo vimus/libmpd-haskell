@@ -46,10 +46,12 @@ find = A.runCommand . A.find
 findAdd :: MonadMPD m => Query -> m ()
 findAdd = A.runCommand . A.findAdd
 
--- | List all tags of the specified type.
+-- | List all tags of the specified type of songs that that satisfy the query.
+--
+-- @since 0.10.0.0
 list :: MonadMPD m
      => Metadata -- ^ Metadata to list
-     -> Maybe Artist -> m [Value]
+     -> Query -> m [Value]
 list m = A.runCommand . A.list m
 
 -- | List the songs (without metadata) in a database directory recursively.
@@ -74,17 +76,13 @@ search = A.runCommand . A.search
 
 -- | Like 'search' but adds the results to the current playlist.
 --
--- Since MPD 0.17.
---
--- @since 0.9.4.0
+-- @since 0.10.0.0
 searchAdd :: MonadMPD m => Query -> m ()
 searchAdd = A.runCommand . A.searchAdd
 
 -- | Like 'searchAdd' but adds results to the named playlist.
 --
--- Since MPD 0.17.
---
--- @since 0.9.4.0
+-- @since 0.10.0.0
 searchAddPl :: MonadMPD m => PlaylistName -> Query -> m ()
 searchAddPl pl = A.runCommand . A.searchAddPl pl
 

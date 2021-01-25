@@ -45,7 +45,7 @@ spec = do
 
   describe "deleteRange" $ do
     it "deletes a range of songs from the playlist" $ do
-      deleteRange (10, 20)
+      deleteRange (Range 10 20)
         `with` [("delete 10:20", Right "OK")]
         `shouldBe` Right ()
 
@@ -63,7 +63,7 @@ spec = do
 
   describe "moveRange" $ do
     it "moves a range of songs to a given position in the playlist" $ do
-      moveRange (10, 20) 23
+      moveRange (Range 10 20) 23
         `with` [("move 10:20 23", Right "OK")]
         `shouldBe` Right ()
 
@@ -102,7 +102,7 @@ spec = do
     it "is like playlistInfo but can restrict to a range of songs" $ do
       let obj = defaultSong "Foo.ogg"
           resp = unparse obj ++ "OK"
-      playlistInfoRange (Just (0, 1))
+      playlistInfoRange (Just $ Range 0 1)
         `with` [("playlistinfo 0:1", Right resp)]
         `shouldBe` Right [obj]
 
@@ -162,7 +162,7 @@ spec = do
         `shouldBe` Right ()
 
     it "optionally shuffles a selection of the playlist" $ do
-      shuffle (Just (15, 25))
+      shuffle (Just $ Range 15 25)
         `with` [("shuffle 15:25", Right "OK")]
         `shouldBe` Right ()
 

@@ -89,25 +89,32 @@ parseSong xs = case xs of
                      readMeta k
 
         -- Custom-made Read instance
-        readMeta "ArtistSort" = Just ArtistSort
         readMeta "Artist" = Just Artist
+        readMeta "ArtistSort" = Just ArtistSort
         readMeta "Album" = Just Album
+        readMeta "AlbumSort" = Just AlbumSort
         readMeta "AlbumArtist" = Just AlbumArtist
         readMeta "AlbumArtistSort" = Just AlbumArtistSort
         readMeta "Title" = Just Title
-        readMeta "Genre" = Just Genre
+        readMeta "Track" = Just Track
         readMeta "Name" = Just Name
+        readMeta "Genre" = Just Genre
+        readMeta "Date" = Just Date
+        readMeta "OriginalDate" = Just OriginalDate
         readMeta "Composer" = Just Composer
         readMeta "Performer" = Just Performer
+        readMeta "Conductor" = Just Conductor
+        readMeta "Work" = Just Work
+        readMeta "Grouping" = Just Grouping
         readMeta "Comment" = Just Comment
-        readMeta "Date" = Just Date
-        readMeta "Track" = Just Track
         readMeta "Disc" = Just Disc
+        readMeta "Label" = Just Label
         readMeta "MUSICBRAINZ_ARTISTID" = Just MUSICBRAINZ_ARTISTID
         readMeta "MUSICBRAINZ_ALBUMID" = Just MUSICBRAINZ_ALBUMID
         readMeta "MUSICBRAINZ_ALBUMARTISTID" = Just MUSICBRAINZ_ALBUMARTISTID
         readMeta "MUSICBRAINZ_TRACKID" = Just MUSICBRAINZ_TRACKID
         readMeta "MUSICBRAINZ_RELEASETRACKID" = Just MUSICBRAINZ_RELEASETRACKID
+        readMeta "MUSICBRAINZ_WORKID" = Just MUSICBRAINZ_WORKID
         readMeta _ = Nothing
 
 -- | A helper that runs a parser on a string and, depending on the

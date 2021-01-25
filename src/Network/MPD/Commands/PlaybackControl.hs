@@ -15,6 +15,7 @@ Controlling playback.
 module Network.MPD.Commands.PlaybackControl
     ( next
     , pause
+    , toggle
     , play
     , playId
     , previous
@@ -33,9 +34,15 @@ import           Network.MPD.Core
 next :: MonadMPD m => m ()
 next = A.runCommand A.next
 
--- | Pause playing.
+-- | Pauses playback on True, resumes on False.
 pause :: MonadMPD m => Bool -> m ()
 pause = A.runCommand . A.pause
+
+-- | Toggles play\/pause. Plays if stopped.
+--
+-- @since 0.10.0.0
+toggle :: MonadMPD m => m ()
+toggle = A.runCommand A.toggle
 
 -- | Begin\/continue playing.
 play :: MonadMPD m => Maybe Position -> m ()

@@ -155,7 +155,7 @@ mpdOpen = MPD $ do
                 modify (\st -> st { stVersion = version })
                 return True
             where
-                requiredVersion = (0, 15, 0)
+                requiredVersion = (0, 19, 0)
 
         parseVersion = parseTriple '.' parseNum . dropWhile (not . isDigit)
 

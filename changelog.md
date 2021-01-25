@@ -1,6 +1,17 @@
-* v0.9.4.0 unreleased
-    - Add monadic versions of `searchAdd` and `searchAddPl` commands (previously
-      only had applicative versions)
+* v0.10.0.0 2021-01-25
+    - Require MPD version 0.19 or later.
+    - Breaking: `list` now takes a `Query` instead of a `Maybe Artist`, and lists the requested tag of songs matching the query.
+      Migrate by changing `list $Tag Nothing` to `list $Tag mempty` and `list Album (Just "someone")` to `list Album (Artist =? "someone")`.
+    - Breaking: song ranges now expressed with the `Range` datatype rather than `(Position,Position)`, allowing for partial ranges (see documentation).
+      Migrate by changing `(x,y)` to `Range x y`.
+    - Breaking: add missing `Metadata` constructors: `AlbumSort`, `OriginalDate`, `Conductor`, `Work`, `Grouping`, `Label`, `MUSICBRAINZ_WORKID`.
+    - Breaking: add missing `Subsystem` constructors: `PartitionS`, `NeighborS`, `MountS`.
+    - Breaking: add missing `ReplayGainMode` constructor: `AutoMode`.
+    - Breaking: move `toggle` from `N.M.C.Extensions` to `N.M.(C|A).PlaybackControl`.
+    - Fix: `idle` now properly detects the following subsystems: `PartitionS`, `StickerS`, `SubscriptionS`, `MessageS`, `NeighborS`, `MountS`.
+    - Remove deprecated functions: `(<&>)` (use `<>` instead), `updateId`, `addList`, `playlistAddList`.
+    - Add monadic versions of `searchAdd` and `searchAddPl` commands (previously only had applicative versions)
+    - Fix: The server setting "single: oneshot" now sets `stSingle` to `True` rather than erroring out.
 
 * v0.9.3.0 2021-01-02
     - Drop support for GHC < 8.4, require base > 4.11.

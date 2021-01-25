@@ -28,6 +28,7 @@ module Network.MPD.Commands.Types
     , Device(..)
     , Song(..)
     , Position
+    , Range(..)
     , Id(..)
     , Priority(..)
     , sgGetTag
@@ -102,6 +103,7 @@ instance IsString Path where
 data Metadata = Artist
               | ArtistSort
               | Album
+              | AlbumSort -- ^ @since 0.10.0.0
               | AlbumArtist
               | AlbumArtistSort
               | Title
@@ -109,15 +111,21 @@ data Metadata = Artist
               | Name
               | Genre
               | Date
+              | OriginalDate -- ^ @since 0.10.0.0
               | Composer
               | Performer
+              | Conductor -- ^ @since 0.10.0.0
+              | Work -- ^ @since 0.10.0.0
+              | Grouping -- ^ @since 0.10.0.0
               | Comment
               | Disc
+              | Label -- ^ @since 0.10.0.0
               | MUSICBRAINZ_ARTISTID
               | MUSICBRAINZ_ALBUMID
               | MUSICBRAINZ_ALBUMARTISTID
               | MUSICBRAINZ_TRACKID
               | MUSICBRAINZ_RELEASETRACKID
+              | MUSICBRAINZ_WORKID -- ^ @since 0.10.0.0
               deriving (Eq, Enum, Ord, Bounded, Show)
 
 instance MPDArg Metadata
@@ -164,9 +172,18 @@ data Subsystem
     | MixerS             -- ^ The volume mixer
     | OutputS            -- ^ Audio outputs
     | OptionsS           -- ^ Playback options
+    | PartitionS         -- ^ Partition changes
+                         --
+                         --  @since 0.10.0.0
     | StickerS           -- ^ Sticker database
     | SubscriptionS      -- ^ Subscription
     | MessageS           -- ^ Message on subscribed channel
+    | NeighborS          -- ^ finding or losing a neighbor
+                         --
+                         --  @since 0.10.0.0
+    | MountS             -- ^ Mount list changes
+                         --
+                         --  @since 0.10.0.0
       deriving (Eq, Enum, Ord, Bounded, Show)
 
 instance MPDArg Subsystem where
@@ -178,20 +195,27 @@ instance MPDArg Subsystem where
     prep MixerS = Args ["mixer"]
     prep OutputS = Args ["output"]
     prep OptionsS = Args ["options"]
+    prep PartitionS = Args ["partition"]
     prep StickerS = Args ["sticker"]
     prep SubscriptionS = Args ["subscription"]
     prep MessageS = Args ["message"]
+    prep NeighborS = Args ["neighbor"]
+    prep MountS = Args ["mount"]
 
 data ReplayGainMode
     = Off       -- ^ Disable replay gain
     | TrackMode -- ^ Per track mode
     | AlbumMode -- ^ Per album mode
+    | AutoMode  -- ^ Auto mode
+                --
+                -- @since 0.10.0.0
       deriving (Eq, Enum, Ord, Bounded, Show)
 
 instance MPDArg ReplayGainMode where
     prep Off = Args ["off"]
     prep TrackMode = Args ["track"]
     prep AlbumMode = Args ["album"]
+    prep AutoMode = Args ["auto"]
 
 -- | Represents the result of running 'count'.
 data Count =
@@ -245,6 +269,16 @@ data Song = Song
 
 -- | The position of a song in a playlist.
 type Position = Int
+
+-- | A range of songs.
+data Range
+  = Range Position Position -- ^ Start and end of the range, not including the end position.
+  | Start Position -- ^ From the given position until the end of the playlist.
+  deriving (Eq, Show)
+
+instance MPDArg Range where
+    prep (Range start end) = Args [show start ++ ":" ++ show end]
+    prep (Start start) = Args [show start ++ ":"]
 
 newtype Id = Id Int
     deriving (Eq, Show)
@@ -377,6 +411,7 @@ data Status =
              -- | Job ID of currently running update (if any).
            , stUpdatingDb      :: Maybe Integer
              -- | If True, MPD will play only one song and stop after finishing it.
+             -- If single is set to "oneshot" by another client, it's interperted as True.
            , stSingle          :: Bool
              -- | If True, a song will be removed after it has been played.
            , stConsume         :: Bool

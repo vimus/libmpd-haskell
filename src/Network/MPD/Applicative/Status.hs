@@ -54,6 +54,12 @@ takeSubsystems = mapM f . toAssocList
                 "mixer"           -> Right MixerS
                 "output"          -> Right OutputS
                 "options"         -> Right OptionsS
+                "partition"       -> Right PartitionS
+                "sticker"         -> Right StickerS
+                "subscription"    -> Right SubscriptionS
+                "message"         -> Right MessageS
+                "neighbor"        -> Right NeighborS
+                "mount"           -> Right MountS
                 k                 -> Left ("Unknown subsystem: " ++ UTF8.toString k)
         f x                       =  Left ("idle: Unexpected " ++ show x)
 
@@ -82,36 +88,37 @@ status = Command (liftParser parseStatus) ["status"]
     parseStatus = foldM go def . toAssocList
         where
             go a p@(k, v) = case k of
-                "volume"         -> vol   $ \x -> a { stVolume          = x }
-                "repeat"         -> bool  $ \x -> a { stRepeat          = x }
-                "random"         -> bool  $ \x -> a { stRandom          = x }
-                "single"         -> bool  $ \x -> a { stSingle          = x }
-                "consume"        -> bool  $ \x -> a { stConsume         = x }
-                "playlist"       -> num   $ \x -> a { stPlaylistVersion = x }
-                "playlistlength" -> num   $ \x -> a { stPlaylistLength  = x }
-                "state"          -> state $ \x -> a { stState           = x }
-                "song"           -> int   $ \x -> a { stSongPos         = Just x }
-                "songid"         -> int   $ \x -> a { stSongID          = Just $ Id x }
-                "nextsong"       -> int   $ \x -> a { stNextSongPos     = Just x }
-                "nextsongid"     -> int   $ \x -> a { stNextSongID      = Just $ Id x }
-                "time"           -> time  $ \x -> a { stTime            = Just x }
-                "elapsed"        -> frac  $ \x -> a { stTime            = fmap ((x,) . snd) (stTime a) }
-                "duration"       -> frac  $ \x -> a { stTime            = fmap ((,x) . fst) (stTime a) }
-                "bitrate"        -> int   $ \x -> a { stBitrate         = Just x }
-                "xfade"          -> num   $ \x -> a { stXFadeWidth      = x }
-                "mixrampdb"      -> frac  $ \x -> a { stMixRampdB       = x }
-                "mixrampdelay"   -> frac  $ \x -> a { stMixRampDelay    = x }
-                "audio"          -> audio $ \x -> a { stAudio           = x }
-                "updating_db"    -> num   $ \x -> a { stUpdatingDb      = Just x }
-                "error"          -> Right         a { stError           = Just (UTF8.toString v) }
-                "partition"      -> Right a { stPartition = UTF8.toString v }
-                _                -> Right a
+                "volume"         -> vol    $ \x -> a { stVolume          = x }
+                "repeat"         -> bool   $ \x -> a { stRepeat          = x }
+                "random"         -> bool   $ \x -> a { stRandom          = x }
+                "single"         -> single $ \x -> a { stSingle          = x }
+                "consume"        -> bool   $ \x -> a { stConsume         = x }
+                "playlist"       -> num    $ \x -> a { stPlaylistVersion = x }
+                "playlistlength" -> num    $ \x -> a { stPlaylistLength  = x }
+                "state"          -> state  $ \x -> a { stState           = x }
+                "song"           -> int    $ \x -> a { stSongPos         = Just x }
+                "songid"         -> int    $ \x -> a { stSongID          = Just $ Id x }
+                "nextsong"       -> int    $ \x -> a { stNextSongPos     = Just x }
+                "nextsongid"     -> int    $ \x -> a { stNextSongID      = Just $ Id x }
+                "time"           -> time   $ \x -> a { stTime            = Just x }
+                "elapsed"        -> frac   $ \x -> a { stTime            = fmap ((x,) . snd) (stTime a) }
+                "duration"       -> frac   $ \x -> a { stTime            = fmap ((,x) . fst) (stTime a) }
+                "bitrate"        -> int    $ \x -> a { stBitrate         = Just x }
+                "xfade"          -> num    $ \x -> a { stXFadeWidth      = x }
+                "mixrampdb"      -> frac   $ \x -> a { stMixRampdB       = x }
+                "mixrampdelay"   -> frac   $ \x -> a { stMixRampDelay    = x }
+                "audio"          -> audio  $ \x -> a { stAudio           = x }
+                "updating_db"    -> num    $ \x -> a { stUpdatingDb      = Just x }
+                "error"          -> Right          a { stError           = Just (UTF8.toString v) }
+                "partition"      -> Right          a { stPartition = UTF8.toString v }
+                _                -> Right          a
                 where
                     unexpectedPair = Left ("unexpected key-value pair: " ++ show p)
-                    int   f = maybe unexpectedPair (Right . f) (parseNum v :: Maybe Int)
-                    num   f = maybe unexpectedPair (Right . f) (parseNum  v)
-                    bool  f = maybe unexpectedPair (Right . f) (parseBool v)
-                    frac  f = maybe unexpectedPair (Right . f) (parseFrac v)
+                    int    f = maybe unexpectedPair (Right . f) (parseNum v :: Maybe Int)
+                    num    f = maybe unexpectedPair (Right . f) (parseNum  v)
+                    bool   f = maybe unexpectedPair (Right . f) (parseBool v)
+                    frac   f = maybe unexpectedPair (Right . f) (parseFrac v)
+                    single f = maybe unexpectedPair (Right . f) (parseSingle v)
 
                     -- This is sometimes "audio: 0:?:0", so we ignore any parse
                     -- errors.
