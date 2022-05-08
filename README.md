@@ -12,7 +12,7 @@ music playing daemon. Requires MPD version 0.19 or later.
 
 ## Getting
 * [Latest release on Hackage]
-* `git clone git://github.com/vimus/libmpd-haskell.git`
+* `git clone https://github.com/vimus/libmpd-haskell.git`
 
 [Latest release on Hackage]: https://hackage.haskell.org/package/libmpd "libmpd-haskell on Hackage"
 
