@@ -45,7 +45,7 @@ Library
       , containers >= 0.3 && < 1
       , filepath >= 1 && < 2
       , mtl >= 2.2.2 && < 3
-      , text >= 0.11 && < 2.1
+      , text >= 0.11 && < 2.2
       , time >= 1.5 && < 2
 
         -- Additional dependencies
