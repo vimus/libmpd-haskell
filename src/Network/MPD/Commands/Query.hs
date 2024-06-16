@@ -77,15 +77,15 @@ toExpr (m:ms) = ExprAnd (Exact m) (toExpr ms)
 
 instance Monoid Query where
     mempty  = Query []
-    Query  a  `mappend` Query    b  = Query (a ++ b)
-    Query  [] `mappend` Filter   b  = Filter b
-    Filter a  `mappend` Query    [] = Filter a
-    Query  a  `mappend` Filter   b  = Filter (ExprAnd (toExpr a) b)
-    Filter a  `mappend` Query    b  = Filter (ExprAnd a (toExpr b))
-    Filter a  `mappend` Filter   b  = Filter (a <> b)
 
 instance Semigroup Query where
-    (<>) = mappend
+    Query  a  <> Query    b  = Query (a ++ b)
+    Query  [] <> Filter   b  = Filter b
+    Filter a  <> Query    [] = Filter a
+    Query  a  <> Filter   b  = Filter (ExprAnd (toExpr a) b)
+    Filter a  <> Query    b  = Filter (ExprAnd a (toExpr b))
+    Filter a  <> Filter   b  = Filter (a <> b)
+
 instance Semigroup Expr where
   ex1 <> ex2 = ExprAnd ex1 ex2
 
