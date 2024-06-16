@@ -1,3 +1,7 @@
+* v0.10.0.1
+    - Fix build issues caused by removed symbols in dependencies
+    - Adjust `text` bounds
+
 * v0.10.0.0 2021-01-25
     - Require MPD version 0.19 or later.
     - Breaking: `list` now takes a `Query` instead of a `Maybe Artist`, and lists the requested tag of songs matching the query.
