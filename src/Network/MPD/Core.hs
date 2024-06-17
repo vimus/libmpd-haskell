@@ -28,7 +28,7 @@ import           Network.MPD.Core.Error
 import           Data.Char (isDigit)
 import qualified Control.Exception as E
 import           Control.Exception.Safe (catch, catchAny)
-import           Control.Monad (ap, unless)
+import           Control.Monad (unless)
 import           Control.Monad.Except (ExceptT(..),runExceptT, MonadError(..))
 import           Control.Monad.Reader (ReaderT(..), ask)
 import           Control.Monad.State (StateT, MonadIO(..), modify, gets, evalStateT)
@@ -54,7 +54,6 @@ import           System.IO.Error (isEOFError, tryIOError, ioeGetErrorType)
 import           Text.Printf (printf)
 import qualified GHC.IO.Exception as GE
 
-import qualified Prelude
 import           Prelude hiding (break, drop, dropWhile, read)
 import           Data.ByteString.Char8 (ByteString, isPrefixOf, break, drop, dropWhile)
 import qualified Data.ByteString.Char8 as B
@@ -85,11 +84,7 @@ newtype MPD a =
     MPD { runMPD :: ExceptT MPDError
                     (StateT MPDState
                      (ReaderT (Host, Port) IO)) a
-        } deriving (Functor, Monad, MonadIO, MonadError MPDError)
-
-instance Applicative MPD where
-    (<*>) = ap
-    pure  = return
+        } deriving (Functor, Applicative, Monad, MonadIO, MonadError MPDError)
 
 instance MonadMPD MPD where
     open  = mpdOpen
@@ -140,10 +135,9 @@ mpdOpen = MPD $ do
             `catchAny` const (return Nothing)
         checkConn = do
             singleMsg <- send ""
-            let [msg] = singleMsg
-            if "OK MPD" `isPrefixOf` msg
-                then MPD $ checkVersion $ parseVersion msg
-                else return False
+            case singleMsg of
+                [msg] | "OK MPD" `isPrefixOf` msg -> MPD $ checkVersion $ parseVersion msg
+                _                                 -> pure False
 
         checkVersion Nothing = throwError $ Custom "Couldn't determine MPD version"
         checkVersion (Just version)
@@ -234,12 +228,10 @@ getResponse cmd = (send cmd >>= parseResponse) `catchError` sendpw
 
 -- Consume response and return a Response.
 parseResponse :: (MonadError MPDError m) => [ByteString] -> m [ByteString]
-parseResponse xs
-    | null xs                    = throwError $ NoMPD
+parseResponse [] = throwError $ NoMPD
+parseResponse xs@(x : _)
     | "ACK" `isPrefixOf` x       = throwError $ parseAck x
     | otherwise                  = return $ Prelude.takeWhile ("OK" /=) xs
-    where
-        x = head xs
 
 -- Turn MPD ACK into the corresponding 'MPDError'
 parseAck :: ByteString -> MPDError

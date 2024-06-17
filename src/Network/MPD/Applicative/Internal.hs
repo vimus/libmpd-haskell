@@ -45,14 +45,13 @@ newtype Parser a
       deriving Functor
 
 instance Monad Parser where
-    return a  = Parser $ \input -> Right (a, input)
     p1 >>= p2 = Parser $ \input -> runParser p1 input >>= uncurry (runParser . p2)
 
 instance Fail.MonadFail Parser where
     fail = Prelude.fail
 
 instance Applicative Parser where
-    pure  = return
+    pure  a = Parser $ \input -> Right (a, input)
     (<*>) = ap
 
 -- | Convert a regular parser.
