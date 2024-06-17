@@ -20,13 +20,15 @@ Stability:          beta
 Homepage:           http://github.com/vimus/libmpd-haskell#readme
 Bug-reports:        http://github.com/vimus/libmpd-haskell/issues
 
-Tested-With:        GHC ==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.3
+Tested-With:        GHC==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.3, GHC==9.8.2
 Build-Type:         Simple
 
 Extra-Source-Files:
     README.md
-    changelog.md
     tests/*.hs
+
+Extra-Doc-Files:
+    changelog.md
 
 Source-Repository head
     type:       git
@@ -50,7 +52,7 @@ Library
 
         -- Additional dependencies
       , data-default-class >= 0.0.1 && < 1
-      , network >= 2.6.3.5
+      , network >= 3 && < 3.3
       , safe-exceptions >= 0.1 && < 0.2
       , utf8-string >= 0.3.1 && < 1.1
 
@@ -103,7 +105,7 @@ Test-Suite specs
     Default-Language:   Haskell2010
     Main-Is:            Main.hs
     Hs-Source-Dirs:     src tests
-    cpp-options:        -DTEST -Wall -Werror
+    cpp-options:        -DTEST
     ghc-options:        -fno-warn-missing-signatures
 
     Build-Depends:
